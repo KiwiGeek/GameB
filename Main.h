@@ -7,3 +7,5 @@ LRESULT MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WP
 DWORD CreateMainGameWindow(void);
 
 BOOL GameIsAlreadyRunning(void);
+
+void ProcessPlayerInput(void);
