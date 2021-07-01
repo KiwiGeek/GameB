@@ -13,9 +13,11 @@ HWND gGameWindow;
 BOOL gGameIsRunning;
 GAMEBITMAP gBackBuffer;
 MONITORINFO gMonitorInfo = { sizeof(MONITORINFO) };
+int32_t gMonitorWidth;
+int32_t gMonitorHeight;
 
 int WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR CommandLine, INT CmdShow)
-{	
+{
 	UNREFERENCED_PARAMETER(Instance);
 	UNREFERENCED_PARAMETER(PreviousInstance);
 	UNREFERENCED_PARAMETER(CommandLine);
@@ -46,7 +48,7 @@ int WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR CommandLine, IN
 	}
 
 	memset(gBackBuffer.Memory, 0x7F, GAME_DRAWING_AREA_MEMORY_SIZE);
-	
+
 	MSG message = { 0 };
 
 	gGameIsRunning = TRUE;
@@ -95,6 +97,7 @@ LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ 
 
 DWORD CreateMainGameWindow(void)
 {
+
 	DWORD result = ERROR_SUCCESS;
 
 	WNDCLASSEXA windowClass = { 0 };
@@ -111,6 +114,8 @@ DWORD CreateMainGameWindow(void)
 	windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255));
 	windowClass.lpszMenuName = NULL;
 	windowClass.lpszClassName = GAME_NAME "_WINDOWCLASS";
+
+	//SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
 	if (RegisterClassExA(&windowClass) == 0)
 	{
@@ -136,9 +141,22 @@ DWORD CreateMainGameWindow(void)
 		goto Exit;
 	}
 
-	int MonitorWidth = gMonitorInfo.rcMonitor.right - gMonitorInfo.rcMonitor.left;
-	int MonitorHeight = gMonitorInfo.rcMonitor.bottom - gMonitorInfo.rcMonitor.top;
-	
+	gMonitorWidth = gMonitorInfo.rcMonitor.right - gMonitorInfo.rcMonitor.left;
+	gMonitorHeight = gMonitorInfo.rcMonitor.bottom - gMonitorInfo.rcMonitor.top;
+
+	if (SetWindowLongPtrA(gGameWindow, GWL_STYLE, (WS_OVERLAPPEDWINDOW | WS_VISIBLE) & ~WS_OVERLAPPEDWINDOW) == 0)
+	{
+		result = GetLastError();
+		goto Exit;
+	}
+	if (SetWindowPos(gGameWindow, HWND_TOP,
+					 gMonitorInfo.rcMonitor.left, gMonitorInfo.rcMonitor.top,
+					 gMonitorWidth, gMonitorHeight, SWP_NOOWNERZORDER | SWP_FRAMECHANGED) == 0)
+	{
+		result = GetLastError();
+		goto Exit;
+	}
+
 Exit:
 	return result;
 }
@@ -157,21 +175,35 @@ BOOL GameIsAlreadyRunning(void)
 
 void ProcessPlayerInput(void)
 {
-	short EscapeKeyIsDown = GetAsyncKeyState(VK_ESCAPE);
+	int16_t EscapeKeyIsDown = GetAsyncKeyState(VK_ESCAPE);
 
 	if (EscapeKeyIsDown)
 	{
 		SendMessageA(gGameWindow, WM_CLOSE, 0, 0);
-	}	
+	}
 }
 
 void RenderFrameGraphics(void)
 {
+
+	//memset(gBackBuffer.Memory, 0xFF, GAME_RES_WIDTH * GAME_RES_HEIGHT * 4);
+
+	PIXEL32 Pixel = { 0 };
+	Pixel.Blue = 0xff;
+	Pixel.Green = 0x0;
+	Pixel.Red = 0x0;
+	Pixel.Alpha = 0x0;
+	
+	for (int x = 0; x < GAME_RES_WIDTH * GAME_RES_HEIGHT; x++)
+	{
+		memcpy((PIXEL32*)gBackBuffer.Memory + x, &Pixel, sizeof(PIXEL32));
+	}
+
 	HDC DeviceContext = GetDC(gGameWindow);
 
-	StretchDIBits(DeviceContext, 0, 0, 100, 100, 
-				  0, 0, GAME_RES_WIDTH, GAME_RES_HEIGHT, 
+	StretchDIBits(DeviceContext, 0, 0, gMonitorWidth, gMonitorHeight,
+				  0, 0, GAME_RES_WIDTH, GAME_RES_HEIGHT,
 				  gBackBuffer.Memory, &gBackBuffer.BitmapInfo, DIB_RGB_COLORS, SRCCOPY);
-	
+
 	ReleaseDC(gGameWindow, DeviceContext);
 }
