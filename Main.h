@@ -12,6 +12,10 @@
 #pragma warning(disable: 4820)	// disable warning about structure padding
 #pragma warning(disable: 5045)	// disable warning about Spectre/Meltdown CPU vulnerability
 
+typedef LONG(NTAPI* _NtQueryTimerResolution) (OUT PULONG MinimumResolution, OUT PULONG MaximumResolution, OUT PULONG CurrentResolution);
+
+_NtQueryTimerResolution NtQueryTimerResolution;
+
 typedef struct GAMEBITMAP
 {
 	BITMAPINFO BitmapInfo;
@@ -36,6 +40,9 @@ typedef struct GAMEPERFDATA
 	int32_t MonitorWidth;
 	int32_t MonitorHeight;
 	BOOL DisplayDebugInfo;
+	ULONG MinimumTimerResolution;
+	ULONG MaximumTimerResolution;
+	ULONG CurrentTimerResolution;
 } GAMEPERFDATA;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
@@ -43,3 +50,4 @@ DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
 void ProcessPlayerInput(void);
 void RenderFrameGraphics(void);
+void ClearScreen(_In_ __m128i Color);
