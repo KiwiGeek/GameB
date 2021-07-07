@@ -7,7 +7,7 @@
 #define GAME_BPP		32
 #define GAME_DRAWING_AREA_MEMORY_SIZE	(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
 #define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
-#define TARGET_MICROSECONDS_PER_FRAME			16667
+#define TARGET_MICROSECONDS_PER_FRAME			16667ULL
 #define SIMD
 
 #pragma warning(disable: 4820)	// disable warning about structure padding
@@ -49,20 +49,14 @@ typedef struct GAMEPERFDATA
 	SYSTEM_INFO SystemInfo;
 	int64_t CurrentSystemTime;
 	int64_t PreviousSystemTime;
-	FILETIME ProcessCreationTime;
-	FILETIME ProcessExitTime;
-	int64_t CurrentUserCPUTime;
-	int64_t CurrentKernelCPUTime;
-	int64_t PreviousUserCPUTime;
-	int64_t PreviousKernelCPUTime;
 	double CPUPercent;
 } GAMEPERFDATA;
 
 typedef struct PLAYER
 {
 	char Name[12];
-	int32_t WorldPosX;
-	int32_t WorldPosY;
+	int32_t ScreenPosX;
+	int32_t ScreenPosY;
 	int32_t HP;
 	int32_t Strength;
 	int32_t MP;
