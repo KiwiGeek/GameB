@@ -17,7 +17,7 @@ HWND gGameWindow;
 BOOL gGameIsRunning;
 GAMEBITMAP gBackBuffer;
 GAMEPERFDATA gPerformanceData;
-PLAYER gPlayer;
+HERO gPlayer;
 BOOL gWindowHasFocus;
 
 int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR CommandLine, INT CmdShow)
@@ -106,8 +106,11 @@ int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR Comman
 
 	memset(gBackBuffer.Memory, 0x7F, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	gPlayer.ScreenPosX = 25;
-	gPlayer.ScreenPosY = 25;
+	if (InitializeHero() != ERROR_SUCCESS) 
+	{
+		MessageBox(NULL, "Failed to initialize hero!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		goto Exit;
+	}
 
 	gGameIsRunning = TRUE;
 
@@ -367,6 +370,97 @@ void ProcessPlayerInput(void)
 	RightKeyWasDown = RightKeyIsDown;
 	UpKeyWasDown = UpKeyIsDown;
 	DownKeyWasDown = DownKeyIsDown;
+}
+
+DWORD Load32BbpBitmapFromFile(_In_ char* Filename, _Inout_ GAMEBITMAP* GameBitmap)
+{
+	DWORD Error = ERROR_SUCCESS;
+	HANDLE FileHandle = INVALID_HANDLE_VALUE;
+	WORD BitmapHeader = 0;
+	DWORD PixelDataOffset = 0;
+	DWORD NumberOfBytesRead = 2;
+
+	if ((FileHandle = CreateFileA(Filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+	{
+		Error = GetLastError();
+		goto Exit;
+	}
+
+	if (ReadFile(FileHandle, &BitmapHeader, 2, &NumberOfBytesRead, NULL) == 0)
+	{
+		Error = GetLastError();
+		goto Exit;
+	}
+
+	if (BitmapHeader != 0x4D42) // "BM" Backwards
+	{
+		Error = ERROR_FILE_INVALID;
+		goto Exit;
+	}
+
+	if (SetFilePointer(FileHandle, 0xA, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+	{
+		Error = GetLastError();
+		goto Exit;
+	}
+
+	if (ReadFile(FileHandle, &PixelDataOffset, sizeof(DWORD), &NumberOfBytesRead, NULL) == 0)
+	{
+		Error = GetLastError();
+		goto Exit;
+	}
+
+	if (SetFilePointer(FileHandle, 0xE, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+	{
+		Error = GetLastError();
+		goto Exit;
+	}
+
+	if (ReadFile(FileHandle, &GameBitmap->BitmapInfo.bmiHeader, sizeof(BITMAPINFOHEADER), &NumberOfBytesRead, NULL) == 0)
+	{
+		Error = GetLastError();
+		goto Exit;
+	}
+
+	if ((GameBitmap->Memory = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, GameBitmap->BitmapInfo.bmiHeader.biSizeImage)) == NULL)
+	{
+		Error = ERROR_NOT_ENOUGH_MEMORY;
+		goto Exit;
+	}
+
+	if (SetFilePointer(FileHandle, PixelDataOffset, NULL, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+	{
+		Error = GetLastError();
+		goto Exit;
+	}
+
+	if (ReadFile(FileHandle, GameBitmap->Memory, GameBitmap->BitmapInfo.bmiHeader.biSizeImage, &NumberOfBytesRead, NULL) == 0)
+	{
+		Error = GetLastError();
+		goto Exit;
+	}
+	
+Exit:
+
+	if (FileHandle && (FileHandle != INVALID_HANDLE_VALUE))
+	{
+		CloseHandle(FileHandle);
+	}
+	return Error;
+}
+
+DWORD InitializeHero(void) {
+	DWORD Error = ERROR_SUCCESS;
+	gPlayer.ScreenPosX = 25;
+	gPlayer.ScreenPosY = 25;
+	if ((Error = Load32BbpBitmapFromFile("W:\\GameB\\Assets\\Hero_Suit1_Down_Standing.bmpx", &gPlayer.Sprite[SUIT_0][FACING_DOWN_0])) != ERROR_SUCCESS)
+	{
+		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		goto Exit;
+	}
+	
+Exit:
+	return Error;
 }
 
 void RenderFrameGraphics(void)

@@ -173,13 +173,6 @@
   <ItemGroup>
     <ClInclude Include="Main.h" />
   </ItemGroup>
-  <ItemGroup>
-    <Image Include="Assets\Chara-Main.png" />
-    <Image Include="Assets\WIP_Chara-Main.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\Hero_Suit1_Down_Standing.bmpx" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
