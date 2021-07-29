@@ -25,7 +25,10 @@
 #define FACING_UPWARD_1	10
 #define FACING_UPWARD_2	11
 
-
+#define DIRECTION_DOWN	0
+#define DIRECTION_LEFT	3
+#define DIRECTION_RIGHT	6
+#define DIRECTION_UP	9
 
 #pragma warning(disable: 4820)	// disable warning about structure padding
 #pragma warning(disable: 5045)	// disable warning about Spectre/Meltdown CPU vulnerability
@@ -75,6 +78,10 @@ typedef struct HERO
 	GAMEBITMAP Sprite[3][12];
 	int32_t ScreenPosX;
 	int32_t ScreenPosY;
+	uint8_t MovementRemaining;
+	uint8_t Direction;
+	uint8_t CurrentArmor;
+	uint8_t SpriteIndex;
 	int32_t HP;
 	int32_t Strength;
 	int32_t MP;
