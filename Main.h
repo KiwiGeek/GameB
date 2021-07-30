@@ -32,6 +32,14 @@
 
 #define FONT_SHEET_CHARACTERS_PER_ROW	98
 
+#define LOG_LEVEL_NONE	0
+#define LOG_LEVEL_INFO	1
+#define LOG_LEVEL_WARN	2
+#define LOG_LEVEL_ERROR	3
+#define LOG_LEVEL_DEBUG	4
+
+#define LOG_FILE_NAME GAME_NAME ".log"
+
 #pragma warning(disable: 4820)	// disable warning about structure padding
 #pragma warning(disable: 5045)	// disable warning about Spectre/Meltdown CPU vulnerability
 
@@ -78,8 +86,8 @@ typedef struct HERO
 {
 	char Name[12];
 	GAMEBITMAP Sprite[3][12];
-	int32_t ScreenPosX;
-	int32_t ScreenPosY;
+	int16_t ScreenPosX;
+	int16_t ScreenPosY;
 	uint8_t MovementRemaining;
 	uint8_t Direction;
 	uint8_t CurrentArmor;
@@ -89,6 +97,11 @@ typedef struct HERO
 	int32_t MP;
 } HERO;
 
+typedef struct REGISTRYPARAMS
+{
+	DWORD LogLevel;
+} REGISTRYPARAMS;
+
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
@@ -96,8 +109,11 @@ void ProcessPlayerInput(void);
 DWORD Load32BbpBitmapFromFile(_In_ char* Filename, _Inout_ GAMEBITMAP* GameBitmap);
 DWORD InitializeHero(void);
 void Blit32BppBitmapToBuffer(_In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ uint16_t y);
-void BlitStringToBuffer(_In_ char* String, _In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ uint16_t y);
+void BlitStringToBuffer(_In_ char* String, _In_ GAMEBITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y);
 void RenderFrameGraphics(void);
+DWORD LoadRegistryParameters(void);
+void LogMessageA(_In_ DWORD LogLevel, _In_ char* Message, _In_ ...);
+
 #ifdef SIMD
 void ClearScreen(_In_ __m128i* Color);
 #else
