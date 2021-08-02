@@ -1,5 +1,7 @@
 #pragma once
 
+#define ASSERT(Expression) if (!(Expression)) { *(int*)0 = 0; }
+
 #define GAME_NAME	"Game_B"
 
 #define GAME_RES_WIDTH  384
@@ -25,20 +27,25 @@
 #define FACING_UPWARD_1	10
 #define FACING_UPWARD_2	11
 
-#define DIRECTION_DOWN	0
-#define DIRECTION_LEFT	3
-#define DIRECTION_RIGHT	6
-#define DIRECTION_UP	9
+typedef enum DIRECTION
+{
+	Down = 0,
+	Left = 3,
+	Right = 6,
+	Up = 9
+} DIRECTION;
 
-#define FONT_SHEET_CHARACTERS_PER_ROW	98
-
-#define LOG_LEVEL_NONE	0
-#define LOG_LEVEL_INFO	1
-#define LOG_LEVEL_WARN	2
-#define LOG_LEVEL_ERROR	3
-#define LOG_LEVEL_DEBUG	4
+typedef enum LOGLEVEL
+{
+	None = 0,
+	Error = 1,
+	Warning = 2,
+	Informational = 3,
+	Debug = 4
+} LOGLEVEL;
 
 #define LOG_FILE_NAME GAME_NAME ".log"
+#define FONT_SHEET_CHARACTERS_PER_ROW	98
 
 #pragma warning(disable: 4820)	// disable warning about structure padding
 #pragma warning(disable: 5045)	// disable warning about Spectre/Meltdown CPU vulnerability
@@ -89,7 +96,7 @@ typedef struct HERO
 	int16_t ScreenPosX;
 	int16_t ScreenPosY;
 	uint8_t MovementRemaining;
-	uint8_t Direction;
+	DIRECTION Direction;
 	uint8_t CurrentArmor;
 	uint8_t SpriteIndex;
 	int32_t HP;
@@ -113,6 +120,7 @@ void BlitStringToBuffer(_In_ char* String, _In_ GAMEBITMAP* FontSheet, _In_ PIXE
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);
 void LogMessageA(_In_ DWORD LogLevel, _In_ char* Message, _In_ ...);
+void DrawDebugInfo(void);
 
 #ifdef SIMD
 void ClearScreen(_In_ __m128i* Color);
