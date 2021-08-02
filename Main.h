@@ -1,9 +1,13 @@
 #pragma once
 
-#define ASSERT(Expression) if (!(Expression)) { *(int*)0 = 0; }
+#ifdef _DEBUG
+#define ASSERT(Expression, Message) if (!(Expression)) { *(int*)0 = 0; }
+#else
+#define ASSERT(Expression, Message) ((void)0);
+#endif
 
 #define GAME_NAME	"Game_B"
-
+#define GAME_VER	"0.9a"
 #define GAME_RES_WIDTH  384
 #define GAME_RES_HEIGHT	240
 #define GAME_BPP		32
@@ -28,20 +32,20 @@
 #define FACING_UPWARD_2	11
 
 typedef enum DIRECTION
-{
-	Down = 0,
-	Left = 3,
-	Right = 6,
-	Up = 9
+{ 
+	DOWN = 0,
+	LEFT = 3,
+	RIGHT = 6,
+	UP = 9
 } DIRECTION;
 
 typedef enum LOGLEVEL
 {
-	None = 0,
-	Error = 1,
-	Warning = 2,
-	Informational = 3,
-	Debug = 4
+	LL_NONE = 0,
+	LL_ERROR = 1,
+	LL_WARNING = 2,
+	LL_INFO = 3,
+	LL_DEBUG = 4
 } LOGLEVEL;
 
 #define LOG_FILE_NAME GAME_NAME ".log"
@@ -119,8 +123,9 @@ void Blit32BppBitmapToBuffer(_In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ 
 void BlitStringToBuffer(_In_ char* String, _In_ GAMEBITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y);
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);
-void LogMessageA(_In_ DWORD LogLevel, _In_ char* Message, _In_ ...);
+void LogMessageA(_In_ LOGLEVEL LogLevel, _In_ char* Message, _In_ ...);
 void DrawDebugInfo(void);
+void FindFirstConnectedGamepad(void);
 
 #ifdef SIMD
 void ClearScreen(_In_ __m128i* Color);

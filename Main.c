@@ -1,17 +1,26 @@
 #pragma warning(disable: 28251)
 #pragma warning(disable: 4668 4711)
 
+#define SIMD
+
 #pragma warning(push, 3)
 #include <stdio.h>
 #include <Windows.h>
 #include <Psapi.h>
+
+#ifdef SIMD
 #include <emmintrin.h>
+#endif
+
 #pragma warning(pop)
 
+#include <Xinput.h>
 #include <stdint.h>
 #include "Main.h"
+#include "Menus.h"
 
 #pragma comment(lib, "Winmm.lib")
+#pragma comment(lib, "XInput.lib")
 
 HWND gGameWindow;
 BOOL gGameIsRunning;
@@ -21,8 +30,10 @@ GAMEPERFDATA gPerformanceData;
 HERO gPlayer;
 BOOL gWindowHasFocus;
 REGISTRYPARAMS gRegistryParams;
+XINPUT_STATE gGamepadState;
+int8_t gGamepadID = -1;
 
-int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR CommandLine, INT CmdShow)
+int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ PSTR CommandLine, _In_ INT CmdShow)
 {
 	UNREFERENCED_PARAMETER(Instance);
 	UNREFERENCED_PARAMETER(PreviousInstance);
@@ -51,14 +62,14 @@ int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR Comman
 
 	if ((NtDllModuleHandle = GetModuleHandleA("ntdll.dll")) == NULL)
 	{
-		LogMessageA(Error, "[%s] Couldn't load ntdll.dll! Error 0x%081x!", __FUNCTION__, GetLastError());
+		LogMessageA(LL_ERROR, "[%s] Couldn't load ntdll.dll! Error 0x%081x!", __FUNCTION__, GetLastError());
 		MessageBoxA(NULL, "Couldn't load ntdll.dll!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
 
 	if ((NtQueryTimerResolution = (_NtQueryTimerResolution)GetProcAddress(NtDllModuleHandle, "NtQueryTimerResolution")) == NULL)
 	{
-		LogMessageA(Error, "[%s] Couldn't find the NtQueryTimerResolution function in ntdll.dll! GetProcAddress failed! Error 0x%081x!", __FUNCTION__, GetLastError());
+		LogMessageA(LL_ERROR, "[%s] Couldn't find the NtQueryTimerResolution function in ntdll.dll! GetProcAddress failed! Error 0x%081x!", __FUNCTION__, GetLastError());
 		MessageBoxA(NULL, "Couldn't find the NtQueryTimerResolution function in ntdll.dll!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
@@ -69,41 +80,41 @@ int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR Comman
 
 	if (GameIsAlreadyRunning())
 	{
-		LogMessageA(Warning, "[%s] Another instance of this program is already running!", __FUNCTION__);
+		LogMessageA(LL_ERROR, "[%s] Another instance of this program is already running!", __FUNCTION__);
 		MessageBoxA(NULL, "Another instance of this program is already running!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 
 	if (timeBeginPeriod(1) == TIMERR_NOCANDO)
 	{
-		LogMessageA(Error, "[%s] Failed to set global timer resolution!", __FUNCTION__);
+		LogMessageA(LL_ERROR, "[%s] Failed to set global timer resolution!", __FUNCTION__);
 		MessageBoxA(NULL, "Failed to set global timer resolution!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 
 	if (SetPriorityClass(ProcessHandle, HIGH_PRIORITY_CLASS) == 0)
 	{
-		LogMessageA(Error, "[%s] Failed to set process priority! Error 0x%081x", __FUNCTION__, GetLastError());
+		LogMessageA(LL_ERROR, "[%s] Failed to set process priority! Error 0x%081x", __FUNCTION__, GetLastError());
 		MessageBoxA(NULL, "Failed to set process priority!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
 
 	if (SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST) == 0)
 	{
-		LogMessageA(Error, "[%s] Failed to set thread priority! Error 0x%081x", __FUNCTION__, GetLastError());
+		LogMessageA(LL_ERROR, "[%s] Failed to set thread priority! Error 0x%081x", __FUNCTION__, GetLastError());
 		MessageBoxA(NULL, "Failed to set thread priority!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
 
 	if (CreateMainGameWindow() != ERROR_SUCCESS)
 	{
-		LogMessageA(Error, "[%s] CreateMainGameWindow failed!", __FUNCTION__);
+		LogMessageA(LL_ERROR, "[%s] CreateMainGameWindow failed!", __FUNCTION__);
 		goto Exit;
 	}
 
 	if (Load32BbpBitmapFromFile(".\\Assets\\6x7Font.bmpx", &g6x7Font) != ERROR_SUCCESS)
 	{
-		LogMessageA(Error, "[%s] Loading 6x7Font.bmpx failed!", __FUNCTION__);
+		LogMessageA(LL_ERROR, "[%s] Loading 6x7Font.bmpx failed!", __FUNCTION__);
 		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
@@ -121,7 +132,7 @@ int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR Comman
 	gBackBuffer.Memory = VirtualAlloc(NULL, GAME_DRAWING_AREA_MEMORY_SIZE, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 	if (gBackBuffer.Memory == NULL)
 	{
-		LogMessageA(Error, "[%s] Failed to allocate memory for drawing surface! Error 0x%081x!", __FUNCTION__, GetLastError());
+		LogMessageA(LL_ERROR, "[%s] Failed to allocate memory for drawing surface! Error 0x%081x!", __FUNCTION__, GetLastError());
 		MessageBox(NULL, "Failed to allocate memory for drawing surface!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
@@ -130,7 +141,7 @@ int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR Comman
 
 	if (InitializeHero() != ERROR_SUCCESS)
 	{
-		LogMessageA(Error, "[%s] Failed to initialize hero!", __FUNCTION__);
+		LogMessageA(LL_ERROR, "[%s] Failed to initialize hero!", __FUNCTION__);
 		MessageBox(NULL, "Failed to initialize hero!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
@@ -147,7 +158,6 @@ int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR Comman
 		}
 
 		ProcessPlayerInput();
-
 		RenderFrameGraphics();
 
 		QueryPerformanceCounter((LARGE_INTEGER*)&FrameEnd);
@@ -175,6 +185,9 @@ int _stdcall WinMain(HINSTANCE Instance, HINSTANCE PreviousInstance, PSTR Comman
 		if (gPerformanceData.TotalFramesRendered % CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES == 0)
 		{
 			GetSystemTimeAsFileTime((LPFILETIME)&gPerformanceData.CurrentSystemTime);
+
+			FindFirstConnectedGamepad();
+			
 			GetProcessTimes(ProcessHandle,
 							&ProcessCreationTime,
 							&ProcessExitTime,
@@ -270,7 +283,7 @@ DWORD CreateMainGameWindow(void)
 	if (RegisterClassExA(&windowClass) == 0)
 	{
 		result = GetLastError();
-		LogMessageA(Error, "[%s] RegisterClassExA Failed! Error 0x%081x!", __FUNCTION__, result);
+		LogMessageA(LL_ERROR, "[%s] RegisterClassExA Failed! Error 0x%081x!", __FUNCTION__, result);
 		MessageBox(NULL, "Window Registration Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
@@ -282,7 +295,7 @@ DWORD CreateMainGameWindow(void)
 	if (gGameWindow == NULL)
 	{
 		result = GetLastError();
-		LogMessageA(Error, "[%s] CreateWindowExA Failed! Error 0x%081x!", __FUNCTION__, result);
+		LogMessageA(LL_ERROR, "[%s] CreateWindowExA Failed! Error 0x%081x!", __FUNCTION__, result);
 		MessageBox(NULL, "Window Creation Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
@@ -291,7 +304,7 @@ DWORD CreateMainGameWindow(void)
 	if (GetMonitorInfoA(MonitorFromWindow(gGameWindow, MONITOR_DEFAULTTOPRIMARY), &gPerformanceData.MonitorInfo) == 0)
 	{
 		result = ERROR_MONITOR_NO_DESCRIPTOR;
-		LogMessageA(Error, "[%s] GetMonitorInfoA(MonitorFromWindow()) failed! Error 0x%081x!", __FUNCTION__, result);
+		LogMessageA(LL_ERROR, "[%s] GetMonitorInfoA(MonitorFromWindow()) failed! Error 0x%081x!", __FUNCTION__, result);
 		goto Exit;
 	}
 
@@ -301,7 +314,7 @@ DWORD CreateMainGameWindow(void)
 	if (SetWindowLongPtrA(gGameWindow, GWL_STYLE, WS_VISIBLE) == 0)
 	{
 		result = GetLastError();
-		LogMessageA(Error, "[%s] SetWindowLongPtrA failed! Error 0x%081x!", __FUNCTION__, result);
+		LogMessageA(LL_ERROR, "[%s] SetWindowLongPtrA failed! Error 0x%081x!", __FUNCTION__, result);
 		goto Exit;
 	}
 	if (SetWindowPos(gGameWindow, HWND_TOP,
@@ -309,7 +322,7 @@ DWORD CreateMainGameWindow(void)
 					 gPerformanceData.MonitorWidth, gPerformanceData.MonitorHeight, SWP_NOOWNERZORDER | SWP_FRAMECHANGED) == 0)
 	{
 		result = GetLastError();
-		LogMessageA(Error, "[%s] SetWindowLongPtrA failed! Error 0x%081x!", __FUNCTION__, result);
+		LogMessageA(LL_ERROR, "[%s] SetWindowLongPtrA failed! Error 0x%081x!", __FUNCTION__, result);
 		goto Exit;
 	}
 
@@ -351,6 +364,18 @@ void ProcessPlayerInput(void)
 	static int16_t UpKeyWasDown;
 	static int16_t DownKeyWasDown;
 
+	if (gGamepadID > -1)
+	{
+		if (XInputGetState(gGamepadID, &gGamepadState) == ERROR_SUCCESS)
+		{
+			EscapeKeyIsDown |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK);
+			LeftKeyIsDown   |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
+			RightKeyIsDown  |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
+			UpKeyIsDown     |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);
+			DownKeyIsDown   |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
+		}
+	}
+
 	if (EscapeKeyIsDown)
 	{
 		SendMessageA(gGameWindow, WM_CLOSE, 0, 0);
@@ -368,7 +393,7 @@ void ProcessPlayerInput(void)
 			if (gPlayer.ScreenPosY < GAME_RES_HEIGHT - 16)
 			{
 				gPlayer.MovementRemaining = 16;
-				gPlayer.Direction = Down;
+				gPlayer.Direction = DOWN;
 			}
 		}
 
@@ -377,7 +402,7 @@ void ProcessPlayerInput(void)
 			if (gPlayer.ScreenPosX > 0)
 			{
 				gPlayer.MovementRemaining = 16;
-				gPlayer.Direction = Left;
+				gPlayer.Direction = LEFT;
 			}
 		}
 
@@ -386,7 +411,7 @@ void ProcessPlayerInput(void)
 			if (gPlayer.ScreenPosX < GAME_RES_WIDTH - 16)
 			{
 				gPlayer.MovementRemaining = 16;
-				gPlayer.Direction = Right;
+				gPlayer.Direction = RIGHT;
 			}
 		}
 		
@@ -395,26 +420,26 @@ void ProcessPlayerInput(void)
 			if (gPlayer.ScreenPosY > 0)
 			{
 				gPlayer.MovementRemaining = 16;
-				gPlayer.Direction = Up;
+				gPlayer.Direction = UP;
 			}
 		}
 	}
 	else
 	{
 		gPlayer.MovementRemaining--;
-		if (gPlayer.Direction == Down)
+		if (gPlayer.Direction == DOWN)
 		{
 			gPlayer.ScreenPosY++;
 		}
-		else if (gPlayer.Direction == Left)
+		else if (gPlayer.Direction == LEFT)
 		{
 			gPlayer.ScreenPosX--;
 		}
-		else if (gPlayer.Direction == Right)
+		else if (gPlayer.Direction == RIGHT)
 		{
 			gPlayer.ScreenPosX++;
 		}
-		else if (gPlayer.Direction == Up)
+		else if (gPlayer.Direction == UP)
 		{
 			gPlayer.ScreenPosY--;
 		}
@@ -534,77 +559,87 @@ Exit:
 	{
 		CloseHandle(FileHandle);
 	}
+
+	if (Error == ERROR_SUCCESS)
+	{
+		LogMessageA(LL_INFO, "[%s] Loading successful: %s", __FUNCTION__, Filename);
+	}
+	else
+	{
+		LogMessageA(LL_ERROR, "[%s] Loading failed: %s!  Error 0x%081x!", __FUNCTION__, Filename, Error);
+	}
+	
 	return Error;
 }
 
 DWORD InitializeHero(void) {
 	DWORD Error = ERROR_SUCCESS;
-	gPlayer.ScreenPosX = 32;
-	gPlayer.ScreenPosY = 32;
+	gPlayer.ScreenPosX = 192;
+	gPlayer.ScreenPosY = 64;
 	gPlayer.CurrentArmor = SUIT_0;
-	gPlayer.Direction = Down;
+	gPlayer.Direction = DOWN;
 
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Down_Standing.bmpx", &gPlayer.Sprite[SUIT_0][FACING_DOWN_0])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Down_Walk1.bmpx", &gPlayer.Sprite[SUIT_0][FACING_DOWN_1])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Down_Walk2.bmpx", &gPlayer.Sprite[SUIT_0][FACING_DOWN_2])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Left_Standing.bmpx", &gPlayer.Sprite[SUIT_0][FACING_LEFT_0])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Left_Walk1.bmpx", &gPlayer.Sprite[SUIT_0][FACING_LEFT_1])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Left_Walk2.bmpx", &gPlayer.Sprite[SUIT_0][FACING_LEFT_2])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Right_Standing.bmpx", &gPlayer.Sprite[SUIT_0][FACING_RIGHT_0])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Right_Walk1.bmpx", &gPlayer.Sprite[SUIT_0][FACING_RIGHT_1])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Right_Walk2.bmpx", &gPlayer.Sprite[SUIT_0][FACING_RIGHT_2])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Up_Standing.bmpx", &gPlayer.Sprite[SUIT_0][FACING_UPWARD_0])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Up_Walk1.bmpx", &gPlayer.Sprite[SUIT_0][FACING_UPWARD_1])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 	if ((Error = Load32BbpBitmapFromFile(".\\Assets\\Hero_Suit0_Up_Walk2.bmpx", &gPlayer.Sprite[SUIT_0][FACING_UPWARD_2])) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
+		MessageBoxA(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 		goto Exit;
 	}
 
@@ -1168,10 +1203,6 @@ void RenderFrameGraphics(void)
 	ClearScreen(&Pixel);
 #endif
 
-	PIXEL32 Green = { 0, 255, 0, 255 };
-	
-	BlitStringToBuffer("GAME OVER", &g6x7Font, &Green, 60, 60);
-	
 	Blit32BppBitmapToBuffer(&gPlayer.Sprite[gPlayer.CurrentArmor][(gPlayer.Direction + gPlayer.SpriteIndex)], gPlayer.ScreenPosX, gPlayer.ScreenPosY);
 
 	if (gPerformanceData.DisplayDebugInfo == TRUE)
@@ -1246,17 +1277,17 @@ DWORD LoadRegistryParameters(void)
 
 	if (Result != ERROR_SUCCESS)
 	{
-		LogMessageA(Error, "[%s] RegCreateKey failed with error code 0x%08lx!", __FUNCTION__, Result);
+		LogMessageA(LL_ERROR, "[%s] RegCreateKey failed with error code 0x%08lx!", __FUNCTION__, Result);
 		goto Exit;
 	}
 
 	if (RegDisposition == REG_CREATED_NEW_KEY)
 	{
-		LogMessageA(Informational, "[%s] Registry key did not exist; created new key HKCU\\SOFTWARE\\%s.", __FUNCTION__, GAME_NAME);
+		LogMessageA(LL_INFO, "[%s] Registry key did not exist; created new key HKCU\\SOFTWARE\\%s.", __FUNCTION__, GAME_NAME);
 	}
 	else
 	{
-		LogMessageA(Informational, "[%s] Opened existing registry key HKCU\\SOFTWARE\\%s", __FUNCTION__, GAME_NAME);
+		LogMessageA(LL_INFO, "[%s] Opened existing registry key HKCU\\SOFTWARE\\%s", __FUNCTION__, GAME_NAME);
 	}
 
 	Result = RegGetValueA(RegKey, NULL, "LogLevel", RRF_RT_DWORD, NULL, (BYTE*)&gRegistryParams.LogLevel, &RegBytesRead);
@@ -1266,17 +1297,17 @@ DWORD LoadRegistryParameters(void)
 		if (Result == ERROR_FILE_NOT_FOUND)
 		{
 			Result = ERROR_SUCCESS;
-			LogMessageA(Informational, "[%s] Registry value 'LogLevel' not found. Using default of 0. (LOG_LEVEL_NONE)", __FUNCTION__);
-			gRegistryParams.LogLevel = None;
+			LogMessageA(LL_INFO, "[%s] Registry value 'LogLevel' not found. Using default of 0. (LOG_LEVEL_NONE)", __FUNCTION__);
+			gRegistryParams.LogLevel = LL_NONE;
 		}
 		else
 		{
-			LogMessageA(Error, "[%s] Failed to read the 'LogLevel' registry value. Error 0x%08lx!", __FUNCTION__, Result);
+			LogMessageA(LL_ERROR, "[%s] Failed to read the 'LogLevel' registry value. Error 0x%08lx!", __FUNCTION__, Result);
 			goto Exit;
 		}
 	}
 
-	LogMessageA(Informational, "[%s] LogLevel is %d.", __FUNCTION__, gRegistryParams.LogLevel);
+	LogMessageA(LL_INFO, "[%s] LogLevel is %d.", __FUNCTION__, gRegistryParams.LogLevel);
 
 	Exit:
 
@@ -1287,7 +1318,7 @@ DWORD LoadRegistryParameters(void)
 	return(Result);
 }
 
-void LogMessageA(_In_ DWORD LogLevel, _In_ char* Message, _In_ ...)
+void LogMessageA(_In_ LOGLEVEL LogLevel, _In_ char* Message, _In_ ...)
 {
 	size_t MessageLength = strlen(Message);
 	SYSTEMTIME Time = { 0 };
@@ -1297,46 +1328,46 @@ void LogMessageA(_In_ DWORD LogLevel, _In_ char* Message, _In_ ...)
 	char DateTimeString[96] = { 0 };
 	char SeverityString[8] = { 0 };
 	char FormattedString[4096] = { 0 };
-	if(gRegistryParams.LogLevel < LogLevel)
+	if((LOGLEVEL)gRegistryParams.LogLevel < LogLevel)
 	{
 		return;
 	}
 
 	if (MessageLength < 1 || MessageLength > 4096)
 	{
-		// assert?
+		ASSERT(FALSE, "Message was either too short or too long!");
 		return;
 	}
 
 	switch (LogLevel)
 	{
-		case None:
+		case LL_NONE:
 		{
 			return;
 		}
-		case Informational:
+		case LL_INFO:
 		{
 			strcpy_s(SeverityString, sizeof(SeverityString), "[INFO] ");
 			break;
 		}
-		case Warning:
+		case LL_WARNING:
 		{
 			strcpy_s(SeverityString, sizeof(SeverityString), "[WARN] ");
 			break;
 		}
-		case Error:
+		case LL_ERROR:
 		{
 			strcpy_s(SeverityString, sizeof(SeverityString), "[ERROR]");
 			break;
 		}
-		case Debug:
+		case LL_DEBUG:
 		{
 			strcpy_s(SeverityString, sizeof(SeverityString), "[DEBUG]");
 			break;
 		}
 		default:
 		{
-			ASSERT(FALSE);
+			ASSERT(FALSE, "LogLevel was unrecognized.");
 		}
 	}
 
@@ -1351,7 +1382,7 @@ void LogMessageA(_In_ DWORD LogLevel, _In_ char* Message, _In_ ...)
 
 	if ((LogFileHandle = CreateFileA(LOG_FILE_NAME, FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
 	{
-		// assert?
+		ASSERT(FALSE, "Failed to access log file!");
 		return;
 	}
 
@@ -1370,15 +1401,15 @@ void DrawDebugInfo(void)
 {
 	char DebugTextBuffer[64] = { 0 };
 	PIXEL32 White = { 0xFF,0xFF, 0xFF, 0xFF };
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "FPS Raw:   %.01f", gPerformanceData.RawFPSAverage);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "FPSRaw:  %.01f", gPerformanceData.RawFPSAverage);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 0);
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "FPS Cooked:%.01f", gPerformanceData.CookedFPSAverage);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "FPSCookd:%.01f", gPerformanceData.CookedFPSAverage);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 8);
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "Min Timer: %.02f", gPerformanceData.MinimumTimerResolution / 10000.0f);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "MinTimer:%.02f", gPerformanceData.MinimumTimerResolution / 10000.0f);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 16);
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "Max Timer: %.02f", gPerformanceData.MaximumTimerResolution / 10000.0f);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "MaxTimer:%.02f", gPerformanceData.MaximumTimerResolution / 10000.0f);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 24);
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "Cur Timer: %.02f", gPerformanceData.CurrentTimerResolution / 10000.0f);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "CurTimer:%.02f", gPerformanceData.CurrentTimerResolution / 10000.0f);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 32);
 	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "Handles: %lu", gPerformanceData.HandleCount);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 40);
@@ -1386,8 +1417,41 @@ void DrawDebugInfo(void)
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 48);
 	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "CPU:     %.02f%%", gPerformanceData.CPUPercent);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 56);
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "Total Frames: %llu", gPerformanceData.TotalFramesRendered);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "FramesT: %llu", gPerformanceData.TotalFramesRendered);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 64);
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "ScreenPos: (%d,%d)", gPlayer.ScreenPosX, gPlayer.ScreenPosY);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "ScreenXY:%d,%d", gPlayer.ScreenPosX, gPlayer.ScreenPosY);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 72);
+}
+
+void FindFirstConnectedGamepad(void)
+{
+	gGamepadID = -1;
+	for (int8_t GamepadIndex = 0; GamepadIndex < XUSER_MAX_COUNT && gGamepadID == -1; GamepadIndex++ )
+	{
+		XINPUT_STATE State = { 0 };
+		if (XInputGetState(GamepadIndex, &State) == ERROR_SUCCESS)
+		{
+			gGamepadID = GamepadIndex;
+		}
+	}
+}
+
+void MenuItem_TitleScreen_Resume(void)
+{
+	
+}
+
+void MenuItem_TitleScreen_StartNew(void)
+{
+	
+}
+
+void MenuItem_TitleScreen_Options(void)
+{
+	
+}
+
+void MenuItem_TitleScreen_Exit(void)
+{
+	
 }
