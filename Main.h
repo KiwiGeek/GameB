@@ -14,7 +14,7 @@
 #define GAME_DRAWING_AREA_MEMORY_SIZE	(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
 #define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
 #define TARGET_MICROSECONDS_PER_FRAME			16667ULL
-#define SIMD
+#define AVX
 #define SUIT_0	0
 #define SUIT_1	1
 #define SUIT_2	2
@@ -47,6 +47,16 @@ typedef enum LOGLEVEL
 	LL_INFO = 3,
 	LL_DEBUG = 4
 } LOGLEVEL;
+
+typedef enum GAMESTATE
+{
+	GS_OPENINGSPLASHSCREEN,
+	GS_TITLESCREEN,
+	GS_OVERWORLD,
+	GS_BATTLE,
+	GS_OPTIONSSCREEN,
+	GS_EXITYESNOSCREEN
+} GAMESTATE;
 
 #define LOG_FILE_NAME GAME_NAME ".log"
 #define FONT_SHEET_CHARACTERS_PER_ROW	98
@@ -127,8 +137,18 @@ void LogMessageA(_In_ LOGLEVEL LogLevel, _In_ char* Message, _In_ ...);
 void DrawDebugInfo(void);
 void FindFirstConnectedGamepad(void);
 
-#ifdef SIMD
-void ClearScreen(_In_ __m128i* Color);
+#ifdef AVX
+void ClearScreen(_In_ __m256i* Color);
 #else
-void ClearScreen(_In_ PIXEL32* Pixel);
+	#ifdef SIMD
+	void ClearScreen(_In_ __m128i* Color);
+	#else
+	void ClearScreen(_In_ PIXEL32* Pixel);
+	#endif
 #endif
+
+void DrawOpeningSplashScreen(void);
+void DrawTitleScreen(void);
+void PPI_OpeningSplashScreen(void);
+void PPI_TitleScreen(void);
+void PPI_Overworld(void);

@@ -1,2 +1,2 @@
-del "W:\GameB\x64\Debug\Assets\*.*" /Q
-xcopy "W:\GameB\Assets" "W:\GameB\x64\Debug\Assets" /i /d /y
+del %GAMEBDIR%\x64\Debug\Assets\*.* /Q
+xcopy %GAMEBDIR%\Assets %GAMEBDIR%\x64\Debug\Assets /i
