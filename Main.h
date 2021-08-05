@@ -68,11 +68,13 @@ typedef struct GAMEINPUT
 	int16_t RightKeyIsDown;
 	int16_t UpKeyIsDown;
 	int16_t DownKeyIsDown;
+	int16_t ChooseKeyIsDown;
 	int16_t DebugKeyWasDown;
 	int16_t LeftKeyWasDown;
 	int16_t RightKeyWasDown;
 	int16_t UpKeyWasDown;
 	int16_t DownKeyWasDown;
+	int16_t ChooseKeyWasDown;
 } GAMEINPUT;
 
 #define LOG_FILE_NAME GAME_NAME ".log"
@@ -173,6 +175,8 @@ void ClearScreen(_In_ PIXEL32* Pixel);
 
 void DrawOpeningSplashScreen(void);
 void DrawTitleScreen(void);
+void DrawExitYesNoScreen(void);
 void PPI_OpeningSplashScreen(void);
 void PPI_TitleScreen(void);
 void PPI_Overworld(void);
+void PPI_ExitYesNo(void);
