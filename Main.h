@@ -14,7 +14,8 @@
 #define GAME_DRAWING_AREA_MEMORY_SIZE	(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
 #define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
 #define TARGET_MICROSECONDS_PER_FRAME			16667ULL
-#define AVX
+#define NUMBER_OF_SFX_SOURCE_VOICES				4
+#define AVX					// AVX, SSE2 or nothing
 #define SUIT_0	0
 #define SUIT_1	1
 #define SUIT_2	2
@@ -57,6 +58,21 @@ typedef enum GAMESTATE
 	GS_OPTIONSSCREEN,
 	GS_EXITYESNOSCREEN
 } GAMESTATE;
+
+typedef struct GAMEINPUT 
+{
+	int16_t EscapeKeyIsDown;
+	int16_t DebugKeyIsDown;
+	int16_t LeftKeyIsDown;
+	int16_t RightKeyIsDown;
+	int16_t UpKeyIsDown;
+	int16_t DownKeyIsDown;
+	int16_t DebugKeyWasDown;
+	int16_t LeftKeyWasDown;
+	int16_t RightKeyWasDown;
+	int16_t UpKeyWasDown;
+	int16_t DownKeyWasDown;
+} GAMEINPUT;
 
 #define LOG_FILE_NAME GAME_NAME ".log"
 #define FONT_SHEET_CHARACTERS_PER_ROW	98
@@ -136,15 +152,14 @@ DWORD LoadRegistryParameters(void);
 void LogMessageA(_In_ LOGLEVEL LogLevel, _In_ char* Message, _In_ ...);
 void DrawDebugInfo(void);
 void FindFirstConnectedGamepad(void);
+HRESULT InitializeSoundEngine(void);
 
 #ifdef AVX
 void ClearScreen(_In_ __m256i* Color);
+#elif defined SSE2
+void ClearScreen(_In_ __m128i* Color);
 #else
-	#ifdef SIMD
-	void ClearScreen(_In_ __m128i* Color);
-	#else
-	void ClearScreen(_In_ PIXEL32* Pixel);
-	#endif
+void ClearScreen(_In_ PIXEL32* Pixel);
 #endif
 
 void DrawOpeningSplashScreen(void);
