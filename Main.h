@@ -56,7 +56,8 @@ typedef enum GAMESTATE
 	GS_OVERWORLD,
 	GS_BATTLE,
 	GS_OPTIONSSCREEN,
-	GS_EXITYESNOSCREEN
+	GS_EXITYESNOSCREEN,
+	GS_CHARACTERNAMING
 } GAMESTATE;
 
 typedef struct GAMEINPUT 
@@ -89,6 +90,12 @@ typedef struct GAMEBITMAP
 	BITMAPINFO BitmapInfo;
 	void* Memory;
 } GAMEBITMAP;
+
+typedef struct GAMESOUND 
+{
+	WAVEFORMATEX WaveFormat;
+	XAUDIO2_BUFFER Buffer;
+} GAMESOUND;
 
 typedef struct PIXEL32
 {
@@ -153,6 +160,8 @@ void LogMessageA(_In_ LOGLEVEL LogLevel, _In_ char* Message, _In_ ...);
 void DrawDebugInfo(void);
 void FindFirstConnectedGamepad(void);
 HRESULT InitializeSoundEngine(void);
+DWORD LoadWavFromFile(_In_ char* Filename, _Inout_ GAMESOUND* GameSound);
+void PlayGameSound(_In_ GAMESOUND* GameSound);
 
 #ifdef AVX
 void ClearScreen(_In_ __m256i* Color);
