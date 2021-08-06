@@ -116,10 +116,6 @@ typedef struct GAMEPERFDATA
 	float CookedFPSAverage;
 	int64_t PerfFrequency;
 	MONITORINFO MonitorInfo;
-	int32_t MonitorWidth;
-	int32_t MonitorHeight;
-	int32_t WindowWidth;
-	int32_t WindowHeight;
 	BOOL DisplayDebugInfo;
 	ULONG MinimumTimerResolution;
 	ULONG MaximumTimerResolution;
@@ -155,8 +151,7 @@ typedef struct REGISTRYPARAMS
 	DWORD LogLevel;
 	DWORD SFXVolume;
 	DWORD MusicVolume;
-	DWORD WindowWidth;
-	DWORD WindowHeight;
+	DWORD ScaleFactor;
 } REGISTRYPARAMS;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
@@ -169,6 +164,7 @@ void Blit32BppBitmapToBuffer(_In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ 
 void BlitStringToBuffer(_In_ char* String, _In_ GAMEBITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y);
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);
+DWORD SaveRegistryParameters(void);
 void LogMessageA(_In_ LOGLEVEL LogLevel, _In_ char* Message, _In_ ...);
 void DrawDebugInfo(void);
 void FindFirstConnectedGamepad(void);
