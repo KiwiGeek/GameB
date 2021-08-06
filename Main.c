@@ -27,10 +27,27 @@
 #pragma comment(lib, "XInput.lib")
 
 HWND gGameWindow;
-BOOL gGameIsRunning;			// Set this to FALSE to exit the game immediately. This controls the main game loop in WinMain.
-BOOL gGameIsInProgress;			// Whether the player has started or loaded a game.
+BOOL gGameIsRunning;
 GAMEBITMAP gBackBuffer;
 GAMEBITMAP g6x7Font;
+int gFontCharacterPixelOffset[] = {
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	//	   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?
+		94,64,87,66,67,68,70,85,72,73,71,77,88,74,91,92,52,53,54,55,56,57,58,59,60,61,86,84,89,75,90,93,
+	//	@  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  [  \  ]  ^  _
+		65,0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,80,78,81,69,76,
+	//	 `  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  {  |  }  ~  ..
+		62,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,82,79,83,63,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. «  .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. »  .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,96,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,95,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. F2 .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,97,93,93,93,93,93,93,93,93,93,93,93,93,93
+};
 GAMEPERFDATA gPerformanceData;
 HERO gPlayer;
 BOOL gWindowHasFocus;
@@ -422,24 +439,31 @@ void ProcessPlayerInput(void)
 		return;
 	}
 
-	gGameInput.EscapeKeyIsDown = GetAsyncKeyState(VK_ESCAPE);
-	gGameInput.DebugKeyIsDown = GetAsyncKeyState(VK_F1);
-	gGameInput.LeftKeyIsDown = GetAsyncKeyState(VK_LEFT) | GetAsyncKeyState('A');
-	gGameInput.RightKeyIsDown = GetAsyncKeyState(VK_RIGHT) | GetAsyncKeyState('D');
-	gGameInput.UpKeyIsDown = GetAsyncKeyState(VK_UP) | GetAsyncKeyState('W');
-	gGameInput.DownKeyIsDown = GetAsyncKeyState(VK_DOWN) | GetAsyncKeyState('S');
-	gGameInput.ChooseKeyIsDown = GetAsyncKeyState(VK_RETURN);
+	gGameInput.EscapeKeyIsDown	= GetAsyncKeyState(VK_ESCAPE);
+	gGameInput.DebugKeyIsDown	= GetAsyncKeyState(VK_F1);
+	gGameInput.LeftKeyIsDown	= GetAsyncKeyState(VK_LEFT) | GetAsyncKeyState('A');
+	gGameInput.RightKeyIsDown	= GetAsyncKeyState(VK_RIGHT) | GetAsyncKeyState('D');
+	gGameInput.UpKeyIsDown		= GetAsyncKeyState(VK_UP) | GetAsyncKeyState('W');
+	gGameInput.DownKeyIsDown	= GetAsyncKeyState(VK_DOWN) | GetAsyncKeyState('S');
+	gGameInput.ChooseKeyIsDown	= GetAsyncKeyState(VK_RETURN);
 
 	if (gGamepadID > -1)
 	{
 		if (XInputGetState(gGamepadID, &gGamepadState) == ERROR_SUCCESS)
 		{
-			gGameInput.EscapeKeyIsDown |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK);
-			gGameInput.LeftKeyIsDown |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
-			gGameInput.RightKeyIsDown |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
-			gGameInput.UpKeyIsDown |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);
-			gGameInput.DownKeyIsDown |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
-			gGameInput.ChooseKeyIsDown |= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_A);
+			gGameInput.EscapeKeyIsDown	|= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_BACK);
+			gGameInput.LeftKeyIsDown	|= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
+			gGameInput.RightKeyIsDown	|= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
+			gGameInput.UpKeyIsDown		|= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);
+			gGameInput.DownKeyIsDown	|= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
+			gGameInput.ChooseKeyIsDown	|= (gGamepadState.Gamepad.wButtons & XINPUT_GAMEPAD_A);
+		}
+		else
+		{
+			// Gamepad unplugged?
+			gGamepadID = -1;
+			gPreviousGameState = gCurrentGameState;
+			gCurrentGameState = GS_GAMEPADUNPLUGGED;
 		}
 	}
 
@@ -448,6 +472,11 @@ void ProcessPlayerInput(void)
 		case GS_OPENINGSPLASHSCREEN:
 		{
 			PPI_OpeningSplashScreen();
+			break;
+		}
+		case GS_GAMEPADUNPLUGGED:
+		{
+			PPI_GamepadUnplugged();
 			break;
 		}
 		case GS_TITLESCREEN:
@@ -466,6 +495,7 @@ void ProcessPlayerInput(void)
 		}
 		case GS_OPTIONSSCREEN:
 		{
+			PPI_OptionsScreen();
 			break;
 		}
 		case GS_EXITYESNOSCREEN:
@@ -484,12 +514,13 @@ void ProcessPlayerInput(void)
 		}
 	}
 
-	gGameInput.DebugKeyWasDown = gGameInput.DebugKeyIsDown;
-	gGameInput.LeftKeyWasDown = gGameInput.LeftKeyIsDown;
-	gGameInput.RightKeyWasDown = gGameInput.RightKeyIsDown;
-	gGameInput.UpKeyWasDown = gGameInput.UpKeyIsDown;
-	gGameInput.DownKeyWasDown = gGameInput.DownKeyIsDown;
-	gGameInput.ChooseKeyWasDown = gGameInput.ChooseKeyIsDown;
+	gGameInput.DebugKeyWasDown	= gGameInput.DebugKeyIsDown;
+	gGameInput.LeftKeyWasDown	= gGameInput.LeftKeyIsDown;
+	gGameInput.RightKeyWasDown	= gGameInput.RightKeyIsDown;
+	gGameInput.UpKeyWasDown		= gGameInput.UpKeyIsDown;
+	gGameInput.DownKeyWasDown	= gGameInput.DownKeyIsDown;
+	gGameInput.ChooseKeyWasDown	= gGameInput.ChooseKeyIsDown;
+	gGameInput.EscapeKeyWasDown = gGameInput.EscapeKeyIsDown;
 }
 
 DWORD Load32BbpBitmapFromFile(_In_ char* Filename, _Inout_ GAMEBITMAP* GameBitmap)
@@ -674,503 +705,8 @@ void BlitStringToBuffer(_In_ char* String, _In_ GAMEBITMAP* FontSheet, _In_ PIXE
 		int FontSheetOffset = 0;
 		int StringBitmapOffst = 0;
 		PIXEL32 FontSheetPixel = { 0 };
-		switch (String[Character])
-		{
-			case 'A':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth;
-				break;
-			}
-			case 'B':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + CharWidth;
-				break;
-			}
-			case 'C':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 2);
-				break;
-			}
-			case 'D':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 3);
-				break;
-			}
-			case 'E':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 4);
-				break;
-			}
-			case 'F':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 5);
-				break;
-			}
-			case 'G':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 6);
-				break;
-			}
-			case 'H':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 7);
-				break;
-			}
-			case 'I':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 8);
-				break;
-			}
-			case 'J':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 9);
-				break;
-			}
-			case 'K':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 10);
-				break;
-			}
-			case 'L':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 11);
-				break;
-			}
-			case 'M':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 12);
-				break;
-			}
-			case 'N':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 13);
-				break;
-			}
-			case 'O':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 14);
-				break;
-			}
-			case 'P':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 15);
-				break;
-			}
-			case 'Q':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 16);
-				break;
-			}
-			case 'R':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 17);
-				break;
-			}
-			case 'S':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 18);
-				break;
-			}
-			case 'T':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 19);
-				break;
-			}
-			case 'U':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 20);
-				break;
-			}
-			case 'V':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 21);
-				break;
-			}
-			case 'W':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 22);
-				break;
-			}
-			case 'X':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 23);
-				break;
-			}
-			case 'Y':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 24);
-				break;
-			}
-			case 'Z':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 25);
-				break;
-			}
-			case 'a':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 26);
-				break;
-			}
-			case 'b':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 27);
-				break;
-			}
-			case 'c':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 28);
-				break;
-			}
-			case 'd':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 29);
-				break;
-			}
-			case 'e':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 30);
-				break;
-			}
-			case 'f':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 31);
-				break;
-			}
-			case 'g':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 32);
-				break;
-			}
-			case 'h':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 33);
-				break;
-			}
-			case 'i':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 34);
-				break;
-			}
-			case 'j':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 35);
-				break;
-			}
-			case 'k':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 36);
-				break;
-			}
-			case 'l':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 37);
-				break;
-			}
-			case 'm':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 38);
-				break;
-			}
-			case 'n':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 39);
-				break;
-			}
-			case 'o':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 40);
-				break;
-			}
-			case 'p':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 41);
-				break;
-			}
-			case 'q':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 42);
-				break;
-			}
-			case 'r':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 43);
-				break;
-			}
-			case 's':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 44);
-				break;
-			}
-			case 't':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 45);
-				break;
-			}
-			case 'u':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 46);
-				break;
-			}
-			case 'v':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 47);
-				break;
-			}
-			case 'w':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 48);
-				break;
-			}
-			case 'x':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 49);
-				break;
-			}
-			case 'y':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 50);
-				break;
-			}
-			case 'z':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 51);
-				break;
-			}
-			case '0':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 52);
-				break;
-			}
-			case '1':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 53);
-				break;
-			}
-			case '2':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 54);
-				break;
-			}
-			case '3':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 55);
-				break;
-			}
-			case '4':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 56);
-				break;
-			}
-			case '5':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 57);
-				break;
-			}
-			case '6':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 58);
-				break;
-			}
-			case '7':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 59);
-				break;
-			}
-			case '8':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 60);
-				break;
-			}
-			case '9':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 61);
-				break;
-			}
-			case '`':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 62);
-				break;
-			}
-			case '~':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 63);
-				break;
-			}
-			case '!':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 64);
-				break;
-			}
-			case '@':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 65);
-				break;
-			}
-			case '#':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 66);
-				break;
-			}
-			case '$':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 67);
-				break;
-			}
-			case '%':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 68);
-				break;
-			}
-			case '^':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 69);
-				break;
-			}
-			case '&':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 70);
-				break;
-			}
-			case '*':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 71);
-				break;
-			}
-			case '(':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 72);
-				break;
-			}
-			case ')':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 73);
-				break;
-			}
-			case '-':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 74);
-				break;
-			}
-			case '=':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 75);
-				break;
-			}
-			case '_':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 76);
-				break;
-			}
-			case '+':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 77);
-				break;
-			}
-			case '\\':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 78);
-				break;
-			}
-			case '|':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 79);
-				break;
-			}
-			case '[':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 80);
-				break;
-			}
-			case ']':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 81);
-				break;
-			}
-			case '{':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 82);
-				break;
-			}
-			case '}':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 83);
-				break;
-			}
-			case ';':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 84);
-				break;
-			}
-			case '\'':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 85);
-				break;
-			}
-			case ':':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 86);
-				break;
-			}
-			case '"':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 87);
-				break;
-			}
-			case ',':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 88);
-				break;
-			}
-			case '<':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 89);
-				break;
-			}
-			case '>':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 90);
-				break;
-			}
-			case '.':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 91);
-				break;
-			}
-			case '/':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 92);
-				break;
-			}
-			case '?':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 93);
-				break;
-			}
-			case ' ':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 94);
-				break;
-			}
-			case '»':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 95);
-				break;
-			}
-			case '«':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 96);
-				break;
-			}
-			case '\xf2':
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 97);
-				break;
-			}
-			default:
-			{
-				StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * 93);
-			}
-		}
+		StartingFontSheetPixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) - 
+			FontSheet->BitmapInfo.bmiHeader.biWidth + (CharWidth * gFontCharacterPixelOffset[(unsigned char)String[Character]]);
 
 		for (int yPixel = 0; yPixel <= CharHeight - 1; yPixel++)
 		{
@@ -1217,6 +753,12 @@ void RenderFrameGraphics(void)
 			break;
 		}
 
+		case GS_GAMEPADUNPLUGGED:
+		{
+			DrawGamepadUnpluggedScreen();
+			break;
+		}
+		
 		case GS_OVERWORLD:
 		{
 			break;
@@ -1229,6 +771,7 @@ void RenderFrameGraphics(void)
 
 		case GS_OPTIONSSCREEN:
 		{
+			DrawOptionsScreen();
 			break;
 		}
 
@@ -1517,7 +1060,8 @@ void MenuItem_TitleScreen_StartNew(void)
 
 void MenuItem_TitleScreen_Options(void)
 {
-
+	gPreviousGameState = gCurrentGameState;
+	gCurrentGameState = GS_OPTIONSSCREEN;
 }
 
 void MenuItem_TitleScreen_Exit(void)
@@ -1537,9 +1081,117 @@ void MenuItem_ExitYesNo_No(void)
 	gPreviousGameState = GS_EXITYESNOSCREEN;
 }
 
+void MenuItem_OptionsScreen_SFXVolume(void)
+{
+	gSFXVolume += 0.1f;
+	if ((uint8_t)(gSFXVolume * 10) > 10)
+	{
+		gSFXVolume = 0;
+	}
+	for (uint8_t Counter = 0; Counter < NUMBER_OF_SFX_SOURCE_VOICES; Counter++)
+	{
+		gXAudioSFXSourceVoice[Counter]->lpVtbl->SetVolume(gXAudioSFXSourceVoice[Counter], gSFXVolume, XAUDIO2_COMMIT_NOW);
+	}
+}
+
+void MenuItem_OptionsScreen_MusicVolume(void)
+{
+	gMusicVolume += 0.1f;
+	if ((uint8_t)(gMusicVolume * 10) > 10)
+	{
+		gMusicVolume = 0;
+	}
+	gXAudioMusicSourceVoice->lpVtbl->SetVolume(gXAudioMusicSourceVoice, gMusicVolume, XAUDIO2_COMMIT_NOW);
+}
+
+void MenuItem_OptionsScreen_ScreenSize(void)
+{
+
+}
+
+void MenuItem_OptionsScreen_Back(void)
+{
+	gCurrentGameState = gPreviousGameState;
+	gPreviousGameState = GS_OPTIONSSCREEN;
+}
+
 void DrawOpeningSplashScreen(void)
 {
 
+}
+
+void DrawGamepadUnpluggedScreen(void)
+{
+	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+	BlitStringToBuffer("Gamepad Disconnected!",
+		&g6x7Font, 
+		&((PIXEL32) { 0xff, 0xff, 0xff, 0xff }), 
+		(GAME_RES_WIDTH / 2) - (int16_t)(21 * 6 / 2), 
+		100);
+	BlitStringToBuffer("Reconnect it, or press escape to continue using the keyboard.",
+		&g6x7Font, 
+		&((PIXEL32) { 0xff, 0xff, 0xff, 0xff }),
+		(GAME_RES_WIDTH / 2) - (int16_t)(61 * 6 / 2), 
+		115);
+}
+
+void DrawOptionsScreen(void)
+{
+	PIXEL32 White = { 0xFF, 0xFF, 0xFF, 0xFF };
+	PIXEL32 Grey = { 0x6F, 0x6F, 0x6F, 0x6F };
+	static uint64_t LocalFrameCounter;
+	static uint64_t LastFrameSeen;
+	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+	if (gPerformanceData.TotalFramesRendered > LastFrameSeen + 1)
+	{
+		gMenu_OptionsScreen.SelectedItem = 0;
+	}
+
+	for (uint8_t MenuItem = 0; MenuItem < gMenu_OptionsScreen.ItemCount; MenuItem++)
+	{
+
+		if (gMenu_OptionsScreen.Items[MenuItem]->Enabled)
+		{
+			BlitStringToBuffer(gMenu_OptionsScreen.Items[MenuItem]->Name,
+				&g6x7Font,
+				&White,
+				gMenu_OptionsScreen.Items[MenuItem]->X,
+				gMenu_OptionsScreen.Items[MenuItem]->Y);
+		}
+	}
+
+	for (uint8_t Volume = 0; Volume < 10; Volume++)
+	{
+		if (Volume >= (uint8_t)(gSFXVolume * 10))
+		{
+			BlitStringToBuffer("\xf2", &g6x7Font, &Grey, 240 + (Volume * 6), 100);
+		}
+		else
+		{
+			BlitStringToBuffer("\xf2", &g6x7Font, &White, 240 + (Volume * 6), 100);
+		}
+	}
+
+	for (uint8_t Volume = 0; Volume < 10; Volume++)
+	{
+		if (Volume >= (uint8_t)(gMusicVolume * 10))
+		{
+			BlitStringToBuffer("\xf2", &g6x7Font, &Grey, 240 + (Volume * 6), 115);
+		}
+		else
+		{
+			BlitStringToBuffer("\xf2", &g6x7Font, &White, 240 + (Volume * 6), 115);
+		}
+	}
+
+	BlitStringToBuffer("»",
+		&g6x7Font,
+		&White,
+		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->X - 6,
+		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Y);
+
+	LocalFrameCounter++;
+	LastFrameSeen = gPerformanceData.TotalFramesRendered;
 }
 
 void DrawTitleScreen(void)
@@ -1547,6 +1199,17 @@ void DrawTitleScreen(void)
 	PIXEL32 White = { 0xFF, 0xFF, 0xFF, 0xFF };
 	static uint64_t LocalFrameCounter;
 	static uint64_t LastFrameSeen;
+	if (gPerformanceData.TotalFramesRendered > LastFrameSeen + 1)
+	{
+		if (gPlayer.Active)
+		{
+			gMenu_TitleScreen.SelectedItem = 0;
+		}
+		else
+		{
+			gMenu_TitleScreen.SelectedItem = 1;
+		}
+	}
 
 	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
@@ -1554,18 +1217,8 @@ void DrawTitleScreen(void)
 
 	for (uint8_t MenuItem = 0; MenuItem < gMenu_TitleScreen.ItemCount; MenuItem++)
 	{
-		if (_stricmp(gMenu_TitleScreen.Items[MenuItem]->Name, "Resume") == 0)
-		{
-			if (gGameIsInProgress)
-			{
-				BlitStringToBuffer(gMenu_TitleScreen.Items[MenuItem]->Name,
-					&g6x7Font,
-					&White,
-					gMenu_TitleScreen.Items[MenuItem]->X,
-					gMenu_TitleScreen.Items[MenuItem]->Y);
-			}
-		}
-		else
+		
+		if (gMenu_TitleScreen.Items[MenuItem]->Enabled)
 		{
 			BlitStringToBuffer(gMenu_TitleScreen.Items[MenuItem]->Name,
 				&g6x7Font,
@@ -1573,8 +1226,6 @@ void DrawTitleScreen(void)
 				gMenu_TitleScreen.Items[MenuItem]->X,
 				gMenu_TitleScreen.Items[MenuItem]->Y);
 		}
-
-
 	}
 
 	BlitStringToBuffer("»",
@@ -1582,6 +1233,9 @@ void DrawTitleScreen(void)
 		&White,
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->X - 6,
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Y);
+
+	LocalFrameCounter++;
+	LastFrameSeen = gPerformanceData.TotalFramesRendered;
 }
 
 void DrawExitYesNoScreen(void)
@@ -1606,6 +1260,47 @@ void PPI_OpeningSplashScreen(void)
 
 }
 
+void PPI_GamepadUnplugged(void)
+{
+	if (gGamepadID > -1 || (gGameInput.EscapeKeyIsDown && !gGameInput.EscapeKeyWasDown))
+	{
+		gCurrentGameState = gPreviousGameState;
+		gPreviousGameState = GS_GAMEPADUNPLUGGED;
+	}
+}
+
+void PPI_OptionsScreen(void)
+{
+	if (gGameInput.DebugKeyIsDown && !gGameInput.DebugKeyWasDown)
+	{
+		gPerformanceData.DisplayDebugInfo = !gPerformanceData.DisplayDebugInfo;
+	}
+
+	if (gGameInput.DownKeyIsDown && !gGameInput.DownKeyWasDown)
+	{
+		if (gMenu_OptionsScreen.SelectedItem < gMenu_OptionsScreen.ItemCount - 1)
+		{
+			gMenu_OptionsScreen.SelectedItem++;
+			PlayGameSound(&gMenuNavigate);
+		}
+	}
+
+	if (gGameInput.UpKeyIsDown && !gGameInput.UpKeyWasDown)
+	{
+		if (gMenu_OptionsScreen.SelectedItem > 0)
+		{
+			gMenu_OptionsScreen.SelectedItem--;
+			PlayGameSound(&gMenuNavigate);
+		}
+	}
+
+	if (gGameInput.ChooseKeyIsDown && !gGameInput.ChooseKeyWasDown) {
+		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Action();
+		PlayGameSound(&gMenuChoose);
+	}
+
+}
+
 void PPI_TitleScreen(void)
 {
 
@@ -1627,9 +1322,9 @@ void PPI_TitleScreen(void)
 	{
 		if (gMenu_TitleScreen.SelectedItem > 0)
 		{
-			if (gMenu_TitleScreen.SelectedItem == 1)	// Don't more to "Resume" if there's no game currently in progress
+			if (gMenu_TitleScreen.SelectedItem == 1)	// Don't move to "Resume" if there's no game currently in progress
 			{
-				if (gGameIsInProgress)
+				if (gPlayer.Active)
 				{
 					gMenu_TitleScreen.SelectedItem--;
 					PlayGameSound(&gMenuNavigate);
@@ -2021,3 +1716,4 @@ void PlayGameSound(_In_ GAMESOUND* GameSound)
 		gSFXSourceVoiceSelector = 0;
 	}
 }
+

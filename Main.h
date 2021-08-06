@@ -53,11 +53,12 @@ typedef enum GAMESTATE
 {
 	GS_OPENINGSPLASHSCREEN,
 	GS_TITLESCREEN,
+	GS_CHARACTERNAMING,
 	GS_OVERWORLD,
 	GS_BATTLE,
 	GS_OPTIONSSCREEN,
 	GS_EXITYESNOSCREEN,
-	GS_CHARACTERNAMING
+	GS_GAMEPADUNPLUGGED
 } GAMESTATE;
 
 typedef struct GAMEINPUT 
@@ -69,6 +70,7 @@ typedef struct GAMEINPUT
 	int16_t UpKeyIsDown;
 	int16_t DownKeyIsDown;
 	int16_t ChooseKeyIsDown;
+	int16_t EscapeKeyWasDown;
 	int16_t DebugKeyWasDown;
 	int16_t LeftKeyWasDown;
 	int16_t RightKeyWasDown;
@@ -132,6 +134,7 @@ typedef struct HERO
 {
 	char Name[12];
 	GAMEBITMAP Sprite[3][12];
+	BOOL Active;
 	int16_t ScreenPosX;
 	int16_t ScreenPosY;
 	uint8_t MovementRemaining;
@@ -176,7 +179,11 @@ void ClearScreen(_In_ PIXEL32* Pixel);
 void DrawOpeningSplashScreen(void);
 void DrawTitleScreen(void);
 void DrawExitYesNoScreen(void);
+void DrawGamepadUnpluggedScreen(void);
+void DrawOptionsScreen(void);
 void PPI_OpeningSplashScreen(void);
 void PPI_TitleScreen(void);
 void PPI_Overworld(void);
 void PPI_ExitYesNo(void);
+void PPI_GamepadUnplugged(void);
+void PPI_OptionsScreen(void);
