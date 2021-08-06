@@ -118,6 +118,8 @@ typedef struct GAMEPERFDATA
 	MONITORINFO MonitorInfo;
 	int32_t MonitorWidth;
 	int32_t MonitorHeight;
+	int32_t WindowWidth;
+	int32_t WindowHeight;
 	BOOL DisplayDebugInfo;
 	ULONG MinimumTimerResolution;
 	ULONG MaximumTimerResolution;
@@ -149,6 +151,10 @@ typedef struct HERO
 typedef struct REGISTRYPARAMS
 {
 	DWORD LogLevel;
+	DWORD SFXVolume;
+	DWORD MusicVolume;
+	DWORD WindowWidth;
+	DWORD WindowHeight;
 } REGISTRYPARAMS;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
