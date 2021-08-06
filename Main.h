@@ -130,6 +130,8 @@ typedef struct GAMEPERFDATA
 	int64_t CurrentSystemTime;
 	int64_t PreviousSystemTime;
 	double CPUPercent;
+	uint8_t MaxScaleFactor;
+	uint8_t CurrentScaleFactor;
 } GAMEPERFDATA;
 
 typedef struct HERO
