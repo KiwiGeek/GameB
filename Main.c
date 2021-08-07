@@ -75,7 +75,6 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	UNREFERENCED_PARAMETER(PreviousInstance);
 	UNREFERENCED_PARAMETER(CommandLine);
 	UNREFERENCED_PARAMETER(CmdShow);
-
 	MSG message = { 0 };
 	int64_t FrameStart = 0;
 	int64_t FrameEnd = 0;
@@ -569,6 +568,11 @@ void ProcessPlayerInput(void)
 		{
 			break;
 		}
+		case GS_CHARACTERNAMING:
+		{
+			PPI_CharacterNaming();
+			break;
+		}
 		case GS_OPTIONSSCREEN:
 		{
 			PPI_OptionsScreen();
@@ -577,10 +581,6 @@ void ProcessPlayerInput(void)
 		case GS_EXITYESNOSCREEN:
 		{
 			PPI_ExitYesNo();
-			break;
-		}
-		case GS_CHARACTERNAMING:
-		{
 			break;
 		}
 
@@ -829,6 +829,12 @@ void RenderFrameGraphics(void)
 			break;
 		}
 
+		case GS_CHARACTERNAMING:
+		{
+			DrawCharacterNamingScreen();
+			break;
+		}
+
 		case GS_GAMEPADUNPLUGGED:
 		{
 			DrawGamepadUnpluggedScreen();
@@ -854,11 +860,6 @@ void RenderFrameGraphics(void)
 		case GS_EXITYESNOSCREEN:
 		{
 			DrawExitYesNoScreen();
-			break;
-		}
-
-		case GS_CHARACTERNAMING:
-		{
 			break;
 		}
 
@@ -1057,8 +1058,8 @@ DWORD SaveRegistryParameters(void)
 	DWORD Result = ERROR_SUCCESS;
 	HKEY RegKey = NULL;
 	DWORD RegDisposition = 0;
-	DWORD SFXVolume = (DWORD)(gSFXVolume * 10.0f);
-	DWORD MusicVolume = (DWORD)(gMusicVolume * 10.0f);
+	DWORD SFXVolume = (DWORD)(gSFXVolume * 100.0f);
+	DWORD MusicVolume = (DWORD)(gMusicVolume * 100.0f);
 	Result = RegCreateKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\" GAME_NAME, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &RegKey, &RegDisposition);
 
 	if (Result != ERROR_SUCCESS)
@@ -1067,12 +1068,16 @@ DWORD SaveRegistryParameters(void)
 		goto Exit;
 	}
 
+	LogMessageA(LL_INFO, "[%s] Reg key open for save. ", __FUNCTION__);
+
 	Result = RegSetValueExA(RegKey, "SFXVolume", 0, REG_DWORD, (const BYTE*)&SFXVolume, sizeof(DWORD));
 	if (Result != ERROR_SUCCESS)
 	{
 		LogMessageA(LL_ERROR, "[%s] Failed to set 'SFXVolume' in registry. Error code 0x%08lx!", __FUNCTION__, Result);
 		goto Exit;
 	}
+
+	LogMessageA(LL_INFO, "[%s] SFXVolume saved %d. ", __FUNCTION__, SFXVolume);
 
 	Result = RegSetValueExA(RegKey, "MusicVolume", 0, REG_DWORD, (const BYTE*)&MusicVolume, sizeof(DWORD));
 	if (Result != ERROR_SUCCESS)
@@ -1081,12 +1086,16 @@ DWORD SaveRegistryParameters(void)
 		goto Exit;
 	}
 
+	LogMessageA(LL_INFO, "[%s] MusicVolume saved %d. ", __FUNCTION__, MusicVolume);
+
 	Result = RegSetValueExA(RegKey, "ScaleFactor", 0, REG_DWORD, &gPerformanceData.CurrentScaleFactor, sizeof(DWORD));
 	if (Result != ERROR_SUCCESS)
 	{
 		LogMessageA(LL_ERROR, "[%s] Failed to set 'ScaleFactor' in registry. Error code 0x%08lx!", __FUNCTION__, Result);
 		goto Exit;
 	}
+
+	LogMessageA(LL_INFO, "[%s] ScaleFactor saved %d. ", __FUNCTION__, gPerformanceData.CurrentScaleFactor);
 
 
 
@@ -1222,6 +1231,24 @@ void MenuItem_TitleScreen_Resume(void)
 }
 
 void MenuItem_TitleScreen_StartNew(void)
+{
+	// prompt for new game if they're already in a game, otherwise just go to the character naming screen.
+
+	gPreviousGameState = gCurrentGameState;
+	gCurrentGameState = GS_CHARACTERNAMING;
+}
+
+void MenuItem_CharacterNaming_Add(void)
+{
+
+}
+
+void MenuItem_CharacterNaming_Back(void)
+{
+
+}
+
+void MenuItem_CharacterNaming_OK(void)
 {
 
 }
@@ -1414,12 +1441,12 @@ void DrawOptionsScreen(void)
 		{
 			if (TextColor.Red == 255) 
 			{
-				BlitStringToBuffer("\xf2", &g6x7Font, &Grey, 240 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
+				BlitStringToBuffer("\xf2", &g6x7Font, &Grey, 224 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
 			}
 		}
 		else
 		{
-			BlitStringToBuffer("\xf2", &g6x7Font, &TextColor, 240 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
+			BlitStringToBuffer("\xf2", &g6x7Font, &TextColor, 224 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
 		}
 	}
 
@@ -1429,17 +1456,17 @@ void DrawOptionsScreen(void)
 		{
 			if (TextColor.Red == 255)
 			{
-				BlitStringToBuffer("\xf2", &g6x7Font, &Grey, 240 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
+				BlitStringToBuffer("\xf2", &g6x7Font, &Grey, 224 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
 			}
 		}
 		else
 		{
-			BlitStringToBuffer("\xf2", &g6x7Font, &TextColor, 240 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
+			BlitStringToBuffer("\xf2", &g6x7Font, &TextColor, 224 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
 		}
 	}
 
 	snprintf(ScreenSizeString, sizeof(ScreenSizeString), "%dx%d", GAME_RES_WIDTH * gPerformanceData.CurrentScaleFactor, GAME_RES_HEIGHT * gPerformanceData.CurrentScaleFactor);
-	BlitStringToBuffer(ScreenSizeString, &g6x7Font, &TextColor, 240, gMI_OptionsScreen_ScreenSize.Y);
+	BlitStringToBuffer(ScreenSizeString, &g6x7Font, &TextColor, 224, gMI_OptionsScreen_ScreenSize.Y);
 
 	BlitStringToBuffer("»",
 		&g6x7Font,
@@ -1510,6 +1537,57 @@ void DrawTitleScreen(void)
 		&TextColor,
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->X - 6,
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Y);
+
+	LocalFrameCounter++;
+	LastFrameSeen = gPerformanceData.TotalFramesRendered;
+}
+
+void DrawCharacterNamingScreen(void) 
+{
+	static uint64_t LocalFrameCounter;
+	static uint64_t LastFrameSeen;
+	static PIXEL32 TextColor = { 0x00, 0x00, 0x00, 0x00 };
+
+	if (gPerformanceData.TotalFramesRendered > LastFrameSeen + 1)
+	{
+		LocalFrameCounter = 0;
+		TextColor.Red = 0;
+		TextColor.Green = 0;
+		TextColor.Blue = 0;
+		gMenu_CharacterNaming.SelectedItem = 0;
+	}
+
+	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+
+	if ((LocalFrameCounter > 0) && (LocalFrameCounter <= 45) && (LocalFrameCounter % 15 == 0))
+	{
+		TextColor.Red += 64;
+		TextColor.Green += 64;
+		TextColor.Blue += 64;
+	}
+	if (LocalFrameCounter == 60)
+	{
+		TextColor.Red = 255;
+		TextColor.Green = 255;
+		TextColor.Blue = 255;
+	}
+
+	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g6x7Font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2), 90);
+
+	for (uint8_t Counter = 0; Counter < gMenu_CharacterNaming.ItemCount; Counter++)
+	{
+		BlitStringToBuffer(gMenu_CharacterNaming.Items[Counter]->Name,
+			&g6x7Font,
+			&TextColor,
+			gMenu_CharacterNaming.Items[Counter]->X,
+			gMenu_CharacterNaming.Items[Counter]->Y);
+	}
+
+	BlitStringToBuffer("»",
+		&g6x7Font,
+		&TextColor,
+		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->X - 6,
+		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Y);
 
 	LocalFrameCounter++;
 	LastFrameSeen = gPerformanceData.TotalFramesRendered;
@@ -1614,6 +1692,11 @@ void PPI_TitleScreen(void)
 		PlayGameSound(&gSoundMenuChoose);
 	}
 
+}
+
+void PPI_CharacterNaming(void) 
+{
+	
 }
 
 void PPI_Overworld(void)
@@ -1975,4 +2058,3 @@ void PlayGameSound(_In_ GAMESOUND* GameSound)
 		gSFXSourceVoiceSelector = 0;
 	}
 }
-
