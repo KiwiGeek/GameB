@@ -32,6 +32,14 @@
 #define FACING_UPWARD_1	10
 #define FACING_UPWARD_2	11
 
+#define PRESSED_UP gGameInput.UpKeyIsDown && !gGameInput.UpKeyWasDown
+#define PRESSED_DOWN gGameInput.DownKeyIsDown && !gGameInput.DownKeyWasDown
+#define PRESSED_LEFT gGameInput.LeftKeyIsDown && !gGameInput.LeftKeyWasDown
+#define PRESSED_RIGHT gGameInput.RightKeyIsDown && !gGameInput.RightKeyWasDown
+#define PRESSED_ESCAPE gGameInput.EscapeKeyIsDown && !gGameInput.EscapeKeyWasDown
+#define PRESSED_CHOOSE gGameInput.ChooseKeyIsDown && !gGameInput.ChooseKeyWasDown
+#define PRESSED_DEBUG gGameInput.DebugKeyIsDown && !gGameInput.DebugKeyWasDown
+
 typedef enum DIRECTION
 { 
 	DOWN = 0,
@@ -132,7 +140,7 @@ typedef struct GAMEPERFDATA
 
 typedef struct HERO
 {
-	char Name[12];
+	char Name[9];
 	GAMEBITMAP Sprite[3][12];
 	BOOL Active;
 	int16_t ScreenPosX;
