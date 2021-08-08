@@ -32,13 +32,13 @@
 #define FACING_UPWARD_1	10
 #define FACING_UPWARD_2	11
 
-#define PRESSED_UP gGameInput.UpKeyIsDown && !gGameInput.UpKeyWasDown
-#define PRESSED_DOWN gGameInput.DownKeyIsDown && !gGameInput.DownKeyWasDown
-#define PRESSED_LEFT gGameInput.LeftKeyIsDown && !gGameInput.LeftKeyWasDown
-#define PRESSED_RIGHT gGameInput.RightKeyIsDown && !gGameInput.RightKeyWasDown
-#define PRESSED_ESCAPE gGameInput.EscapeKeyIsDown && !gGameInput.EscapeKeyWasDown
-#define PRESSED_CHOOSE gGameInput.ChooseKeyIsDown && !gGameInput.ChooseKeyWasDown
-#define PRESSED_DEBUG gGameInput.DebugKeyIsDown && !gGameInput.DebugKeyWasDown
+#define PRESSED_UP gGameInput.UpKeyIsDown			&& !gGameInput.UpKeyWasDown
+#define PRESSED_DOWN gGameInput.DownKeyIsDown		&& !gGameInput.DownKeyWasDown
+#define PRESSED_LEFT gGameInput.LeftKeyIsDown		&& !gGameInput.LeftKeyWasDown
+#define PRESSED_RIGHT gGameInput.RightKeyIsDown		&& !gGameInput.RightKeyWasDown
+#define PRESSED_ESCAPE gGameInput.EscapeKeyIsDown	&& !gGameInput.EscapeKeyWasDown
+#define PRESSED_CHOOSE gGameInput.ChooseKeyIsDown	&& !gGameInput.ChooseKeyWasDown
+#define PRESSED_DEBUG gGameInput.DebugKeyIsDown		&& !gGameInput.DebugKeyWasDown
 
 typedef enum DIRECTION
 { 
@@ -68,6 +68,12 @@ typedef enum GAMESTATE
 	GS_EXITYESNOSCREEN,
 	GS_GAMEPADUNPLUGGED
 } GAMESTATE;
+
+typedef struct UPOINT
+{
+	uint16_t	X;
+	uint16_t	Y;
+} UPOINT;
 
 typedef struct GAMEINPUT 
 {
@@ -143,8 +149,7 @@ typedef struct HERO
 	char Name[9];
 	GAMEBITMAP Sprite[3][12];
 	BOOL Active;
-	int16_t ScreenPosX;
-	int16_t ScreenPosY;
+	UPOINT ScreenPos;
 	uint8_t MovementRemaining;
 	DIRECTION Direction;
 	uint8_t CurrentArmor;
@@ -169,6 +174,7 @@ void ProcessPlayerInput(void);
 DWORD Load32BbpBitmapFromFile(_In_ char* Filename, _Inout_ GAMEBITMAP* GameBitmap);
 DWORD InitializeHero(void);
 void Blit32BppBitmapToBuffer(_In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ uint16_t y);
+void BlitTilemapToBuffer(_In_ GAMEBITMAP* GameBitmap);
 void BlitStringToBuffer(_In_ char* String, _In_ GAMEBITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y);
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);
@@ -193,6 +199,7 @@ void DrawTitleScreen(void);
 void DrawExitYesNoScreen(void);
 void DrawGamepadUnpluggedScreen(void);
 void DrawOptionsScreen(void);
+void DrawOverworldScreen(void);
 void DrawCharacterNamingScreen(void);
 void PPI_OpeningSplashScreen(void);
 void PPI_TitleScreen(void);

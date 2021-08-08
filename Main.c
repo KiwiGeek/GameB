@@ -30,23 +30,25 @@ HWND gGameWindow;
 BOOL gGameIsRunning;
 GAMEBITMAP gBackBuffer;
 GAMEBITMAP g6x7Font;
+GAMEBITMAP gOverworld01;
+UPOINT gCamera;
 int gFontCharacterPixelOffset[] = {
 	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
 		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-		//	   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?
-			94,64,87,66,67,68,70,85,72,73,71,77,88,74,91,92,52,53,54,55,56,57,58,59,60,61,86,84,89,75,90,93,
-			//	@  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  [  \  ]  ^  _
-				65,0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,80,78,81,69,76,
-				//	 `  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  {  |  }  ~  ..
-					62,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,82,79,83,63,93,
-					//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
-						93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-						//	.. .. .. .. .. .. .. .. .. .. .. «  .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. »  .. .. .. ..
-							93,93,93,93,93,93,93,93,93,93,93,96,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,95,93,93,93,93,
-							//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
-								93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-								//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. F2 .. .. .. .. .. .. .. .. .. .. .. .. ..
-									93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,97,93,93,93,93,93,93,93,93,93,93,93,93,93
+	//	   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?
+		94,64,87,66,67,68,70,85,72,73,71,77,88,74,91,92,52,53,54,55,56,57,58,59,60,61,86,84,89,75,90,93,
+	//	@  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  [  \  ]  ^  _
+		65,0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,80,78,81,69,76,
+	//	 `  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  {  |  }  ~  ..
+		62,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,82,79,83,63,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. «  .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. »  .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,96,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,95,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. F2 .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,97,93,93,93,93,93,93,93,93,93,93,93,93,93
 };
 GAMEPERFDATA gPerformanceData;
 HERO gPlayer;
@@ -54,7 +56,7 @@ BOOL gWindowHasFocus;
 REGISTRYPARAMS gRegistryParams;
 XINPUT_STATE gGamepadState;
 int8_t gGamepadID = -1;
-GAMESTATE gCurrentGameState = GS_OPENINGSPLASHSCREEN;
+GAMESTATE gCurrentGameState = GS_OVERWORLD;
 GAMESTATE gPreviousGameState;
 GAMESTATE gDesiredGameState;
 GAMEINPUT gGameInput;
@@ -196,6 +198,13 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 		goto Exit;
 	}
 
+	if (Load32BbpBitmapFromFile(".\\Assets\\Maps\\Overworld01.bmpx", &gOverworld01) != ERROR_SUCCESS)
+	{
+		LogMessageA(LL_ERROR, "[%s] Loading Overworld01.bmpx failed!", __FUNCTION__);
+		MessageBox(NULL, "Load32BbpBitmapFromFile failed!", "Error!", MB_ICONERROR | MB_OK);
+		goto Exit;
+	}
+	
 	if (InitializeSoundEngine() != S_OK)
 	{
 		MessageBox(NULL, "InitializeSoundEngine failed", "Error!", MB_ICONERROR | MB_OK);
@@ -375,11 +384,11 @@ DWORD CreateMainGameWindow(void)
 	windowClass.hIcon = LoadIconA(NULL, IDI_APPLICATION);
 	windowClass.hIconSm = LoadIconA(NULL, IDI_APPLICATION);
 	windowClass.hCursor = LoadCursorA(NULL, IDC_ARROW);
-#ifdef _DEBUG
-	windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255));
-#else
+//#ifdef _DEBUG
+//	windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255));
+//#else
 	windowClass.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
-#endif
+//#endif
 	windowClass.lpszMenuName = NULL;
 	windowClass.lpszClassName = GAME_NAME "_WINDOWCLASS";
 
@@ -688,8 +697,8 @@ Exit:
 
 DWORD InitializeHero(void) {
 	DWORD Error = ERROR_SUCCESS;
-	gPlayer.ScreenPosX = 192;
-	gPlayer.ScreenPosY = 64;
+	gPlayer.ScreenPos.X = 192;
+	gPlayer.ScreenPos.Y = 64;
 	gPlayer.CurrentArmor = SUIT_0;
 	gPlayer.Direction = DOWN;
 
@@ -843,6 +852,7 @@ void RenderFrameGraphics(void)
 
 		case GS_OVERWORLD:
 		{
+			DrawOverworldScreen();
 			break;
 		}
 
@@ -932,7 +942,6 @@ void Blit32BppBitmapToBuffer(_In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ 
 	int32_t MemoryOffset = 0;
 	int32_t BitmapOffset = 0;
 	PIXEL32 BitmapPixel = { 0 };
-	//PIXEL32 BackgroundPixel = { 0 };
 
 	for (int16_t yPixel = 0; yPixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; yPixel++)
 	{
@@ -945,10 +954,58 @@ void Blit32BppBitmapToBuffer(_In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ 
 			{
 				memcpy_s((PIXEL32*)gBackBuffer.Memory + MemoryOffset, sizeof(PIXEL32), &BitmapPixel, sizeof(PIXEL32));
 			}
-
 		}
 	}
 
+}
+
+void BlitTilemapToBuffer(_In_ GAMEBITMAP* GameBitmap)
+{
+	int32_t StartingScreenPixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH);
+
+	int32_t StartingBitmapPixel = ((GameBitmap->BitmapInfo.bmiHeader.biWidth * GameBitmap->BitmapInfo.bmiHeader.biHeight)
+		- GameBitmap->BitmapInfo.bmiHeader.biWidth) + gCamera.X - (GameBitmap->BitmapInfo.bmiHeader.biWidth * gCamera.Y);
+
+	int32_t MemoryOffset = 0;
+	int32_t BitmapOffset = 0;
+	
+#ifdef AVX
+	__m256i BitmapOctoPixel;
+	for (int16_t yPixel = 0; yPixel < GAME_RES_HEIGHT; yPixel++)
+	{
+		for (int16_t xPixel = 0; xPixel < GAME_RES_WIDTH; xPixel += 8)
+		{
+			MemoryOffset = StartingScreenPixel + xPixel - (GAME_RES_WIDTH * yPixel);
+			BitmapOffset = StartingBitmapPixel + xPixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * yPixel);
+			BitmapOctoPixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)gOverworld01.Memory + BitmapOffset));
+			_mm256_store_si256((__m256i*)((PIXEL32*)gBackBuffer.Memory + MemoryOffset), BitmapOctoPixel);
+		}
+	}
+#elif defined SSE2
+	__m128i BitmapQuadPixel;
+	for (int16_t yPixel = 0; yPixel < GAME_RES_HEIGHT; yPixel++)
+	{
+		for (int16_t xPixel = 0; xPixel < GAME_RES_WIDTH; xPixel += 4)
+		{
+			MemoryOffset = StartingScreenPixel + xPixel - (GAME_RES_WIDTH * yPixel);
+			BitmapOffset = StartingBitmapPixel + xPixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * yPixel);
+			BitmapQuadPixel = _mm_load_si128((const __m128i*)((PIXEL32*)gOverworld01.Memory + BitmapOffset));
+			_mm_store_si128((__m128i*)((PIXEL32*)gBackBuffer.Memory + MemoryOffset), BitmapQuadPixel);
+		}
+	}
+#else
+	PIXEL32 BitmapPixel = { 0 };
+	for (int16_t yPixel = 0; yPixel < GAME_RES_HEIGHT; yPixel++)
+	{
+		for (int16_t xPixel = 0; xPixel < GAME_RES_WIDTH; xPixel++)
+		{
+			MemoryOffset = StartingScreenPixel + xPixel - (GAME_RES_WIDTH * yPixel);
+			BitmapOffset = StartingBitmapPixel + xPixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * yPixel);
+			memcpy_s(&BitmapPixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + BitmapOffset, sizeof(PIXEL32));
+			memcpy_s((PIXEL32*)gBackBuffer.Memory + MemoryOffset, sizeof(PIXEL32), &BitmapPixel, sizeof(PIXEL32));
+		}
+	}
+#endif
 }
 
 DWORD LoadRegistryParameters(void)
@@ -1208,7 +1265,7 @@ void DrawDebugInfo(void)
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 56);
 	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "FramesT: %llu", gPerformanceData.TotalFramesRendered);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 64);
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "ScreenXY:%d,%d", gPlayer.ScreenPosX, gPlayer.ScreenPosY);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "ScreenXY:%d,%d", (short)gPlayer.ScreenPos.X, (short)gPlayer.ScreenPos.Y);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 72);
 }
 
@@ -1263,7 +1320,13 @@ void MenuItem_CharacterNaming_Back(void)
 
 void MenuItem_CharacterNaming_OK(void)
 {
-
+	if (strlen(gPlayer.Name) > 0)
+	{
+		gPreviousGameState = gCurrentGameState;
+		gCurrentGameState = GS_OVERWORLD;
+		gPlayer.Active = TRUE;
+		PlayGameSound(&gSoundMenuChoose);
+	}
 }
 
 void MenuItem_TitleScreen_Options(void)
@@ -1528,8 +1591,6 @@ void DrawTitleScreen(void)
 		TextColor.Blue = 255;
 	}
 
-	//__stosd(gBackBuffer.Memory, 0xFF0000FF, GAME_DRAWING_AREA_MEMORY_SIZE / sizeof(PIXEL32));
-
 	BlitStringToBuffer(GAME_NAME, &g6x7Font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(GAME_NAME) * 6 / 2), 60);
 
 	for (uint8_t MenuItem = 0; MenuItem < gMenu_TitleScreen.ItemCount; MenuItem++)
@@ -1619,6 +1680,31 @@ void DrawCharacterNamingScreen(void)
 	LocalFrameCounter++;
 	LastFrameSeen = gPerformanceData.TotalFramesRendered;
 }
+
+void DrawOverworldScreen(void)
+{
+	static uint64_t LocalFrameCounter;
+	static uint64_t LastFrameSeen;
+	static PIXEL32 TextColor;
+
+	if (gPerformanceData.TotalFramesRendered > (LastFrameSeen + 1))
+	{
+		LocalFrameCounter = 0;
+		memset(&TextColor, 0, sizeof(PIXEL32));
+	}
+
+	//memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+
+	BlitTilemapToBuffer(&gOverworld01);
+
+	//Blit32BppBitmapToBuffer(&gOverworld01, 0, 0);
+	
+	Blit32BppBitmapToBuffer(&gPlayer.Sprite[gPlayer.CurrentArmor][gPlayer.SpriteIndex + gPlayer.Direction], gPlayer.ScreenPos.X, gPlayer.ScreenPos.Y);
+
+	LocalFrameCounter++;
+
+	LastFrameSeen = gPerformanceData.TotalFramesRendered;
+	}
 
 void DrawExitYesNoScreen(void)
 {
@@ -1831,7 +1917,7 @@ void PPI_Overworld(void)
 	{
 		if (gGameInput.DownKeyIsDown)
 		{
-			if (gPlayer.ScreenPosY < GAME_RES_HEIGHT - 16)
+			if (gPlayer.ScreenPos.Y < GAME_RES_HEIGHT - 16)
 			{
 				gPlayer.MovementRemaining = 16;
 				gPlayer.Direction = DOWN;
@@ -1840,7 +1926,7 @@ void PPI_Overworld(void)
 
 		else if (gGameInput.LeftKeyIsDown)
 		{
-			if (gPlayer.ScreenPosX > 0)
+			if (gPlayer.ScreenPos.X > 0)
 			{
 				gPlayer.MovementRemaining = 16;
 				gPlayer.Direction = LEFT;
@@ -1849,7 +1935,7 @@ void PPI_Overworld(void)
 
 		else if (gGameInput.RightKeyIsDown)
 		{
-			if (gPlayer.ScreenPosX < GAME_RES_WIDTH - 16)
+			if (gPlayer.ScreenPos.X < GAME_RES_WIDTH - 16)
 			{
 				gPlayer.MovementRemaining = 16;
 				gPlayer.Direction = RIGHT;
@@ -1858,7 +1944,7 @@ void PPI_Overworld(void)
 
 		else if (gGameInput.UpKeyIsDown)
 		{
-			if (gPlayer.ScreenPosY > 0)
+			if (gPlayer.ScreenPos.Y > 0)
 			{
 				gPlayer.MovementRemaining = 16;
 				gPlayer.Direction = UP;
@@ -1870,19 +1956,19 @@ void PPI_Overworld(void)
 		gPlayer.MovementRemaining--;
 		if (gPlayer.Direction == DOWN)
 		{
-			gPlayer.ScreenPosY++;
+			gPlayer.ScreenPos.Y++;
 		}
 		else if (gPlayer.Direction == LEFT)
 		{
-			gPlayer.ScreenPosX--;
+			gPlayer.ScreenPos.X--;
 		}
 		else if (gPlayer.Direction == RIGHT)
 		{
-			gPlayer.ScreenPosX++;
+			gPlayer.ScreenPos.X++;
 		}
 		else if (gPlayer.Direction == UP)
 		{
-			gPlayer.ScreenPosY--;
+			gPlayer.ScreenPos.Y--;
 		}
 
 		switch (gPlayer.MovementRemaining)
@@ -1917,6 +2003,12 @@ void PPI_Overworld(void)
 
 			}
 		}
+	}
+
+	if (PRESSED_ESCAPE)
+	{
+		gPreviousGameState = gCurrentGameState;
+		gCurrentGameState = GS_TITLESCREEN;
 	}
 
 }
