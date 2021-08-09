@@ -13,20 +13,20 @@ UPOINT gCamera;
 int gFontCharacterPixelOffset[] = {
 	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
 		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-		//	   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?
-			94,64,87,66,67,68,70,85,72,73,71,77,88,74,91,92,52,53,54,55,56,57,58,59,60,61,86,84,89,75,90,93,
-			//	@  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  [  \  ]  ^  _
-				65,0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,80,78,81,69,76,
-				//	 `  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  {  |  }  ~  ..
-					62,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,82,79,83,63,93,
-					//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
-						93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-						//	.. .. .. .. .. .. .. .. .. .. .. «  .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. »  .. .. .. ..
-							93,93,93,93,93,93,93,93,93,93,93,96,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,95,93,93,93,93,
-							//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
-								93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-								//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. F2 .. .. .. .. .. .. .. .. .. .. .. .. ..
-									93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,97,93,93,93,93,93,93,93,93,93,93,93,93,93
+	//	   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?
+		94,64,87,66,67,68,70,85,72,73,71,77,88,74,91,92,52,53,54,55,56,57,58,59,60,61,86,84,89,75,90,93,
+	//	@  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  [  \  ]  ^  _
+		65,0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,80,78,81,69,76,
+	//	 `  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  {  |  }  ~  ..
+		62,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,82,79,83,63,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. «  .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. »  .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,96,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,95,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. F2 .. .. .. .. .. .. .. .. .. .. .. .. ..
+		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,97,93,93,93,93,93,93,93,93,93,93,93,93,93
 };
 
 BOOL gWindowHasFocus;
@@ -58,6 +58,8 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	int64_t PreviousKernelCPUTime = 0;
 	HANDLE ProcessHandle = GetCurrentProcess();
 	gGamepadID = -1;
+	gPassableTiles[0] = TILE_GRASS_01;
+	gCurrentGameState = GS_OVERWORLD;
 
 	if (LoadRegistryParameters() != ERROR_SUCCESS)
 	{
@@ -673,6 +675,8 @@ DWORD InitializeHero(void) {
 	DWORD Error = ERROR_SUCCESS;
 	gPlayer.ScreenPos.X = 192;
 	gPlayer.ScreenPos.Y = 64;
+	gPlayer.WorldPos.X = 192;
+	gPlayer.WorldPos.Y = 64;
 	gPlayer.CurrentArmor = SUIT_0;
 	gPlayer.Direction = DOWN;
 
@@ -1239,8 +1243,12 @@ void DrawDebugInfo(void)
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 56);
 	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "FramesT: %llu", gPerformanceData.TotalFramesRendered);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 64);
-	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "ScreenXY:%d,%d", (short)gPlayer.ScreenPos.X, (short)gPlayer.ScreenPos.Y);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "ScreenXY:%hu,%hu", gPlayer.ScreenPos.X, gPlayer.ScreenPos.Y);
 	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 72);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "WorldXY: %hu,%hu", gPlayer.WorldPos.X, gPlayer.WorldPos.Y);
+	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 80);
+	sprintf_s(DebugTextBuffer, _countof(DebugTextBuffer), "CameraXY:%hu,%hu", gCamera.X, gCamera.Y);
+	BlitStringToBuffer(DebugTextBuffer, &g6x7Font, &White, 0, 88);
 }
 
 void FindFirstConnectedGamepad(void)
@@ -1500,6 +1508,8 @@ DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap)
 	void* FileBuffer = NULL;
 	char* Cursor = NULL;
 	char TempBuffer[16] = { 0 };
+	uint16_t Rows = 0;
+	uint16_t Columns = 0;
 
 	if ((FileHandle = CreateFileA(FileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
 	{
@@ -1598,25 +1608,25 @@ DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap)
 	BytesRead = 0;
 	for (;;)
 	{
-		if (BytesRead > 8)
-		{
-			// We should have found the opening quotation mark by now.
-			Error = ERROR_INVALID_DATA;
-			LogMessageA(LL_ERROR, "[%s] Could not locate the opening quotation mark before the height attribute! 0x%08lx!", __FUNCTION__, Error);
-			goto Exit;
-		}
+if (BytesRead > 8)
+{
+	// We should have found the opening quotation mark by now.
+	Error = ERROR_INVALID_DATA;
+	LogMessageA(LL_ERROR, "[%s] Could not locate the opening quotation mark before the height attribute! 0x%08lx!", __FUNCTION__, Error);
+	goto Exit;
+}
 
-		if (*Cursor == '\"')
-		{
-			Cursor++;
-			break;
-		}
-		else
-		{
-			Cursor++;
-		}
+if (*Cursor == '\"')
+{
+	Cursor++;
+	break;
+}
+else
+{
+	Cursor++;
+}
 
-		BytesRead++;
+BytesRead++;
 	}
 
 	BytesRead = 0;
@@ -1643,7 +1653,11 @@ DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap)
 		goto Exit;
 	}
 
-	TileMap->Map = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, TileMap->Height * sizeof(void*));
+	LogMessageA(LL_INFO, "[%s] %s TileMap dimensions: %dx%d", __FUNCTION__, FileName, TileMap->Width, TileMap->Height);
+	Rows = TileMap->Height;
+	Columns = TileMap->Width;
+	TileMap->Map = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Rows * sizeof(void*));
+
 	if (TileMap->Map == NULL)
 	{
 		Error = ERROR_OUTOFMEMORY;
@@ -1653,7 +1667,7 @@ DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap)
 
 	for (uint16_t Counter = 0; Counter < TileMap->Height; Counter++)
 	{
-		TileMap->Map[Counter] = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, TileMap->Width * sizeof(void*));
+		TileMap->Map[Counter] = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, Columns * sizeof(void*));
 		if (TileMap->Map[Counter] == NULL)
 		{
 			Error = ERROR_OUTOFMEMORY;
@@ -1662,6 +1676,62 @@ DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap)
 		}
 	}
 
+	BytesRead = 0;
+	memset(TempBuffer, 0, sizeof(TempBuffer));
+
+	if ((Cursor = strstr(FileBuffer, ",")) == NULL)
+	{
+		Error = ERROR_INVALID_DATA;
+		LogMessageA(LL_ERROR, "[%s] Could not find a comma character in the file %s! 0x%08lx!", __FUNCTION__, FileName, Error);
+		goto Exit;
+	}
+
+	while (*Cursor != '\r' && *Cursor != '\n')
+	{
+		if (BytesRead > 3)
+		{
+			Error = ERROR_INVALID_DATA;
+			LogMessageA(LL_ERROR, "[%s] Could not find a new line character at the beginning of the tile map data in the file %s! 0x%08lx!", __FUNCTION__, FileName, Error);
+			goto Exit;
+		}
+
+		BytesRead++;
+		Cursor--;
+	}
+	Cursor++;
+
+	for (uint16_t Row = 0; Row < Rows; Row++)
+	{
+		for (uint16_t Column = 0; Column < Columns; Column++)
+		{
+			memset(TempBuffer, 0, sizeof(TempBuffer));
+
+			if (*Cursor == '\r' || *Cursor == '\n')
+			{
+				Cursor++;
+				continue;
+			}
+
+			for (uint8_t Counter = 0; Counter < 8; Counter++)
+			{
+				if (*Cursor == ',' || *Cursor == '<')
+				{
+					if (((TileMap->Map[Row][Column]) = (uint8_t)atoi(TempBuffer)) == 0)
+					{
+						Error = ERROR_INVALID_DATA;
+						LogMessageA(LL_ERROR, "[%s] atoi failed while converting tile map data in the file %s! 0x%08lx!", __FUNCTION__, FileName, Error);
+						goto Exit;
+					}
+
+					Cursor++;
+					break;
+				}
+
+				TempBuffer[Counter] = *Cursor;
+				Cursor++;
+			}
+		}
+	}
 
 Exit:
 

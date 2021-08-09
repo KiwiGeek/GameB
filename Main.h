@@ -22,6 +22,7 @@
 #endif
 
 #pragma warning(pop)
+#include "Tiles.h"
 
 #ifdef _DEBUG
 #define ASSERT(Expression, Message) if (!(Expression)) { *(int*)0 = 0; }
@@ -185,6 +186,7 @@ typedef struct HERO
 	GAMEBITMAP Sprite[3][12];
 	BOOL Active;
 	UPOINT ScreenPos;
+	UPOINT WorldPos;
 	uint8_t MovementRemaining;
 	DIRECTION Direction;
 	uint8_t CurrentArmor;
@@ -232,11 +234,11 @@ GAMESOUND gSoundSplashScreen;
 HERO gPlayer;
 float gSFXVolume;
 float gMusicVolume;
-IXAudio2SourceVoice* gXAudioSFXSourceVoice[NUMBER_OF_SFX_SOURCE_VOICES];
-IXAudio2SourceVoice* gXAudioMusicSourceVoice;
 int8_t gGamepadID;
 HWND gGameWindow;
-
+IXAudio2SourceVoice* gXAudioSFXSourceVoice[NUMBER_OF_SFX_SOURCE_VOICES];
+IXAudio2SourceVoice* gXAudioMusicSourceVoice;
+uint8_t gPassableTiles[1];
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD CreateMainGameWindow(void);
