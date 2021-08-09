@@ -13,19 +13,22 @@ void DrawOverworldScreen(void)
 		memset(&TextColor, 0, sizeof(PIXEL32));
 	}
 
-	BlitTilemapToBuffer(&gOverworld01.GameBitmap);
+	BlitBackgroundToBuffer(&gOverworld01.GameBitmap);
 
-	Blit32BppBitmapToBuffer(&gPlayer.Sprite[gPlayer.CurrentArmor][gPlayer.SpriteIndex + gPlayer.Direction], gPlayer.ScreenPos.X, gPlayer.ScreenPos.Y);
-
-	for(uint16_t Row = 0; Row < GAME_RES_HEIGHT / 16; Row++) 
+	if (gPerformanceData.DisplayDebugInfo == DEBUG_DISPLAY_TILES)
 	{
-		for (uint16_t Column = 0; Column < GAME_RES_WIDTH / 16; Column++)
+		for (uint16_t Row = 0; Row < GAME_RES_HEIGHT / 16; Row++)
 		{
-			char Buffer[8] = { 0 };
-			_itoa_s(gOverworld01.TileMap.Map[Row][Column], Buffer, sizeof(Buffer), 10);
-			BlitStringToBuffer(Buffer, &g6x7Font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (Column * 16)+5, (Row * 16)+5);
+			for (uint16_t Column = 0; Column < GAME_RES_WIDTH / 16; Column++)
+			{
+				char Buffer[8] = { 0 };
+				_itoa_s(gOverworld01.TileMap.Map[Row + (gCamera.Y / 16)][Column + (gCamera.X / 16)], Buffer, sizeof(Buffer), 10);
+				BlitStringToBuffer(Buffer, &g6x7Font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (Column * 16) + 5, (Row * 16) + 4);
+			}
 		}
 	}
+
+	Blit32BppBitmapToBuffer(&gPlayer.Sprite[gPlayer.CurrentArmor][gPlayer.SpriteIndex + gPlayer.Direction], gPlayer.ScreenPos.X, gPlayer.ScreenPos.Y);
 
 	LocalFrameCounter++;
 
@@ -42,18 +45,26 @@ void PPI_Overworld(void)
 		if (gGameInput.DownKeyIsDown)
 		{
 			BOOL CanMoveToDesiredTile = FALSE;
-			for (uint8_t Counter = 0; Counter < _countof(gPassableTiles); Counter++)
+
+			// are we at the bottom of the map?
+			if (gPlayer.WorldPos.Y < gOverworld01.GameBitmap.BitmapInfo.bmiHeader.biHeight - 16)
 			{
-				if (gOverworld01.TileMap.Map[(gPlayer.WorldPos.Y / 16) + 1][(gPlayer.WorldPos.X / 16)] == gPassableTiles[Counter])
+				for (uint8_t Counter = 0; Counter < _countof(gPassableTiles); Counter++)
 				{
-					CanMoveToDesiredTile = TRUE;
-					break;
+
+					if (gOverworld01.TileMap.Map[(gPlayer.WorldPos.Y / 16) + 1][(gPlayer.WorldPos.X / 16)] == gPassableTiles[Counter])
+					{
+						CanMoveToDesiredTile = TRUE;
+						break;
+					}
 				}
-			}
-			if (gPlayer.ScreenPos.Y < GAME_RES_HEIGHT - 16 && CanMoveToDesiredTile)
-			{
-				gPlayer.MovementRemaining = 16;
-				gPlayer.Direction = DOWN;
+
+				if (gPlayer.ScreenPos.Y < GAME_RES_HEIGHT - 16 && CanMoveToDesiredTile)
+				{
+					gPlayer.MovementRemaining = 16;
+					gPlayer.Direction = DOWN;
+				}
+
 			}
 		}
 
@@ -78,18 +89,23 @@ void PPI_Overworld(void)
 		else if (gGameInput.RightKeyIsDown)
 		{
 			BOOL CanMoveToDesiredTile = FALSE;
-			for (uint8_t Counter = 0; Counter < _countof(gPassableTiles); Counter++)
+
+			// are we at the right of the map?
+			if (gPlayer.WorldPos.X < gOverworld01.GameBitmap.BitmapInfo.bmiHeader.biWidth - 16)
 			{
-				if (gOverworld01.TileMap.Map[(gPlayer.WorldPos.Y / 16)][(gPlayer.WorldPos.X / 16) + 1] == gPassableTiles[Counter])
+				for (uint8_t Counter = 0; Counter < _countof(gPassableTiles); Counter++)
 				{
-					CanMoveToDesiredTile = TRUE;
-					break;
+					if (gOverworld01.TileMap.Map[(gPlayer.WorldPos.Y / 16)][(gPlayer.WorldPos.X / 16) + 1] == gPassableTiles[Counter])
+					{
+						CanMoveToDesiredTile = TRUE;
+						break;
+					}
 				}
-			}
-			if (gPlayer.ScreenPos.X < GAME_RES_WIDTH - 16 && CanMoveToDesiredTile)
-			{
-				gPlayer.MovementRemaining = 16;
-				gPlayer.Direction = RIGHT;
+				if (gPlayer.ScreenPos.X < GAME_RES_WIDTH - 16 && CanMoveToDesiredTile)
+				{
+					gPlayer.MovementRemaining = 16;
+					gPlayer.Direction = RIGHT;
+				}
 			}
 		}
 
@@ -120,22 +136,51 @@ void PPI_Overworld(void)
 		gPlayer.MovementRemaining--;
 		if (gPlayer.Direction == DOWN)
 		{
-			gPlayer.ScreenPos.Y++;
+			if (gPlayer.ScreenPos.Y < (GAME_RES_HEIGHT - 64) || gCamera.Y == gOverworld01.GameBitmap.BitmapInfo.bmiHeader.biHeight - GAME_RES_HEIGHT)
+			{
+				gPlayer.ScreenPos.Y++;
+			}
+			else
+			{
+				gCamera.Y++;
+			}
 			gPlayer.WorldPos.Y++;
 		}
 		else if (gPlayer.Direction == LEFT)
 		{
-			gPlayer.ScreenPos.X--;
+			if (gPlayer.ScreenPos.X > 64 || gCamera.X == 0)
+			{
+				gPlayer.ScreenPos.X--;
+			}
+			else
+			{
+				gCamera.X--;
+			}
 			gPlayer.WorldPos.X--;
 		}
 		else if (gPlayer.Direction == RIGHT)
 		{
-			gPlayer.ScreenPos.X++;
+			if (gPlayer.ScreenPos.X < GAME_RES_WIDTH - 64 || gCamera.X == gOverworld01.GameBitmap.BitmapInfo.bmiHeader.biWidth - GAME_RES_WIDTH)
+			{
+				gPlayer.ScreenPos.X++;
+			}
+			else
+			{
+				gCamera.X++;
+			}
 			gPlayer.WorldPos.X++;
+
 		}
 		else if (gPlayer.Direction == UP)
 		{
-			gPlayer.ScreenPos.Y--;
+			if (gPlayer.ScreenPos.Y > 64 || gCamera.Y == 0)
+			{
+				gPlayer.ScreenPos.Y--;
+			}
+			else
+			{
+				gCamera.Y--;
+			}
 			gPlayer.WorldPos.Y--;
 		}
 

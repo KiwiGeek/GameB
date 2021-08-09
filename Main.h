@@ -63,6 +63,10 @@
 #define PRESSED_CHOOSE gGameInput.ChooseKeyIsDown	&& !gGameInput.ChooseKeyWasDown
 #define PRESSED_DEBUG gGameInput.DebugKeyIsDown		&& !gGameInput.DebugKeyWasDown
 
+#define DEBUG_DISPLAY_NONE		0
+#define DEBUG_DISPLAY_VARS		1
+#define DEBUG_DISPLAY_TILES		2
+
 typedef enum DIRECTION
 { 
 	DOWN = 0,
@@ -153,7 +157,7 @@ typedef struct GAMEPERFDATA
 	float CookedFPSAverage;
 	int64_t PerfFrequency;
 	MONITORINFO MonitorInfo;
-	BOOL DisplayDebugInfo;
+	uint8_t DisplayDebugInfo;			// 0 = none, 1 = vars, 2 = tilemap
 	ULONG MinimumTimerResolution;
 	ULONG MaximumTimerResolution;
 	ULONG CurrentTimerResolution;
@@ -239,6 +243,7 @@ HWND gGameWindow;
 IXAudio2SourceVoice* gXAudioSFXSourceVoice[NUMBER_OF_SFX_SOURCE_VOICES];
 IXAudio2SourceVoice* gXAudioMusicSourceVoice;
 uint8_t gPassableTiles[1];
+UPOINT gCamera;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD CreateMainGameWindow(void);
@@ -247,7 +252,7 @@ void ProcessPlayerInput(void);
 DWORD Load32BbpBitmapFromFile(_In_ char* Filename, _Inout_ GAMEBITMAP* GameBitmap);
 DWORD InitializeHero(void);
 void Blit32BppBitmapToBuffer(_In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ uint16_t y);
-void BlitTilemapToBuffer(_In_ GAMEBITMAP* GameBitmap);
+void BlitBackgroundToBuffer(_In_ GAMEBITMAP* GameBitmap);
 void BlitStringToBuffer(_In_ char* String, _In_ GAMEBITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y);
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);
