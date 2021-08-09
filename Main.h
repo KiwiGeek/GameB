@@ -166,6 +166,19 @@ typedef struct GAMEPERFDATA
 	uint8_t CurrentScaleFactor;
 } GAMEPERFDATA;
 
+typedef struct TILEMAP
+{
+	uint16_t Width;
+	uint16_t Height;
+	uint8_t** Map;
+} TILEMAP;
+
+typedef struct GAMEMAP
+{
+	TILEMAP TileMap;
+	GAMEBITMAP GameBitmap;
+} GAMEMAP;
+
 typedef struct HERO
 {
 	char Name[9];
@@ -209,6 +222,7 @@ typedef struct MENU
 GAMEPERFDATA gPerformanceData;
 GAMEBITMAP gBackBuffer;
 GAMEBITMAP g6x7Font;
+GAMEMAP gOverworld01;
 GAMESTATE gCurrentGameState;
 GAMESTATE gPreviousGameState;
 GAMEINPUT gGameInput;
@@ -222,6 +236,7 @@ IXAudio2SourceVoice* gXAudioSFXSourceVoice[NUMBER_OF_SFX_SOURCE_VOICES];
 IXAudio2SourceVoice* gXAudioMusicSourceVoice;
 int8_t gGamepadID;
 HWND gGameWindow;
+
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD CreateMainGameWindow(void);
@@ -241,7 +256,6 @@ void FindFirstConnectedGamepad(void);
 HRESULT InitializeSoundEngine(void);
 DWORD LoadWavFromFile(_In_ char* Filename, _Inout_ GAMESOUND* GameSound);
 void PlayGameSound(_In_ GAMESOUND* GameSound);
-
 #ifdef AVX
 void ClearScreen(_In_ __m256i* Color);
 #elif defined SSE2
@@ -249,7 +263,4 @@ void ClearScreen(_In_ __m128i* Color);
 #else
 void ClearScreen(_In_ PIXEL32* Pixel);
 #endif
-
-void DrawOverworldScreen(void);
-
-void PPI_Overworld(void);
+DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap);
