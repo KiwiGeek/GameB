@@ -1,5 +1,28 @@
 #pragma once
 
+#pragma warning(disable: 28251)
+#pragma warning(disable: 4668 4711)
+
+#pragma warning(push, 3)
+
+#include <Windows.h>
+#include <xaudio2.h>
+#pragma comment(lib, "XAudio2.lib")
+#include <stdio.h>
+#include <Psapi.h>
+#include <Xinput.h>
+#pragma comment(lib, "XInput.lib")
+#include <stdint.h>
+#pragma comment(lib, "Winmm.lib")
+#define AVX					// AVX, SSE2 or nothing
+#ifdef AVX
+#include <immintrin.h>
+#elif defined SSE2
+#include <emmintrin.h>
+#endif
+
+#pragma warning(pop)
+
 #ifdef _DEBUG
 #define ASSERT(Expression, Message) if (!(Expression)) { *(int*)0 = 0; }
 #else
@@ -15,7 +38,6 @@
 #define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
 #define TARGET_MICROSECONDS_PER_FRAME			16667ULL
 #define NUMBER_OF_SFX_SOURCE_VOICES				4
-#define AVX					// AVX, SSE2 or nothing
 #define SUIT_0	0
 #define SUIT_1	1
 #define SUIT_2	2
@@ -167,6 +189,40 @@ typedef struct REGISTRYPARAMS
 	DWORD ScaleFactor;
 } REGISTRYPARAMS;
 
+typedef struct MENUITEM
+{
+	char* Name;
+	int16_t X;
+	int16_t Y;
+	BOOL Enabled;
+	void (*Action)(void);
+} MENUITEM;
+
+typedef struct MENU
+{
+	char* Name;
+	uint8_t SelectedItem;
+	uint8_t ItemCount;
+	MENUITEM** Items;
+} MENU;
+
+GAMEPERFDATA gPerformanceData;
+GAMEBITMAP gBackBuffer;
+GAMEBITMAP g6x7Font;
+GAMESTATE gCurrentGameState;
+GAMESTATE gPreviousGameState;
+GAMEINPUT gGameInput;
+GAMESOUND gSoundMenuNavigate;
+GAMESOUND gSoundMenuChoose;
+GAMESOUND gSoundSplashScreen;
+HERO gPlayer;
+float gSFXVolume;
+float gMusicVolume;
+IXAudio2SourceVoice* gXAudioSFXSourceVoice[NUMBER_OF_SFX_SOURCE_VOICES];
+IXAudio2SourceVoice* gXAudioMusicSourceVoice;
+int8_t gGamepadID;
+HWND gGameWindow;
+
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
@@ -194,17 +250,6 @@ void ClearScreen(_In_ __m128i* Color);
 void ClearScreen(_In_ PIXEL32* Pixel);
 #endif
 
-void DrawOpeningSplashScreen(void);
-void DrawTitleScreen(void);
-void DrawExitYesNoScreen(void);
-void DrawGamepadUnpluggedScreen(void);
-void DrawOptionsScreen(void);
 void DrawOverworldScreen(void);
-void DrawCharacterNamingScreen(void);
-void PPI_OpeningSplashScreen(void);
-void PPI_TitleScreen(void);
+
 void PPI_Overworld(void);
-void PPI_ExitYesNo(void);
-void PPI_GamepadUnplugged(void);
-void PPI_OptionsScreen(void);
-void PPI_CharacterNaming(void);

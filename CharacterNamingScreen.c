@@ -1,65 +1,5 @@
-#pragma once
-
-#include <stdint.h>
-
-typedef struct MENUITEM
-{
-	char* Name;
-	int16_t X;
-	int16_t Y;
-	BOOL Enabled;
-	void (*Action)(void);
-} MENUITEM;
-
-typedef struct MENU
-{
-	char* Name;
-	uint8_t SelectedItem;
-	uint8_t ItemCount;
-	MENUITEM** Items;
-} MENU;
-
-void MenuItem_TitleScreen_Resume(void);
-void MenuItem_TitleScreen_StartNew(void);
-void MenuItem_TitleScreen_Options(void);
-void MenuItem_TitleScreen_Exit(void);
-void MenuItem_ExitYesNo_Yes(void);
-void MenuItem_ExitYesNo_No(void);
-void MenuItem_OptionsScreen_SFXVolume(void);
-void MenuItem_OptionsScreen_MusicVolume(void);
-void MenuItem_OptionsScreen_ScreenSize(void);
-void MenuItem_OptionsScreen_Back(void);
-void MenuItem_CharacterNaming_Add(void);
-void MenuItem_CharacterNaming_Back(void);
-void MenuItem_CharacterNaming_OK(void);
-
-// Title screen
-
-MENUITEM gMI_ResumeGame = { "Resume", (GAME_RES_WIDTH / 2) - ((6 * 6) / 2), 100, FALSE, MenuItem_TitleScreen_Resume };
-MENUITEM gMI_StartNewGame = { "Start New Game", (GAME_RES_WIDTH / 2) - ((14 * 6) / 2), 115, TRUE, MenuItem_TitleScreen_StartNew };
-MENUITEM gMI_Options = { "Options", (GAME_RES_WIDTH / 2) - ((7 * 6) / 2), 130, TRUE, MenuItem_TitleScreen_Options };
-MENUITEM gMI_Exit = { "Exit", (GAME_RES_WIDTH / 2) - ((4 * 6) / 2), 145, TRUE, MenuItem_TitleScreen_Exit };
-MENUITEM* gMI_TitleScreenItems[] = { &gMI_ResumeGame, &gMI_StartNewGame, &gMI_Options, &gMI_Exit };
-MENU gMenu_TitleScreen = { "Title Screen Menu", 1, _countof(gMI_TitleScreenItems), gMI_TitleScreenItems };
-
-
-// Exit Yes or No Screen
-
-MENUITEM gMI_ExitYesNo_Yes = { "Yes", (GAME_RES_WIDTH / 2) - ((3 * 6) / 2), 100, TRUE, MenuItem_ExitYesNo_Yes };
-MENUITEM gMI_ExitYesNo_No = { "No", (GAME_RES_WIDTH / 2) - ((2 * 6) / 2), 115, TRUE, MenuItem_ExitYesNo_No };
-MENUITEM* gMI_ExitYesNoItems[] = { &gMI_ExitYesNo_Yes , &gMI_ExitYesNo_No };
-MENU gMenu_ExitYesNo = { "Are you sure you want to exit?", 1, _countof(gMI_ExitYesNoItems), gMI_ExitYesNoItems };
-
-
-// Options screen
-
-MENUITEM gMI_OptionsScreen_SFXVolume = { "SFX Volume:", (GAME_RES_WIDTH / 2) - ((11 * 6) / 2) - 16, 100, TRUE, MenuItem_OptionsScreen_SFXVolume };
-MENUITEM gMI_OptionsScreen_MusicVolume = { "Music Volume:", (GAME_RES_WIDTH / 2) - ((13 * 6) / 2) - 16, 115, TRUE, MenuItem_OptionsScreen_MusicVolume };
-MENUITEM gMI_OptionsScreen_ScreenSize = { "Screen Size:", (GAME_RES_WIDTH / 2) - ((12 * 6) / 2) - 16, 130, TRUE, MenuItem_OptionsScreen_ScreenSize };
-MENUITEM gMI_OptionsScreen_Back = { "Back", (GAME_RES_WIDTH / 2) - ((4 * 6) / 2) - 16, 145, TRUE, MenuItem_OptionsScreen_Back };
-MENUITEM* gMI_OptionsScreenItems[] = { &gMI_OptionsScreen_SFXVolume, &gMI_OptionsScreen_MusicVolume, &gMI_OptionsScreen_ScreenSize, &gMI_OptionsScreen_Back };
-MENU gMenu_OptionsScreen = { "Options", 0, _countof(gMI_OptionsScreenItems), gMI_OptionsScreenItems };
-
+#include "Main.h"
+#include "CharacterNamingScreen.h"
 
 // Character Naming Menu
 
@@ -137,7 +77,207 @@ MENUITEM* gMI_CharacterNamingItems[] = {
 	&gMI_CharacterNaming_g, &gMI_CharacterNaming_h, &gMI_CharacterNaming_i, &gMI_CharacterNaming_j, &gMI_CharacterNaming_k, &gMI_CharacterNaming_l,
 	&gMI_CharacterNaming_m, &gMI_CharacterNaming_n, &gMI_CharacterNaming_o, &gMI_CharacterNaming_p, &gMI_CharacterNaming_q, &gMI_CharacterNaming_r,
 	&gMI_CharacterNaming_s, &gMI_CharacterNaming_t, &gMI_CharacterNaming_u, &gMI_CharacterNaming_v, &gMI_CharacterNaming_w, &gMI_CharacterNaming_x,
-	&gMI_CharacterNaming_y, &gMI_CharacterNaming_z, 
+	&gMI_CharacterNaming_y, &gMI_CharacterNaming_z,
 	&gMI_CharacterNaming_Back, &gMI_CharacterNaming_OK };
 
 MENU gMenu_CharacterNaming = { "What's your name, hero?", 0, _countof(gMI_CharacterNamingItems), gMI_CharacterNamingItems };
+
+void DrawCharacterNamingScreen(void)
+{
+	static uint64_t LocalFrameCounter;
+	static uint64_t LastFrameSeen;
+	static PIXEL32 TextColor = { 0x00, 0x00, 0x00, 0x00 };
+
+	if (gPerformanceData.TotalFramesRendered > LastFrameSeen + 1)
+	{
+		LocalFrameCounter = 0;
+		TextColor.Red = 0;
+		TextColor.Green = 0;
+		TextColor.Blue = 0;
+		gMenu_CharacterNaming.SelectedItem = 0;
+	}
+
+	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+
+	if ((LocalFrameCounter > 0) && (LocalFrameCounter <= 45) && (LocalFrameCounter % 15 == 0))
+	{
+		TextColor.Red += 64;
+		TextColor.Green += 64;
+		TextColor.Blue += 64;
+	}
+	if (LocalFrameCounter == 60)
+	{
+		TextColor.Red = 255;
+		TextColor.Green = 255;
+		TextColor.Blue = 255;
+	}
+
+	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g6x7Font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2), 16);
+	Blit32BppBitmapToBuffer(&gPlayer.Sprite[SUIT_0][FACING_DOWN_0], 153, 85);
+
+	for (uint8_t Letter = 0; Letter < 8; Letter++)
+	{
+		if (gPlayer.Name[Letter] == '\0')
+		{
+			BlitStringToBuffer("_", &g6x7Font, &TextColor, 173 + (Letter * 6), 93);
+		}
+		else
+		{
+			BlitStringToBuffer(&gPlayer.Name[Letter], &g6x7Font, &TextColor, 173 + (Letter * 6), 93);
+		}
+
+	}
+
+	for (uint8_t Counter = 0; Counter < gMenu_CharacterNaming.ItemCount; Counter++)
+	{
+		BlitStringToBuffer(gMenu_CharacterNaming.Items[Counter]->Name,
+			&g6x7Font,
+			&TextColor,
+			gMenu_CharacterNaming.Items[Counter]->X,
+			gMenu_CharacterNaming.Items[Counter]->Y);
+	}
+
+	BlitStringToBuffer("»",
+		&g6x7Font,
+		&TextColor,
+		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->X - 6,
+		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Y);
+
+	LocalFrameCounter++;
+	LastFrameSeen = gPerformanceData.TotalFramesRendered;
+}
+
+
+void PPI_CharacterNaming(void)
+{
+#define BACK_BUTTON		52
+#define CAPITAL_M		12
+#define LOWERCASE_N		39
+#define LOWERCASE_T		46
+#define OK_BUTTON		53
+#define COLUMN_COUNT	13
+
+	static uint8_t CursorColumn = 0;
+
+	// UP
+	if (PRESSED_UP)
+	{
+		if (gMenu_CharacterNaming.SelectedItem >= BACK_BUTTON)			// the OK and back buttons
+		{
+			gMenu_CharacterNaming.SelectedItem = LOWERCASE_N + CursorColumn;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+		else if (gMenu_CharacterNaming.SelectedItem > CAPITAL_M)		// the bottm letter rows
+		{
+			gMenu_CharacterNaming.SelectedItem -= COLUMN_COUNT;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+	}
+
+	// DOWN
+	if (PRESSED_DOWN)
+	{
+		if (gMenu_CharacterNaming.SelectedItem < LOWERCASE_N)		// the top three letter rows
+		{
+			gMenu_CharacterNaming.SelectedItem += COLUMN_COUNT;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+		else if (gMenu_CharacterNaming.SelectedItem < LOWERCASE_T)	// The row above the back button
+		{
+			gMenu_CharacterNaming.SelectedItem = BACK_BUTTON;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+		else if (gMenu_CharacterNaming.SelectedItem < BACK_BUTTON)	// the row above the OK button
+		{
+			gMenu_CharacterNaming.SelectedItem = OK_BUTTON;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+	}
+
+	// LEFT 
+	if (PRESSED_LEFT)
+	{
+		if ((((gMenu_CharacterNaming.SelectedItem) % COLUMN_COUNT) != 0) && gMenu_CharacterNaming.SelectedItem < BACK_BUTTON)		// all the rows above Back and OK
+		{
+			gMenu_CharacterNaming.SelectedItem -= 1;
+			CursorColumn -= 1;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+
+		// OK button
+		else if (gMenu_CharacterNaming.SelectedItem == OK_BUTTON)
+		{
+			gMenu_CharacterNaming.SelectedItem = BACK_BUTTON;
+			CursorColumn = 0;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+	}
+
+	// RIGHT
+	if (PRESSED_RIGHT)
+	{
+		if ((((gMenu_CharacterNaming.SelectedItem + 1) % COLUMN_COUNT) != 0) && gMenu_CharacterNaming.SelectedItem < BACK_BUTTON)		// all the rows above Back and OK
+		{
+			gMenu_CharacterNaming.SelectedItem += 1;
+			CursorColumn += 1;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+
+		// back button
+		else if (gMenu_CharacterNaming.SelectedItem == BACK_BUTTON)
+		{
+			gMenu_CharacterNaming.SelectedItem = OK_BUTTON;
+			CursorColumn = COLUMN_COUNT - 1;
+			PlayGameSound(&gSoundMenuNavigate);
+		}
+	}
+
+	// Select button
+	if (PRESSED_CHOOSE)
+	{
+		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Action();
+	}
+
+	// Escape button
+	if (PRESSED_ESCAPE)
+	{
+		MenuItem_CharacterNaming_Back();
+	}
+
+}
+
+
+void MenuItem_CharacterNaming_Add(void)
+{
+	if (strlen(gPlayer.Name) < 8)
+	{
+		gPlayer.Name[strlen(gPlayer.Name)] = gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Name[0];
+		PlayGameSound(&gSoundMenuChoose);
+	}
+}
+
+void MenuItem_CharacterNaming_Back(void)
+{
+	if (strlen(gPlayer.Name) < 1)
+	{
+		gPreviousGameState = gCurrentGameState;
+		gCurrentGameState = GS_TITLESCREEN;
+	}
+	else
+	{
+		gPlayer.Name[strlen(gPlayer.Name) - 1] = '\0';
+	}
+
+	PlayGameSound(&gSoundMenuChoose);
+}
+
+void MenuItem_CharacterNaming_OK(void)
+{
+	if (strlen(gPlayer.Name) > 0)
+	{
+		gPreviousGameState = gCurrentGameState;
+		gCurrentGameState = GS_OVERWORLD;
+		gPlayer.Active = TRUE;
+		PlayGameSound(&gSoundMenuChoose);
+	}
+}
