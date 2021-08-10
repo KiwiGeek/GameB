@@ -30,18 +30,18 @@
 #define ASSERT(Expression, Message) ((void)0);
 #endif
 
-#define GAME_NAME	"Game_B"
-#define GAME_VER	"0.9a"
+#define GAME_NAME		"Game_B"
+#define GAME_VER		"0.9a"
 #define GAME_RES_WIDTH  384
 #define GAME_RES_HEIGHT	240
 #define GAME_BPP		32
-#define GAME_DRAWING_AREA_MEMORY_SIZE	(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
+#define GAME_DRAWING_AREA_MEMORY_SIZE			(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
 #define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
 #define TARGET_MICROSECONDS_PER_FRAME			16667ULL
 #define NUMBER_OF_SFX_SOURCE_VOICES				4
-#define SUIT_0	0
-#define SUIT_1	1
-#define SUIT_2	2
+#define SUIT_0			0
+#define SUIT_1			1
+#define SUIT_2			2
 #define FACING_DOWN_0	0
 #define FACING_DOWN_1	1
 #define FACING_DOWN_2	2
@@ -62,10 +62,6 @@
 #define PRESSED_ESCAPE gGameInput.EscapeKeyIsDown	&& !gGameInput.EscapeKeyWasDown
 #define PRESSED_CHOOSE gGameInput.ChooseKeyIsDown	&& !gGameInput.ChooseKeyWasDown
 #define PRESSED_DEBUG gGameInput.DebugKeyIsDown		&& !gGameInput.DebugKeyWasDown
-
-#define DEBUG_DISPLAY_NONE		0
-#define DEBUG_DISPLAY_VARS		1
-#define DEBUG_DISPLAY_TILES		2
 
 typedef enum DIRECTION
 { 
@@ -120,8 +116,8 @@ typedef struct GAMEINPUT
 	int16_t ChooseKeyWasDown;
 } GAMEINPUT;
 
-#define LOG_FILE_NAME GAME_NAME ".log"
-#define FONT_SHEET_CHARACTERS_PER_ROW	98
+#define LOG_FILE_NAME GAME_NAME					".log"
+#define FONT_SHEET_CHARACTERS_PER_ROW			98
 
 #pragma warning(disable: 4820)	// disable warning about structure padding
 #pragma warning(disable: 5045)	// disable warning about Spectre/Meltdown CPU vulnerability
@@ -157,7 +153,7 @@ typedef struct GAMEPERFDATA
 	float CookedFPSAverage;
 	int64_t PerfFrequency;
 	MONITORINFO MonitorInfo;
-	uint8_t DisplayDebugInfo;			// 0 = none, 1 = vars, 2 = tilemap
+	BOOL DisplayDebugInfo;
 	ULONG MinimumTimerResolution;
 	ULONG MaximumTimerResolution;
 	ULONG CurrentTimerResolution;
@@ -195,9 +191,12 @@ typedef struct HERO
 	DIRECTION Direction;
 	uint8_t CurrentArmor;
 	uint8_t SpriteIndex;
-	int32_t HP;
-	int32_t Strength;
-	int32_t MP;
+	int16_t HP;
+	int32_t XP;
+	int16_t Money;
+	int16_t Strength;
+	int16_t Luck;
+	int16_t MP;
 } HERO;
 
 typedef struct REGISTRYPARAMS
@@ -235,6 +234,7 @@ GAMEINPUT gGameInput;
 GAMESOUND gSoundMenuNavigate;
 GAMESOUND gSoundMenuChoose;
 GAMESOUND gSoundSplashScreen;
+GAMESOUND gMusicOverworld01;
 HERO gPlayer;
 float gSFXVolume;
 float gMusicVolume;
@@ -263,6 +263,7 @@ void FindFirstConnectedGamepad(void);
 HRESULT InitializeSoundEngine(void);
 DWORD LoadWavFromFile(_In_ char* Filename, _Inout_ GAMESOUND* GameSound);
 void PlayGameSound(_In_ GAMESOUND* GameSound);
+void PlayGameMusic(_In_ GAMESOUND* GameSound);
 #ifdef AVX
 void ClearScreen(_In_ __m256i* Color);
 #elif defined SSE2
@@ -271,3 +272,4 @@ void ClearScreen(_In_ __m128i* Color);
 void ClearScreen(_In_ PIXEL32* Pixel);
 #endif
 DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap);
+DWORD LoadOggFromFile(_In_ char* FileName, _Inout_ GAMESOUND* GameSound);

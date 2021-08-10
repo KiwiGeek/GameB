@@ -7,6 +7,7 @@
 #include "OptionsScreen.h"
 #include "Overworld.h"
 #include "TitleScreen.h"
+#include "stb_vorbis.h"
 
 BOOL gGameIsRunning;
 
@@ -59,7 +60,7 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	HANDLE ProcessHandle = GetCurrentProcess();
 	gGamepadID = -1;
 	gPassableTiles[0] = TILE_GRASS_01;
-	gCurrentGameState = GS_OVERWORLD;
+	gCurrentGameState = GS_CHARACTERNAMING;
 
 	if (LoadRegistryParameters() != ERROR_SUCCESS)
 	{
@@ -205,6 +206,12 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 		goto Exit;
 	}
 
+	if (LoadOggFromFile(".\\Assets\\Overworld01.ogg", &gMusicOverworld01) != ERROR_SUCCESS)
+	{
+		MessageBox(NULL, "LoadOggFromFile.ogg failed!", "Error!", MB_ICONERROR | MB_OK);
+		goto Exit;
+	}
+	
 	QueryPerformanceFrequency((LARGE_INTEGER*)&gPerformanceData.PerfFrequency);
 
 	gBackBuffer.BitmapInfo.bmiHeader.biSize = sizeof(gBackBuffer.BitmapInfo.bmiHeader);
@@ -523,7 +530,7 @@ void ProcessPlayerInput(void)
 
 	if (PRESSED_DEBUG)
 	{
-		gPerformanceData.DisplayDebugInfo = (++gPerformanceData.DisplayDebugInfo % 3);
+		gPerformanceData.DisplayDebugInfo = !gPerformanceData.DisplayDebugInfo;
 	}
 
 	switch (gCurrentGameState)
@@ -856,7 +863,7 @@ void RenderFrameGraphics(void)
 		}
 	}
 
-	if (gPerformanceData.DisplayDebugInfo == DEBUG_DISPLAY_VARS)
+	if (gPerformanceData.DisplayDebugInfo == TRUE)
 	{
 		DrawDebugInfo();
 	}
@@ -1498,6 +1505,15 @@ void PlayGameSound(_In_ GAMESOUND* GameSound)
 	}
 }
 
+void PlayGameMusic(_In_ GAMESOUND* GameSound)
+{
+	gXAudioMusicSourceVoice->lpVtbl->Stop(gXAudioMusicSourceVoice,0 ,0);
+	gXAudioMusicSourceVoice->lpVtbl->FlushSourceBuffers(gXAudioMusicSourceVoice);
+	GameSound->Buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+	gXAudioMusicSourceVoice->lpVtbl->SubmitSourceBuffer(gXAudioMusicSourceVoice, &GameSound->Buffer, NULL);
+	gXAudioMusicSourceVoice->lpVtbl->Start(gXAudioMusicSourceVoice, 0, XAUDIO2_COMMIT_NOW);
+}
+
 DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap)
 {
 	DWORD Error = ERROR_SUCCESS;
@@ -1744,4 +1760,79 @@ Exit:
 	}
 
 	return Error;
+}
+
+DWORD LoadOggFromFile(_In_ char* FileName, _Inout_ GAMESOUND* GameSound)
+{
+	DWORD Error = ERROR_SUCCESS;
+	HANDLE FileHandle = INVALID_HANDLE_VALUE;
+	LARGE_INTEGER FileSize = { 0 };
+	DWORD BytesRead = 0;
+	void* FileBuffer = NULL;
+	int SamplesDecoded = 0;
+	int Channels = 0;
+	int SampleRate = 0;
+	short* DecodedAudio = NULL;
+
+	if ((FileHandle = CreateFileA(FileName, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
+	{
+		Error = GetLastError();
+		LogMessageA(LL_ERROR, "[%s] CreateFileA failed with 0x%08lx!", __FUNCTION__, Error);
+		goto Exit;
+	}
+
+	if (GetFileSizeEx(FileHandle, &FileSize) == 0)
+	{
+		Error = GetLastError();
+		LogMessageA(LL_ERROR, "[%s] GetFileSizeEx failed with 0x%08lx!", __FUNCTION__, Error);
+		goto Exit;
+	}
+	LogMessageA(LL_INFO, "[%s] Size of file %s: %lu ", __FUNCTION__, FileName, FileSize.QuadPart);
+
+	FileBuffer = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, FileSize.QuadPart);
+	if (FileBuffer == NULL)
+	{
+		Error = ERROR_OUTOFMEMORY;
+		LogMessageA(LL_ERROR, "[%s] HeapAlloc failed with 0x%08lx!", __FUNCTION__, Error);
+		goto Exit;
+	}
+
+	if (ReadFile(FileHandle, FileBuffer, (DWORD)FileSize.QuadPart, &BytesRead, NULL) == 0)
+	{
+		Error = GetLastError();
+		LogMessageA(LL_ERROR, "[%s] ReadFile failed with 0x%08lx on %s!", __FUNCTION__, Error, FileName);
+		goto Exit;
+	}
+
+	SamplesDecoded = stb_vorbis_decode_memory(FileBuffer, (int32_t)FileSize.QuadPart, &Channels, &SampleRate, &DecodedAudio);
+	if (SamplesDecoded < 1)
+	{
+		Error = ERROR_BAD_COMPRESSION_BUFFER;
+		LogMessageA(LL_ERROR, "[%s] stb_vorbis_decode_memory failed with 0x%08lx on %s!", __FUNCTION__, Error, FileName);
+		goto Exit;
+	}
+
+	GameSound->WaveFormat.wFormatTag = WAVE_FORMAT_PCM;
+	GameSound->WaveFormat.nChannels = (WORD)Channels;
+	GameSound->WaveFormat.nSamplesPerSec = SampleRate;
+	GameSound->WaveFormat.nAvgBytesPerSec = GameSound->WaveFormat.nSamplesPerSec * GameSound->WaveFormat.nChannels * 2;
+	GameSound->WaveFormat.nBlockAlign = GameSound->WaveFormat.nChannels * 2;
+	GameSound->WaveFormat.wBitsPerSample = 16;
+	GameSound->Buffer.Flags = XAUDIO2_END_OF_STREAM;
+	GameSound->Buffer.AudioBytes = SamplesDecoded * GameSound->WaveFormat.nChannels * 2;
+	GameSound->Buffer.pAudioData = (BYTE*)DecodedAudio;
+	
+Exit:
+	if (FileHandle && (FileHandle != INVALID_HANDLE_VALUE))
+	{
+		CloseHandle(FileHandle);
+	}
+
+	if (FileBuffer)
+	{
+		HeapFree(GetProcessHeap(), 0, FileBuffer);
+	}
+
+	return Error;
+	
 }

@@ -10,17 +10,15 @@ MENU gMenu_ExitYesNo = { "Are you sure you want to exit?", 1, _countof(gMI_ExitY
 
 void DrawExitYesNoScreen(void)
 {
-	PIXEL32 White = { 0xFF, 0xFF, 0xFF, 0xFF };
-	static uint64_t LocalFrameCounter;
-	static uint64_t LastFrameSeen;
+	PIXEL32 white = { 0xFF, 0xFF, 0xFF, 0xFF };
 	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
-	BlitStringToBuffer(gMenu_ExitYesNo.Name, &g6x7Font, &White, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_ExitYesNo.Name) * 6 / 2), 60);
-	BlitStringToBuffer(gMenu_ExitYesNo.Items[0]->Name, &g6x7Font, &White, gMenu_ExitYesNo.Items[0]->X, gMenu_ExitYesNo.Items[0]->Y);
-	BlitStringToBuffer(gMenu_ExitYesNo.Items[1]->Name, &g6x7Font, &White, gMenu_ExitYesNo.Items[1]->X, gMenu_ExitYesNo.Items[1]->Y);
+	BlitStringToBuffer(gMenu_ExitYesNo.Name, &g6x7Font, &white, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_ExitYesNo.Name) * 6 / 2), 60);
+	BlitStringToBuffer(gMenu_ExitYesNo.Items[0]->Name, &g6x7Font, &white, gMenu_ExitYesNo.Items[0]->X, gMenu_ExitYesNo.Items[0]->Y);
+	BlitStringToBuffer(gMenu_ExitYesNo.Items[1]->Name, &g6x7Font, &white, gMenu_ExitYesNo.Items[1]->X, gMenu_ExitYesNo.Items[1]->Y);
 
-	BlitStringToBuffer("»",
+	BlitStringToBuffer("\xAF",
 		&g6x7Font,
-		&White,
+		&white,
 		gMenu_ExitYesNo.Items[gMenu_ExitYesNo.SelectedItem]->X - 6,
 		gMenu_ExitYesNo.Items[gMenu_ExitYesNo.SelectedItem]->Y);
 }
