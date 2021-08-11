@@ -1,5 +1,4 @@
-
-#pragma warning(disable: 4668 26451 6386 6297)
+#pragma warning(disable: 4668 26451 6386 6297 5045)
 #pragma warning(push,3)
 #include <Windows.h>
 #include "miniz.h"
@@ -121,10 +120,60 @@ int main(int argc, char* argv[])
 	else if (operation == OPERATION_EXTRACT)
 	{
 
+		BOOL file_found_in_archive = FALSE;
+		mz_zip_archive zip_archive = { 0 };
+		mz_zip_error mz_error = MZ_ZIP_NO_ERROR;
+
 		if (FileExists(archive_name) == FALSE)
 		{
 			printf("ERROR: Archive %s does not exist!\n", archive_name);
+			return ERROR_FILE_NOT_FOUND;
 		}
+
+		if (mz_zip_reader_init_file(&zip_archive, archive_name, 0) == FALSE)
+		{
+			mz_error = mz_zip_get_last_error(&zip_archive);
+			printf("ERROR: mz_zip_reader_init_file failed with error code %d!\n", mz_error);
+			return mz_error;
+		}
+
+		printf("[-] Archive %s opened for reading.\n", archive_name);
+
+		for (int file_index = 0; file_index < (int)mz_zip_reader_get_num_files(&zip_archive); file_index++)
+		{
+			mz_zip_archive_file_stat compressed_file_statistics = { 0 };
+			if (mz_zip_reader_file_stat(&zip_archive, file_index, &compressed_file_statistics) == FALSE)
+			{
+				mz_error = mz_zip_get_last_error(&zip_archive);
+				printf("ERROR: mz_zip_reader_file_stat failed with error code %d!\n", mz_error);
+				return mz_error;
+			}
+
+			if (_stricmp(compressed_file_statistics.m_filename, fully_qualified_file_name) == 0)
+			{
+				file_found_in_archive = TRUE;
+				printf("[-] File %s found in archive%s.\n", fully_qualified_file_name, archive_name);
+
+				if (mz_zip_reader_extract_to_file(&zip_archive, file_index, fully_qualified_file_name, 0) == FALSE)
+				{
+					mz_error = mz_zip_get_last_error(&zip_archive);
+					printf("ERROR: mz_zip_reader_extract_to_file failed with error code %d!\n", mz_error);
+					return mz_error;
+				}
+				else 
+				{
+					printf("[-] Successfully extracted file %s.\n", fully_qualified_file_name);
+				}
+				break;
+			}
+		}
+
+		if (file_found_in_archive == FALSE) 
+		{
+			printf("ERROR: File %s not found in archive %s!\n", fully_qualified_file_name, archive_name);
+			return ERROR_FILE_NOT_FOUND;
+		}
+
 
 	}
 	else
