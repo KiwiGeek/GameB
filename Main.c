@@ -60,7 +60,7 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	HANDLE ProcessHandle = GetCurrentProcess();
 	gGamepadID = -1;
 	gPassableTiles[0] = TILE_GRASS_01;
-	gCurrentGameState = GS_CHARACTERNAMING;
+	//gCurrentGameState = GS_CHARACTERNAMING;
 
 	if (LoadRegistryParameters() != ERROR_SUCCESS)
 	{
