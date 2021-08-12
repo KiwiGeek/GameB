@@ -1,5 +1,4 @@
 #include "Main.h"
-
 #include "CharacterNamingScreen.h"
 #include "ExitYesNoScreen.h"
 #include "GamepadUnplugged.h"
@@ -8,6 +7,7 @@
 #include "Overworld.h"
 #include "TitleScreen.h"
 #include "stb_vorbis.h"
+#include "miniz.h"
 
 BOOL gGameIsRunning;
 
@@ -50,14 +50,12 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	int64_t ElapsedMicroseconds = 0;
 	int64_t ElapsedMicrosecondsAccumulatorRaw = 0;
 	int64_t ElapsedMicrosecondsAccumulatorCooked = 0;
-	HMODULE NtDllModuleHandle = NULL;
 	FILETIME ProcessCreationTime = { 0 };
 	FILETIME ProcessExitTime = { 0 };
 	int64_t CurrentUserCPUTime = 0;
 	int64_t CurrentKernelCPUTime = 0;
 	int64_t PreviousUserCPUTime = 0;
 	int64_t PreviousKernelCPUTime = 0;
-	HANDLE ProcessHandle = GetCurrentProcess();
 	gGamepadID = -1;
 	gPassableTiles[0] = TILE_GRASS_01;
 	//gCurrentGameState = GS_CHARACTERNAMING;
@@ -76,14 +74,7 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 		goto Exit;
 	}
 
-	if ((NtDllModuleHandle = GetModuleHandleA("ntdll.dll")) == NULL)
-	{
-		LogMessageA(LL_ERROR, "[%s] Couldn't load ntdll.dll! Error 0x%081x!", __FUNCTION__, GetLastError());
-		MessageBoxA(NULL, "Couldn't load ntdll.dll!", "Error!", MB_ICONERROR | MB_OK);
-		goto Exit;
-	}
-
-	if ((NtQueryTimerResolution = (_NtQueryTimerResolution)GetProcAddress(NtDllModuleHandle, "NtQueryTimerResolution")) == NULL)
+	if ((NtQueryTimerResolution = (_NtQueryTimerResolution)GetProcAddress(GetModuleHandleA("btdll.dll"), "NtQueryTimerResolution")) == NULL)
 	{
 		LogMessageA(LL_ERROR, "[%s] Couldn't find the NtQueryTimerResolution function in ntdll.dll! GetProcAddress failed! Error 0x%081x!", __FUNCTION__, GetLastError());
 		MessageBoxA(NULL, "Couldn't find the NtQueryTimerResolution function in ntdll.dll!", "Error!", MB_ICONEXCLAMATION | MB_OK);
@@ -141,7 +132,7 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 		gPerformanceData.MaximumTimerResolution,
 		gPerformanceData.CurrentTimerResolution);
 
-	if (SetPriorityClass(ProcessHandle, HIGH_PRIORITY_CLASS) == 0)
+	if (SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS) == 0)
 	{
 		LogMessageA(LL_ERROR, "[%s] Failed to set process priority! Error 0x%081x", __FUNCTION__, GetLastError());
 		MessageBoxA(NULL, "Failed to set process priority!", "Error!", MB_ICONERROR | MB_OK);
@@ -188,21 +179,21 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 		goto Exit;
 	}
 
-	if (LoadWavFromFile(".\\Assets\\SplashScreen.wav", &gSoundSplashScreen) != ERROR_SUCCESS)
+	if (LoadAssetFromArchive(ASSET_FILE, "SplashScreen.wav", RT_WAV, &gSoundSplashScreen) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "LoadWaveFromFile.wav failed!", "Error!", MB_ICONERROR | MB_OK);
+		MessageBox(NULL, "LoadAssetFromArchive failed!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
 
-	if (LoadWavFromFile(".\\Assets\\MenuNavigate.wav", &gSoundMenuNavigate) != ERROR_SUCCESS)
+	if (LoadAssetFromArchive(ASSET_FILE, "MenuNavigate.wav", RT_WAV, &gSoundMenuNavigate) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "LoadWaveFromFile.wav failed!", "Error!", MB_ICONERROR | MB_OK);
+		MessageBox(NULL, "LoadAssetFromArchive failed!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
 
-	if (LoadWavFromFile(".\\Assets\\MenuChoose.wav", &gSoundMenuChoose) != ERROR_SUCCESS)
+	if (LoadAssetFromArchive(ASSET_FILE, "MenuChoose.wav",RT_WAV, &gSoundMenuChoose) != ERROR_SUCCESS)
 	{
-		MessageBox(NULL, "LoadWaveFromFile.wav failed!", "Error!", MB_ICONERROR | MB_OK);
+		MessageBox(NULL, "LoadAssetFromArchive failed!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
 
@@ -279,7 +270,7 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 
 			FindFirstConnectedGamepad();
 
-			GetProcessTimes(ProcessHandle,
+			GetProcessTimes(GetCurrentProcess(),
 				&ProcessCreationTime,
 				&ProcessExitTime,
 				(FILETIME*)&CurrentKernelCPUTime,
@@ -290,8 +281,8 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 			gPerformanceData.CPUPercent /= gPerformanceData.SystemInfo.dwNumberOfProcessors;
 			gPerformanceData.CPUPercent *= 100;
 
-			GetProcessHandleCount(ProcessHandle, &gPerformanceData.HandleCount);
-			K32GetProcessMemoryInfo(ProcessHandle, (PROCESS_MEMORY_COUNTERS*)&gPerformanceData.MemInfo, sizeof(gPerformanceData.MemInfo));
+			GetProcessHandleCount(GetCurrentProcess(), &gPerformanceData.HandleCount);
+			K32GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&gPerformanceData.MemInfo, sizeof(gPerformanceData.MemInfo));
 
 			gPerformanceData.RawFPSAverage = 1.0f / ((ElapsedMicrosecondsAccumulatorRaw / CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES) * 0.000001f);
 			gPerformanceData.CookedFPSAverage = 1.0f / ((ElapsedMicrosecondsAccumulatorCooked / CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES) * 0.000001f);
@@ -1494,6 +1485,75 @@ Exit:
 	return Error;
 }
 
+DWORD LoadWavFromMemory(_In_ void* Buffer, _Inout_ GAMESOUND* GameSound)
+{
+	DWORD error = ERROR_SUCCESS;
+	DWORD riff = 0;
+	uint16_t data_chunk_offset = 0;
+	DWORD data_chunk_searcher = 0;
+	BOOL data_chunk_found = FALSE;
+	DWORD data_chunk_size = 0;
+
+	memcpy(&riff, Buffer, sizeof(DWORD));
+	if (riff != 0x46464952) // "RIFF" Backwards
+	{
+		error = ERROR_FILE_INVALID;
+		LogMessageA(LL_ERROR, "[%s] First four bytes of memory buffer are not 'RIFF'", __FUNCTION__);
+		goto Exit;
+	}
+
+	memcpy(&GameSound->WaveFormat, (BYTE*)Buffer + 20, sizeof(WAVEFORMATEX));
+
+	if (GameSound->WaveFormat.nBlockAlign != ((GameSound->WaveFormat.nChannels * GameSound->WaveFormat.wBitsPerSample) / 8) ||
+		(GameSound->WaveFormat.wFormatTag != WAVE_FORMAT_PCM) ||
+		(GameSound->WaveFormat.wBitsPerSample != 16))
+	{
+		error = ERROR_DATATYPE_MISMATCH;
+		LogMessageA(LL_ERROR, "[%s] This wav data in the memory buffer did not meet the format requirements! Only PCM format, 44.1Khz, 16 bits per sample wav files are supported. 0x%08lx!", __FUNCTION__, error);
+		goto Exit;
+	}
+
+	while (data_chunk_found == FALSE)
+	{
+		memcpy(&data_chunk_searcher, (BYTE*)Buffer + data_chunk_offset, sizeof(DWORD));
+		if (data_chunk_searcher == 0x61746164)	// 'data' backwards
+		{
+			data_chunk_found = TRUE;
+			break;
+		}
+		else
+		{
+			data_chunk_offset += 4;
+		}
+
+		if (data_chunk_offset > 256)
+		{
+			error = ERROR_DATATYPE_MISMATCH;
+			LogMessageA(LL_ERROR, "[%s] Data chunk not found within first 256 bytes of the memory buffer! 0x%08lx!", __FUNCTION__, error);
+			goto Exit;
+		}
+	}
+
+	memcpy(&data_chunk_size, (BYTE*)Buffer + data_chunk_offset + 4, sizeof(DWORD));
+
+	GameSound->Buffer.Flags = XAUDIO2_END_OF_STREAM;
+	GameSound->Buffer.AudioBytes = data_chunk_size;
+	GameSound->Buffer.pAudioData = (BYTE*)Buffer + data_chunk_offset + 8;
+
+Exit:
+
+	if (error == ERROR_SUCCESS)
+	{
+		LogMessageA(LL_INFO, "[%s] Successfully loaded wav from memory!", __FUNCTION__);
+	}
+	else
+	{
+		LogMessageA(LL_ERROR, "[%s] Failed to load wav from memory! Error: 0x%08lx!", __FUNCTION__, error);
+	}
+
+	return error;
+}
+
 void PlayGameSound(_In_ GAMESOUND* GameSound)
 {
 	gXAudioSFXSourceVoice[gSFXSourceVoiceSelector]->lpVtbl->SubmitSourceBuffer(gXAudioSFXSourceVoice[gSFXSourceVoiceSelector], &GameSound->Buffer, NULL);
@@ -1835,4 +1895,88 @@ Exit:
 
 	return Error;
 	
+}
+
+DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In_ RESOURCETYPE ResourceType, _Inout_ void* Resource)
+{
+	DWORD error = ERROR_SUCCESS;
+	mz_zip_archive archive = { 0 };
+	BYTE* decompressed_buffer = NULL;
+	size_t decompressed_size = 0;
+	BOOL file_found_in_archive = FALSE;
+
+	if (mz_zip_reader_init_file(&archive, ArchiveName, 0) == FALSE)
+	{
+		error = mz_zip_get_last_error(&archive);
+		LogMessageA(LL_ERROR, "[%s] mz_zip_reader_init_file failed with 0x%08lx on archive file %s!", __FUNCTION__, error, ArchiveName);
+		goto Exit;
+	}
+
+	LogMessageA(LL_INFO, "[%s] Archive %s opened.", __FUNCTION__, ArchiveName);
+	
+	for (uint32_t file_index = 0; file_index < mz_zip_reader_get_num_files(&archive); file_index++)
+	{
+		mz_zip_archive_file_stat compressed_file_statistics = { 0 };
+		if (mz_zip_reader_file_stat(&archive, file_index, &compressed_file_statistics) == FALSE)
+		{
+			error = mz_zip_get_last_error(&archive);
+			LogMessageA(LL_ERROR, "[%s] mz_zip_reader_file_stat failed with 0x%08lx! Archive: %s File: %s", __FUNCTION__, error, ArchiveName, AssetFileName);
+			goto Exit;
+		}
+
+		if (_stricmp(compressed_file_statistics.m_filename, AssetFileName) == 0)
+		{
+			file_found_in_archive = TRUE;
+
+			if ((decompressed_buffer = mz_zip_reader_extract_to_heap(&archive, file_index, &decompressed_size, 0)) == NULL)
+			{
+				error = mz_zip_get_last_error(&archive);
+				LogMessageA(LL_ERROR, "[%s] mz_zip_reader_extract_to_heap failed with 0x%08lx! Archive: %s File: %s", __FUNCTION__, error, ArchiveName, AssetFileName);
+				goto Exit;
+			}
+			
+			LogMessageA(LL_INFO, "[%s] File %s found in asset file %s and extracted to heap.", __FUNCTION__, AssetFileName, ArchiveName);
+			
+			break;
+		}
+
+	}
+
+	if (file_found_in_archive == FALSE)
+	{
+		error = ERROR_FILE_NOT_FOUND;
+		LogMessageA(LL_ERROR, "[%s] File %s was not found in archive %s! 0x%08lx", __FUNCTION__, AssetFileName, ArchiveName, error);
+		goto Exit;
+	}
+
+	switch (ResourceType)
+	{
+		case RT_WAV:
+		{
+			error = LoadWavFromMemory(decompressed_buffer, Resource);
+			break;
+		}
+		case RT_OGG:
+		{
+			break;
+		}
+		case RT_TILEMAP:
+		{
+			break;
+		}
+		case RT_BMPX:
+		{
+			break;
+		}
+		default:
+		{
+			ASSERT(FALSE, "Unknown resource type!");
+		}
+	}
+
+Exit:
+
+	mz_zip_reader_end(&archive);
+	
+	return error;
 }

@@ -16,7 +16,7 @@ void DrawExitYesNoScreen(void)
 	BlitStringToBuffer(gMenu_ExitYesNo.Items[0]->Name, &g6x7Font, &white, gMenu_ExitYesNo.Items[0]->X, gMenu_ExitYesNo.Items[0]->Y);
 	BlitStringToBuffer(gMenu_ExitYesNo.Items[1]->Name, &g6x7Font, &white, gMenu_ExitYesNo.Items[1]->X, gMenu_ExitYesNo.Items[1]->Y);
 
-	BlitStringToBuffer("\xAF",
+	BlitStringToBuffer("\xBB",
 		&g6x7Font,
 		&white,
 		gMenu_ExitYesNo.Items[gMenu_ExitYesNo.SelectedItem]->X - 6,

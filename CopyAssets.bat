@@ -1,6 +1,9 @@
 REM TODO: DELETE THESE TWO LINES AFTER WE NO LONGER NEED THEM
 del %GAMEBDIR%\x64\Debug\Assets\ /Q
-xcopy %GAMEBDIR%\Assets %GAMEBDIR%\x64\Debug\Assets /i
+del %GAMEBDIR%\x64\Debug\Assets\Maps /Q
+rmdir %GAMEBDIR%\x64\Debug\Assets\Maps
+rmdir %GAMEBDIR%\x64\Debug\Assets
+xcopy %GAMEBDIR%\Assets %GAMEBDIR%\x64\Debug\Assets /i /s
 
 del Assets.dat
 del CopyAssets.log
@@ -40,4 +43,4 @@ MyMiniz.exe Assets.dat + .\Assets\Maps\Water01.bmp >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Maps\Tileset01.tsx >> CopyAssets.log
 
 REM copy Assets.dat into whatever directory or directories it needs to be in
-move assets.dat %GAMEBDIR%\x64\Debug\assets.dat
+copy assets.dat %GAMEBDIR%\x64\Debug\assets.dat

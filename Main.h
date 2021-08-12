@@ -92,6 +92,14 @@ typedef enum GAMESTATE
 	GS_GAMEPADUNPLUGGED
 } GAMESTATE;
 
+typedef enum RESOURCETYPE
+{
+	RT_WAV,
+	RT_OGG,
+	RT_TILEMAP,
+	RT_BMPX
+} RESOURCETYPE;
+
 typedef struct UPOINT
 {
 	uint16_t	X;
@@ -118,6 +126,7 @@ typedef struct GAMEINPUT
 
 #define LOG_FILE_NAME GAME_NAME					".log"
 #define FONT_SHEET_CHARACTERS_PER_ROW			98
+#define ASSET_FILE								"Assets.dat"
 
 #pragma warning(disable: 4820)	// disable warning about structure padding
 #pragma warning(disable: 5045)	// disable warning about Spectre/Meltdown CPU vulnerability
@@ -262,8 +271,10 @@ void DrawDebugInfo(void);
 void FindFirstConnectedGamepad(void);
 HRESULT InitializeSoundEngine(void);
 DWORD LoadWavFromFile(_In_ char* Filename, _Inout_ GAMESOUND* GameSound);
+DWORD LoadWavFromMemory(_In_ void* Buffer, _Inout_ GAMESOUND* GameSound);
 void PlayGameSound(_In_ GAMESOUND* GameSound);
 void PlayGameMusic(_In_ GAMESOUND* GameSound);
+DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In_ RESOURCETYPE ResourceType, _Inout_ void* Resource);
 #ifdef AVX
 void ClearScreen(_In_ __m256i* Color);
 #elif defined SSE2
