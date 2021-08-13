@@ -20,13 +20,13 @@ void DrawOverworldScreen(void)
 
 	BlitBackgroundToBuffer(&gOverworld01.GameBitmap);
 
-	/*for (uint16_t Row = 0; Row < GAME_RES_HEIGHT / 16; Row++)
+	/*for (uint16_t row = 0; row < GAME_RES_HEIGHT / 16; row++)
 	{
-		for (uint16_t Column = 0; Column < GAME_RES_WIDTH / 16; Column++)
+		for (uint16_t column = 0; column < GAME_RES_WIDTH / 16; column++)
 		{
-			char Buffer[8] = { 0 };
-			_itoa_s(gOverworld01.TileMap.Map[Row + (gCamera.Y / 16)][Column + (gCamera.X / 16)], Buffer, sizeof(Buffer), 10);
-			BlitStringToBuffer(Buffer, &g6x7Font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (Column * 16) + 5, (Row * 16) + 4);
+			char buffer[8] = { 0 };
+			_itoa_s(gOverworld01.TileMap.Map[row + (gCamera.Y / 16)][column + (gCamera.X / 16)], buffer, sizeof(buffer), 10);
+			BlitStringToBuffer(buffer, &g6x7Font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (column * 16) + 5, (row * 16) + 4);
 		}
 	}*/
 

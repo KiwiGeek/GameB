@@ -1,9 +1,9 @@
 REM TODO: DELETE THESE TWO LINES AFTER WE NO LONGER NEED THEM
-del %GAMEBDIR%\x64\Debug\Assets\ /Q
-del %GAMEBDIR%\x64\Debug\Assets\Maps /Q
-rmdir %GAMEBDIR%\x64\Debug\Assets\Maps
-rmdir %GAMEBDIR%\x64\Debug\Assets
-xcopy %GAMEBDIR%\Assets %GAMEBDIR%\x64\Debug\Assets /i /s
+REM del %GAMEBDIR%\x64\Debug\Assets\ /Q
+REM del %GAMEBDIR%\x64\Debug\Assets\Maps /Q
+REM rmdir %GAMEBDIR%\x64\Debug\Assets\Maps
+REM rmdir %GAMEBDIR%\x64\Debug\Assets
+REM xcopy %GAMEBDIR%\Assets %GAMEBDIR%\x64\Debug\Assets /i /s
 
 del Assets.dat
 del CopyAssets.log

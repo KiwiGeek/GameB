@@ -36,8 +36,15 @@ void DrawOpeningSplashScreen(void)
 
 		if (LocalFrameCounter >= 240)
 		{
-			gPreviousGameState = gCurrentGameState;
-			gCurrentGameState = GS_TITLESCREEN;
+			if (WaitForSingleObject(gAssetLoadingThreadHandle, 0) == WAIT_OBJECT_0)
+			{
+				gPreviousGameState = gCurrentGameState;
+				gCurrentGameState = GS_TITLESCREEN;			
+			}
+			else
+			{
+				// TODO: Draw loading text.
+			}
 		}
 
 		BlitStringToBuffer("-Game Studio-",

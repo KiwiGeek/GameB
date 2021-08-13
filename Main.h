@@ -253,12 +253,12 @@ IXAudio2SourceVoice* gXAudioSFXSourceVoice[NUMBER_OF_SFX_SOURCE_VOICES];
 IXAudio2SourceVoice* gXAudioMusicSourceVoice;
 uint8_t gPassableTiles[1];
 UPOINT gCamera;
+HANDLE gAssetLoadingThreadHandle;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
 void ProcessPlayerInput(void);
-DWORD Load32BbpBitmapFromFile(_In_ char* Filename, _Inout_ GAMEBITMAP* GameBitmap);
 DWORD InitializeHero(void);
 void Blit32BppBitmapToBuffer(_In_ GAMEBITMAP* GameBitmap, _In_ uint16_t x, _In_ uint16_t y);
 void BlitBackgroundToBuffer(_In_ GAMEBITMAP* GameBitmap);
@@ -270,11 +270,13 @@ void LogMessageA(_In_ LOGLEVEL LogLevel, _In_ char* Message, _In_ ...);
 void DrawDebugInfo(void);
 void FindFirstConnectedGamepad(void);
 HRESULT InitializeSoundEngine(void);
-DWORD LoadWavFromFile(_In_ char* Filename, _Inout_ GAMESOUND* GameSound);
+DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In_ RESOURCETYPE ResourceType, _Inout_ void* Resource);
 DWORD LoadWavFromMemory(_In_ void* Buffer, _Inout_ GAMESOUND* GameSound);
+DWORD LoadOggFromMemory(_In_ void* Buffer, _In_ uint64_t BufferSize, _Inout_ GAMESOUND* GameSound);
+DWORD LoadTilemapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_ TILEMAP* TileMap);
+DWORD Load32BppBitmapFromMemory(_In_ void* Buffer, _Inout_ GAMEBITMAP* GameBitmap);
 void PlayGameSound(_In_ GAMESOUND* GameSound);
 void PlayGameMusic(_In_ GAMESOUND* GameSound);
-DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In_ RESOURCETYPE ResourceType, _Inout_ void* Resource);
 #ifdef AVX
 void ClearScreen(_In_ __m256i* Color);
 #elif defined SSE2
@@ -282,5 +284,4 @@ void ClearScreen(_In_ __m128i* Color);
 #else
 void ClearScreen(_In_ PIXEL32* Pixel);
 #endif
-DWORD LoadTilemapFromFile(_In_ char* FileName, _Inout_ TILEMAP* TileMap);
-DWORD LoadOggFromFile(_In_ char* FileName, _Inout_ GAMESOUND* GameSound);
+DWORD AssetLoadingThreadProc(_In_ LPVOID lpParam);
