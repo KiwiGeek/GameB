@@ -7,7 +7,7 @@ void DrawOverworldScreen(void)
 	static uint64_t last_frame_seen;
 	static PIXEL32 text_color;
 
-	if (gPerformanceData.TotalFramesRendered > (last_frame_seen + 1))
+	if (g_performance_data.TotalFramesRendered > (last_frame_seen + 1))
 	{
 		local_frame_counter = 0;
 		memset(&text_color, 0, sizeof(PIXEL32));
@@ -15,10 +15,10 @@ void DrawOverworldScreen(void)
 
 	if (local_frame_counter == 60)
 	{
-		PlayGameMusic(&gMusicOverworld01);
+		PlayGameMusic(&g_music_overworld01);
 	}
 
-	BlitBackgroundToBuffer(&gOverworld01.GameBitmap);
+	BlitBackgroundToBuffer(&g_overworld01.GameBitmap);
 
 	/*for (uint16_t row = 0; row < GAME_RES_HEIGHT / 16; row++)
 	{
@@ -30,182 +30,182 @@ void DrawOverworldScreen(void)
 		}
 	}*/
 
-	Blit32BppBitmapToBuffer(&gPlayer.Sprite[gPlayer.CurrentArmor][gPlayer.SpriteIndex + gPlayer.Direction], gPlayer.ScreenPos.X, gPlayer.ScreenPos.Y);
+	Blit32BppBitmapToBuffer(&g_Player.Sprite[g_Player.CurrentArmor][g_Player.SpriteIndex + g_Player.Direction], g_Player.ScreenPos.X, g_Player.ScreenPos.Y);
 
 	local_frame_counter++;
-	last_frame_seen = gPerformanceData.TotalFramesRendered;
+	last_frame_seen = g_performance_data.TotalFramesRendered;
 }
 
 void PPI_Overworld(void)
 {
 
-	if (!gPlayer.MovementRemaining)
+	if (!g_Player.MovementRemaining)
 	{
-		if (gGameInput.DownKeyIsDown)
+		if (g_game_input.DownKeyIsDown)
 		{
 			// are we at the bottom of the map?
-			if (gPlayer.WorldPos.Y < gOverworld01.GameBitmap.BitmapInfo.bmiHeader.biHeight - 16)
+			if (g_Player.WorldPos.Y < g_overworld01.GameBitmap.BitmapInfo.bmiHeader.biHeight - 16)
 			{
 				BOOL can_move_to_desired_tile = FALSE;
-				for (uint8_t counter = 0; counter < (uint8_t)_countof(gPassableTiles); counter++)
+				for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
 				{
 
-					if (gOverworld01.TileMap.Map[(gPlayer.WorldPos.Y / 16) + 1][(gPlayer.WorldPos.X / 16)] == gPassableTiles[counter])
+					if (g_overworld01.TileMap.Map[(g_Player.WorldPos.Y / 16) + 1][(g_Player.WorldPos.X / 16)] == g_passable_tiles[counter])
 					{
 						can_move_to_desired_tile = TRUE;
 						break;
 					}
 				}
 
-				if (gPlayer.ScreenPos.Y < GAME_RES_HEIGHT - 16 && can_move_to_desired_tile)
+				if (g_Player.ScreenPos.Y < GAME_RES_HEIGHT - 16 && can_move_to_desired_tile)
 				{
-					gPlayer.MovementRemaining = 16;
-					gPlayer.Direction = DOWN;
+					g_Player.MovementRemaining = 16;
+					g_Player.Direction = DOWN;
 				}
 
 			}
 		}
 
-		else if (gGameInput.LeftKeyIsDown)
+		else if (g_game_input.LeftKeyIsDown)
 		{
 			BOOL can_move_to_desired_tile = FALSE;
-			for (uint8_t counter = 0; counter < (uint8_t)_countof(gPassableTiles); counter++)
+			for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
 			{
-				if (gOverworld01.TileMap.Map[(gPlayer.WorldPos.Y / 16)][(gPlayer.WorldPos.X / 16) - 1] == gPassableTiles[counter])
+				if (g_overworld01.TileMap.Map[(g_Player.WorldPos.Y / 16)][(g_Player.WorldPos.X / 16) - 1] == g_passable_tiles[counter])
 				{
 					can_move_to_desired_tile = TRUE;
 					break;
 				}
 			}
-			if (gPlayer.ScreenPos.X > 0 && can_move_to_desired_tile)
+			if (g_Player.ScreenPos.X > 0 && can_move_to_desired_tile)
 			{
-				gPlayer.MovementRemaining = 16;
-				gPlayer.Direction = LEFT;
+				g_Player.MovementRemaining = 16;
+				g_Player.Direction = LEFT;
 			}
 		}
 
-		else if (gGameInput.RightKeyIsDown)
+		else if (g_game_input.RightKeyIsDown)
 		{
 			// are we at the right of the map?
-			if (gPlayer.WorldPos.X < gOverworld01.GameBitmap.BitmapInfo.bmiHeader.biWidth - 16)
+			if (g_Player.WorldPos.X < g_overworld01.GameBitmap.BitmapInfo.bmiHeader.biWidth - 16)
 			{
 				BOOL can_move_to_desired_tile = FALSE;
-				for (uint8_t counter = 0; counter < (uint8_t)_countof(gPassableTiles); counter++)
+				for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
 				{
-					if (gOverworld01.TileMap.Map[(gPlayer.WorldPos.Y / 16)][(gPlayer.WorldPos.X / 16) + 1] == gPassableTiles[counter])
+					if (g_overworld01.TileMap.Map[(g_Player.WorldPos.Y / 16)][(g_Player.WorldPos.X / 16) + 1] == g_passable_tiles[counter])
 					{
 						can_move_to_desired_tile = TRUE;
 						break;
 					}
 				}
-				if (gPlayer.ScreenPos.X < GAME_RES_WIDTH - 16 && can_move_to_desired_tile)
+				if (g_Player.ScreenPos.X < GAME_RES_WIDTH - 16 && can_move_to_desired_tile)
 				{
-					gPlayer.MovementRemaining = 16;
-					gPlayer.Direction = RIGHT;
+					g_Player.MovementRemaining = 16;
+					g_Player.Direction = RIGHT;
 				}
 			}
 		}
 
-		else if (gGameInput.UpKeyIsDown)
+		else if (g_game_input.UpKeyIsDown)
 		{
 			BOOL can_move_to_desired_tile = FALSE;
-			if (gPlayer.ScreenPos.Y > 0)
+			if (g_Player.ScreenPos.Y > 0)
 			{
 
-				for (uint8_t counter = 0; counter < (uint8_t)_countof(gPassableTiles); counter++)
+				for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
 				{
-					if (gOverworld01.TileMap.Map[(gPlayer.WorldPos.Y / 16) - 1][(gPlayer.WorldPos.X / 16)] == gPassableTiles[counter])
+					if (g_overworld01.TileMap.Map[(g_Player.WorldPos.Y / 16) - 1][(g_Player.WorldPos.X / 16)] == g_passable_tiles[counter])
 					{
 						can_move_to_desired_tile = TRUE;
 						break;
 					}
 				}
 			}
-			if (gPlayer.ScreenPos.Y > 0 && can_move_to_desired_tile)
+			if (g_Player.ScreenPos.Y > 0 && can_move_to_desired_tile)
 			{
-				gPlayer.MovementRemaining = 16;
-				gPlayer.Direction = UP;
+				g_Player.MovementRemaining = 16;
+				g_Player.Direction = UP;
 			}
 		}
 	}
 	else
 	{
-		gPlayer.MovementRemaining--;
-		if (gPlayer.Direction == DOWN)
+		g_Player.MovementRemaining--;
+		if (g_Player.Direction == DOWN)
 		{
-			if (gPlayer.ScreenPos.Y < (GAME_RES_HEIGHT - 64) || gCamera.Y == gOverworld01.GameBitmap.BitmapInfo.bmiHeader.biHeight - GAME_RES_HEIGHT)
+			if (g_Player.ScreenPos.Y < (GAME_RES_HEIGHT - 64) || g_camera.Y == g_overworld01.GameBitmap.BitmapInfo.bmiHeader.biHeight - GAME_RES_HEIGHT)
 			{
-				gPlayer.ScreenPos.Y++;
+				g_Player.ScreenPos.Y++;
 			}
 			else
 			{
-				gCamera.Y++;
+				g_camera.Y++;
 			}
-			gPlayer.WorldPos.Y++;
+			g_Player.WorldPos.Y++;
 		}
-		else if (gPlayer.Direction == LEFT)
+		else if (g_Player.Direction == LEFT)
 		{
-			if (gPlayer.ScreenPos.X > 64 || gCamera.X == 0)
+			if (g_Player.ScreenPos.X > 64 || g_camera.X == 0)
 			{
-				gPlayer.ScreenPos.X--;
+				g_Player.ScreenPos.X--;
 			}
 			else
 			{
-				gCamera.X--;
+				g_camera.X--;
 			}
-			gPlayer.WorldPos.X--;
+			g_Player.WorldPos.X--;
 		}
-		else if (gPlayer.Direction == RIGHT)
+		else if (g_Player.Direction == RIGHT)
 		{
-			if (gPlayer.ScreenPos.X < GAME_RES_WIDTH - 64 || gCamera.X == gOverworld01.GameBitmap.BitmapInfo.bmiHeader.biWidth - GAME_RES_WIDTH)
+			if (g_Player.ScreenPos.X < GAME_RES_WIDTH - 64 || g_camera.X == g_overworld01.GameBitmap.BitmapInfo.bmiHeader.biWidth - GAME_RES_WIDTH)
 			{
-				gPlayer.ScreenPos.X++;
+				g_Player.ScreenPos.X++;
 			}
 			else
 			{
-				gCamera.X++;
+				g_camera.X++;
 			}
-			gPlayer.WorldPos.X++;
+			g_Player.WorldPos.X++;
 
 		}
-		else if (gPlayer.Direction == UP)
+		else if (g_Player.Direction == UP)
 		{
-			if (gPlayer.ScreenPos.Y > 64 || gCamera.Y == 0)
+			if (g_Player.ScreenPos.Y > 64 || g_camera.Y == 0)
 			{
-				gPlayer.ScreenPos.Y--;
+				g_Player.ScreenPos.Y--;
 			}
 			else
 			{
-				gCamera.Y--;
+				g_camera.Y--;
 			}
-			gPlayer.WorldPos.Y--;
+			g_Player.WorldPos.Y--;
 		}
 
-		switch (gPlayer.MovementRemaining)
+		switch (g_Player.MovementRemaining)
 		{
 			case 16:
 			{
-				gPlayer.SpriteIndex = 0;
+				g_Player.SpriteIndex = 0;
 				break;
 			}
 			case 12:
 			{
-				gPlayer.SpriteIndex = 1;
+				g_Player.SpriteIndex = 1;
 				break;
 			}
 			case 8:
 			{
-				gPlayer.SpriteIndex = 0;
+				g_Player.SpriteIndex = 0;
 				break;
 			}
 			case 4:
 			{
-				gPlayer.SpriteIndex = 2;
+				g_Player.SpriteIndex = 2;
 				break;
 			}
 			case 0:
 			{
-				gPlayer.SpriteIndex = 0;
+				g_Player.SpriteIndex = 0;
 				break;
 			}
 			default:
@@ -218,7 +218,7 @@ void PPI_Overworld(void)
 	// TODO remove this - it is just for debugging
 	if (PRESSED_ESCAPE)
 	{
-		SendMessageA(gGameWindow, WM_CLOSE, 0, 0);
+		SendMessageA(g_game_window, WM_CLOSE, 0, 0);
 	}
 
 }

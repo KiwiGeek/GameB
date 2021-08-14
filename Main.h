@@ -55,13 +55,13 @@
 #define FACING_UPWARD_1	10
 #define FACING_UPWARD_2	11
 
-#define PRESSED_UP gGameInput.UpKeyIsDown			&& !gGameInput.UpKeyWasDown
-#define PRESSED_DOWN gGameInput.DownKeyIsDown		&& !gGameInput.DownKeyWasDown
-#define PRESSED_LEFT gGameInput.LeftKeyIsDown		&& !gGameInput.LeftKeyWasDown
-#define PRESSED_RIGHT gGameInput.RightKeyIsDown		&& !gGameInput.RightKeyWasDown
-#define PRESSED_ESCAPE gGameInput.EscapeKeyIsDown	&& !gGameInput.EscapeKeyWasDown
-#define PRESSED_CHOOSE gGameInput.ChooseKeyIsDown	&& !gGameInput.ChooseKeyWasDown
-#define PRESSED_DEBUG gGameInput.DebugKeyIsDown		&& !gGameInput.DebugKeyWasDown
+#define PRESSED_UP g_game_input.UpKeyIsDown				&& !g_game_input.UpKeyWasDown
+#define PRESSED_DOWN g_game_input.DownKeyIsDown			&& !g_game_input.DownKeyWasDown
+#define PRESSED_LEFT g_game_input.LeftKeyIsDown			&& !g_game_input.LeftKeyWasDown
+#define PRESSED_RIGHT g_game_input.RightKeyIsDown		&& !g_game_input.RightKeyWasDown
+#define PRESSED_ESCAPE g_game_input.EscapeKeyIsDown		&& !g_game_input.EscapeKeyWasDown
+#define PRESSED_CHOOSE g_game_input.ChooseKeyIsDown		&& !g_game_input.ChooseKeyWasDown
+#define PRESSED_DEBUG g_game_input.DebugKeyIsDown		&& !g_game_input.DebugKeyWasDown
 
 typedef enum DIRECTION
 { 
@@ -233,27 +233,29 @@ typedef struct MENU
 	MENUITEM** Items;
 } MENU;
 
-GAMEPERFDATA gPerformanceData;
-GAMEBITMAP gBackBuffer;
-GAMEBITMAP g6x7Font;
-GAMEMAP gOverworld01;
-GAMESTATE gCurrentGameState;
-GAMESTATE gPreviousGameState;
-GAMEINPUT gGameInput;
-GAMESOUND gSoundMenuNavigate;
-GAMESOUND gSoundMenuChoose;
-GAMESOUND gSoundSplashScreen;
-GAMESOUND gMusicOverworld01;
-HERO gPlayer;
-float gSFXVolume;
-float gMusicVolume;
-int8_t gGamepadID;
-HWND gGameWindow;
-IXAudio2SourceVoice* gXAudioSFXSourceVoice[NUMBER_OF_SFX_SOURCE_VOICES];
-IXAudio2SourceVoice* gXAudioMusicSourceVoice;
-uint8_t gPassableTiles[1];
-UPOINT gCamera;
-HANDLE gAssetLoadingThreadHandle;
+GAMEPERFDATA g_performance_data;
+GAMEBITMAP g_back_buffer;
+GAMEBITMAP g_6x7_font;
+GAMEMAP g_overworld01;
+GAMESTATE g_current_game_state;
+GAMESTATE g_previous_game_state;
+GAMEINPUT g_game_input;
+GAMESOUND g_sound_menu_navigate;
+GAMESOUND g_sound_menu_choose;
+GAMESOUND g_sound_splash_screen;
+GAMESOUND g_music_overworld01;
+HERO g_Player;
+float g_sfx_volume;
+float g_music_volume;
+int8_t g_gamepad_id;
+HWND g_game_window;
+IXAudio2SourceVoice* g_xaudio_sfx_source_voice[NUMBER_OF_SFX_SOURCE_VOICES];
+IXAudio2SourceVoice* g_xaudio_music_source_voice;
+uint8_t g_passable_tiles[1];
+UPOINT g_camera;
+HANDLE g_asset_loading_thread_handle;
+HANDLE g_essential_assets_loaded_event;
+BOOL g_game_is_running;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD CreateMainGameWindow(void);

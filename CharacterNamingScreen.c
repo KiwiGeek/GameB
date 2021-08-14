@@ -88,7 +88,7 @@ void DrawCharacterNamingScreen(void)
 	static uint64_t LastFrameSeen;
 	static PIXEL32 TextColor = { 0x00, 0x00, 0x00, 0x00 };
 
-	if (gPerformanceData.TotalFramesRendered > LastFrameSeen + 1)
+	if (g_performance_data.TotalFramesRendered > LastFrameSeen + 1)
 	{
 		LocalFrameCounter = 0;
 		TextColor.Red = 0;
@@ -97,7 +97,7 @@ void DrawCharacterNamingScreen(void)
 		gMenu_CharacterNaming.SelectedItem = 0;
 	}
 
-	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
 	if ((LocalFrameCounter > 0) && (LocalFrameCounter <= 45) && (LocalFrameCounter % 15 == 0))
 	{
@@ -112,18 +112,18 @@ void DrawCharacterNamingScreen(void)
 		TextColor.Blue = 255;
 	}
 
-	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g6x7Font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2), 16);
-	Blit32BppBitmapToBuffer(&gPlayer.Sprite[SUIT_0][FACING_DOWN_0], 153, 85);
+	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g_6x7_font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2), 16);
+	Blit32BppBitmapToBuffer(&g_Player.Sprite[SUIT_0][FACING_DOWN_0], 153, 85);
 
 	for (uint8_t Letter = 0; Letter < 8; Letter++)
 	{
-		if (gPlayer.Name[Letter] == '\0')
+		if (g_Player.Name[Letter] == '\0')
 		{
-			BlitStringToBuffer("_", &g6x7Font, &TextColor, 173 + (Letter * 6), 93);
+			BlitStringToBuffer("_", &g_6x7_font, &TextColor, 173 + (Letter * 6), 93);
 		}
 		else
 		{
-			BlitStringToBuffer(&gPlayer.Name[Letter], &g6x7Font, &TextColor, 173 + (Letter * 6), 93);
+			BlitStringToBuffer(&g_Player.Name[Letter], &g_6x7_font, &TextColor, 173 + (Letter * 6), 93);
 		}
 
 	}
@@ -131,20 +131,20 @@ void DrawCharacterNamingScreen(void)
 	for (uint8_t Counter = 0; Counter < gMenu_CharacterNaming.ItemCount; Counter++)
 	{
 		BlitStringToBuffer(gMenu_CharacterNaming.Items[Counter]->Name,
-			&g6x7Font,
+			&g_6x7_font,
 			&TextColor,
 			gMenu_CharacterNaming.Items[Counter]->X,
 			gMenu_CharacterNaming.Items[Counter]->Y);
 	}
 
 	BlitStringToBuffer("»",
-		&g6x7Font,
+		&g_6x7_font,
 		&TextColor,
 		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->X - 6,
 		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Y);
 
 	LocalFrameCounter++;
-	LastFrameSeen = gPerformanceData.TotalFramesRendered;
+	LastFrameSeen = g_performance_data.TotalFramesRendered;
 }
 
 
@@ -165,12 +165,12 @@ void PPI_CharacterNaming(void)
 		if (gMenu_CharacterNaming.SelectedItem >= BACK_BUTTON)			// the OK and back buttons
 		{
 			gMenu_CharacterNaming.SelectedItem = LOWERCASE_N + CursorColumn;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 		else if (gMenu_CharacterNaming.SelectedItem > CAPITAL_M)		// the bottm letter rows
 		{
 			gMenu_CharacterNaming.SelectedItem -= COLUMN_COUNT;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 	}
 
@@ -180,17 +180,17 @@ void PPI_CharacterNaming(void)
 		if (gMenu_CharacterNaming.SelectedItem < LOWERCASE_N)		// the top three letter rows
 		{
 			gMenu_CharacterNaming.SelectedItem += COLUMN_COUNT;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 		else if (gMenu_CharacterNaming.SelectedItem < LOWERCASE_T)	// The row above the back button
 		{
 			gMenu_CharacterNaming.SelectedItem = BACK_BUTTON;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 		else if (gMenu_CharacterNaming.SelectedItem < BACK_BUTTON)	// the row above the OK button
 		{
 			gMenu_CharacterNaming.SelectedItem = OK_BUTTON;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 	}
 
@@ -201,7 +201,7 @@ void PPI_CharacterNaming(void)
 		{
 			gMenu_CharacterNaming.SelectedItem -= 1;
 			CursorColumn -= 1;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 
 		// OK button
@@ -209,7 +209,7 @@ void PPI_CharacterNaming(void)
 		{
 			gMenu_CharacterNaming.SelectedItem = BACK_BUTTON;
 			CursorColumn = 0;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 	}
 
@@ -220,7 +220,7 @@ void PPI_CharacterNaming(void)
 		{
 			gMenu_CharacterNaming.SelectedItem += 1;
 			CursorColumn += 1;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 
 		// back button
@@ -228,7 +228,7 @@ void PPI_CharacterNaming(void)
 		{
 			gMenu_CharacterNaming.SelectedItem = OK_BUTTON;
 			CursorColumn = COLUMN_COUNT - 1;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 	}
 
@@ -249,35 +249,35 @@ void PPI_CharacterNaming(void)
 
 void MenuItem_CharacterNaming_Add(void)
 {
-	if (strlen(gPlayer.Name) < 8)
+	if (strlen(g_Player.Name) < 8)
 	{
-		gPlayer.Name[strlen(gPlayer.Name)] = gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Name[0];
-		PlayGameSound(&gSoundMenuChoose);
+		g_Player.Name[strlen(g_Player.Name)] = gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Name[0];
+		PlayGameSound(&g_sound_menu_choose);
 	}
 }
 
 void MenuItem_CharacterNaming_Back(void)
 {
-	if (strlen(gPlayer.Name) < 1)
+	if (strlen(g_Player.Name) < 1)
 	{
-		gPreviousGameState = gCurrentGameState;
-		gCurrentGameState = GS_TITLESCREEN;
+		g_previous_game_state = g_current_game_state;
+		g_current_game_state = GS_TITLESCREEN;
 	}
 	else
 	{
-		gPlayer.Name[strlen(gPlayer.Name) - 1] = '\0';
+		g_Player.Name[strlen(g_Player.Name) - 1] = '\0';
 	}
 
-	PlayGameSound(&gSoundMenuChoose);
+	PlayGameSound(&g_sound_menu_choose);
 }
 
 void MenuItem_CharacterNaming_OK(void)
 {
-	if (strlen(gPlayer.Name) > 0)
+	if (strlen(g_Player.Name) > 0)
 	{
-		gPreviousGameState = gCurrentGameState;
-		gCurrentGameState = GS_OVERWORLD;
-		gPlayer.Active = TRUE;
-		PlayGameSound(&gSoundMenuChoose);
+		g_previous_game_state = g_current_game_state;
+		g_current_game_state = GS_OVERWORLD;
+		g_Player.Active = TRUE;
+		PlayGameSound(&g_sound_menu_choose);
 	}
 }

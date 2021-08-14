@@ -3,14 +3,14 @@
 
 void DrawGamepadUnpluggedScreen(void)
 {
-	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 	BlitStringToBuffer("Gamepad Disconnected!",
-		&g6x7Font,
+		&g_6x7_font,
 		&((PIXEL32) { 0xff, 0xff, 0xff, 0xff }),
 		(GAME_RES_WIDTH / 2) - (int16_t)(21 * 6 / 2),
 		100);
 	BlitStringToBuffer("Reconnect it, or press escape to continue using the keyboard.",
-		&g6x7Font,
+		&g_6x7_font,
 		&((PIXEL32) { 0xff, 0xff, 0xff, 0xff }),
 		(GAME_RES_WIDTH / 2) - (int16_t)(61 * 6 / 2),
 		115);
@@ -19,9 +19,9 @@ void DrawGamepadUnpluggedScreen(void)
 
 void PPI_GamepadUnplugged(void)
 {
-	if (gGamepadID > -1 || (PRESSED_ESCAPE))
+	if (g_gamepad_id > -1 || (PRESSED_ESCAPE))
 	{
-		gCurrentGameState = gPreviousGameState;
-		gPreviousGameState = GS_GAMEPADUNPLUGGED;
+		g_current_game_state = g_previous_game_state;
+		g_previous_game_state = GS_GAMEPADUNPLUGGED;
 	}
 }

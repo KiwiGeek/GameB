@@ -16,13 +16,13 @@ void DrawTitleScreen(void)
 	static uint64_t LastFrameSeen;
 	static PIXEL32 TextColor = { 0x00, 0x00, 0x00, 0x00 };
 
-	if (gPerformanceData.TotalFramesRendered > LastFrameSeen + 1)
+	if (g_performance_data.TotalFramesRendered > LastFrameSeen + 1)
 	{
 		LocalFrameCounter = 0;
 		TextColor.Red = 0;
 		TextColor.Green = 0;
 		TextColor.Blue = 0;
-		if (gPlayer.Active)
+		if (g_Player.Active)
 		{
 			gMenu_TitleScreen.SelectedItem = 0;
 		}
@@ -32,7 +32,7 @@ void DrawTitleScreen(void)
 		}
 	}
 
-	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
 	if ((LocalFrameCounter > 0) && (LocalFrameCounter <= 45) && (LocalFrameCounter % 15 == 0))
 	{
@@ -47,7 +47,7 @@ void DrawTitleScreen(void)
 		TextColor.Blue = 255;
 	}
 
-	BlitStringToBuffer(GAME_NAME, &g6x7Font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(GAME_NAME) * 6 / 2), 60);
+	BlitStringToBuffer(GAME_NAME, &g_6x7_font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(GAME_NAME) * 6 / 2), 60);
 
 	for (uint8_t MenuItem = 0; MenuItem < gMenu_TitleScreen.ItemCount; MenuItem++)
 	{
@@ -55,7 +55,7 @@ void DrawTitleScreen(void)
 		if (gMenu_TitleScreen.Items[MenuItem]->Enabled)
 		{
 			BlitStringToBuffer(gMenu_TitleScreen.Items[MenuItem]->Name,
-				&g6x7Font,
+				&g_6x7_font,
 				&TextColor,
 				gMenu_TitleScreen.Items[MenuItem]->X,
 				gMenu_TitleScreen.Items[MenuItem]->Y);
@@ -63,13 +63,13 @@ void DrawTitleScreen(void)
 	}
 
 	BlitStringToBuffer("»",
-		&g6x7Font,
+		&g_6x7_font,
 		&TextColor,
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->X - 6,
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Y);
 
 	LocalFrameCounter++;
-	LastFrameSeen = gPerformanceData.TotalFramesRendered;
+	LastFrameSeen = g_performance_data.TotalFramesRendered;
 }
 
 void PPI_TitleScreen(void)
@@ -80,7 +80,7 @@ void PPI_TitleScreen(void)
 		if (gMenu_TitleScreen.SelectedItem < gMenu_TitleScreen.ItemCount - 1)
 		{
 			gMenu_TitleScreen.SelectedItem++;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 	}
 
@@ -90,23 +90,23 @@ void PPI_TitleScreen(void)
 		{
 			if (gMenu_TitleScreen.SelectedItem == 1)	// Don't move to "Resume" if there's no game currently in progress
 			{
-				if (gPlayer.Active)
+				if (g_Player.Active)
 				{
 					gMenu_TitleScreen.SelectedItem--;
-					PlayGameSound(&gSoundMenuNavigate);
+					PlayGameSound(&g_sound_menu_navigate);
 				}
 			}
 			else
 			{
 				gMenu_TitleScreen.SelectedItem--;
-				PlayGameSound(&gSoundMenuNavigate);
+				PlayGameSound(&g_sound_menu_navigate);
 			}
 		}
 	}
 
 	if (PRESSED_CHOOSE) {
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Action();
-		PlayGameSound(&gSoundMenuChoose);
+		PlayGameSound(&g_sound_menu_choose);
 	}
 
 }
@@ -114,14 +114,14 @@ void PPI_TitleScreen(void)
 
 void MenuItem_TitleScreen_Options(void)
 {
-	gPreviousGameState = gCurrentGameState;
-	gCurrentGameState = GS_OPTIONSSCREEN;
+	g_previous_game_state = g_current_game_state;
+	g_current_game_state = GS_OPTIONSSCREEN;
 }
 
 void MenuItem_TitleScreen_Exit(void)
 {
-	gPreviousGameState = gCurrentGameState;
-	gCurrentGameState = GS_EXITYESNOSCREEN;
+	g_previous_game_state = g_current_game_state;
+	g_current_game_state = GS_EXITYESNOSCREEN;
 }
 
 
@@ -133,6 +133,6 @@ void MenuItem_TitleScreen_Resume(void)
 void MenuItem_TitleScreen_StartNew(void)
 {
 	// prompt for new game if they're already in a game, otherwise just go to the character naming screen.
-	gPreviousGameState = gCurrentGameState;
-	gCurrentGameState = GS_CHARACTERNAMING;
+	g_previous_game_state = g_current_game_state;
+	g_current_game_state = GS_CHARACTERNAMING;
 }

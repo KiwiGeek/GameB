@@ -42,7 +42,7 @@
     <ClCompile Include="stb_vorbis.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MyMiniz\miniz.c">
+    <ClCompile Include="miniz.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -77,7 +77,7 @@
     <ClInclude Include="stb_vorbis.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MyMiniz\miniz.h">
+    <ClInclude Include="miniz.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -16,7 +16,7 @@ void DrawOptionsScreen(void)
 	static PIXEL32 TextColor = { 0x00, 0x00, 0x00, 0x00 };
 	char ScreenSizeString[64] = { 0 };
 
-	if (gPerformanceData.TotalFramesRendered > LastFrameSeen + 1)
+	if (g_performance_data.TotalFramesRendered > LastFrameSeen + 1)
 	{
 		LocalFrameCounter = 0;
 		TextColor.Red = 0;
@@ -25,7 +25,7 @@ void DrawOptionsScreen(void)
 		gMenu_OptionsScreen.SelectedItem = 0;
 	}
 
-	memset(gBackBuffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
 	if ((LocalFrameCounter > 0) && (LocalFrameCounter <= 45) && (LocalFrameCounter % 15 == 0))
 	{
@@ -46,7 +46,7 @@ void DrawOptionsScreen(void)
 		if (gMenu_OptionsScreen.Items[MenuItem]->Enabled)
 		{
 			BlitStringToBuffer(gMenu_OptionsScreen.Items[MenuItem]->Name,
-				&g6x7Font,
+				&g_6x7_font,
 				&TextColor,
 				gMenu_OptionsScreen.Items[MenuItem]->X,
 				gMenu_OptionsScreen.Items[MenuItem]->Y);
@@ -55,45 +55,45 @@ void DrawOptionsScreen(void)
 
 	for (uint8_t Volume = 0; Volume < 10; Volume++)
 	{
-		if (Volume >= (uint8_t)(gSFXVolume * 10))
+		if (Volume >= (uint8_t)(g_sfx_volume * 10))
 		{
 			if (TextColor.Red == 255)
 			{
-				BlitStringToBuffer("\xf2", &g6x7Font, &Grey, 224 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
+				BlitStringToBuffer("\xf2", &g_6x7_font, &Grey, 224 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
 			}
 		}
 		else
 		{
-			BlitStringToBuffer("\xf2", &g6x7Font, &TextColor, 224 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
+			BlitStringToBuffer("\xf2", &g_6x7_font, &TextColor, 224 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
 		}
 	}
 
 	for (uint8_t Volume = 0; Volume < 10; Volume++)
 	{
-		if (Volume >= (uint8_t)(gMusicVolume * 10))
+		if (Volume >= (uint8_t)(g_music_volume * 10))
 		{
 			if (TextColor.Red == 255)
 			{
-				BlitStringToBuffer("\xf2", &g6x7Font, &Grey, 224 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
+				BlitStringToBuffer("\xf2", &g_6x7_font, &Grey, 224 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
 			}
 		}
 		else
 		{
-			BlitStringToBuffer("\xf2", &g6x7Font, &TextColor, 224 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
+			BlitStringToBuffer("\xf2", &g_6x7_font, &TextColor, 224 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
 		}
 	}
 
-	snprintf(ScreenSizeString, sizeof(ScreenSizeString), "%dx%d", GAME_RES_WIDTH * gPerformanceData.CurrentScaleFactor, GAME_RES_HEIGHT * gPerformanceData.CurrentScaleFactor);
-	BlitStringToBuffer(ScreenSizeString, &g6x7Font, &TextColor, 224, gMI_OptionsScreen_ScreenSize.Y);
+	snprintf(ScreenSizeString, sizeof(ScreenSizeString), "%dx%d", GAME_RES_WIDTH * g_performance_data.CurrentScaleFactor, GAME_RES_HEIGHT * g_performance_data.CurrentScaleFactor);
+	BlitStringToBuffer(ScreenSizeString, &g_6x7_font, &TextColor, 224, gMI_OptionsScreen_ScreenSize.Y);
 
 	BlitStringToBuffer("»",
-		&g6x7Font,
+		&g_6x7_font,
 		&TextColor,
 		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->X - 6,
 		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Y);
 
 	LocalFrameCounter++;
-	LastFrameSeen = gPerformanceData.TotalFramesRendered;
+	LastFrameSeen = g_performance_data.TotalFramesRendered;
 }
 
 
@@ -104,7 +104,7 @@ void PPI_OptionsScreen(void)
 		if (gMenu_OptionsScreen.SelectedItem < gMenu_OptionsScreen.ItemCount - 1)
 		{
 			gMenu_OptionsScreen.SelectedItem++;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 	}
 
@@ -113,13 +113,13 @@ void PPI_OptionsScreen(void)
 		if (gMenu_OptionsScreen.SelectedItem > 0)
 		{
 			gMenu_OptionsScreen.SelectedItem--;
-			PlayGameSound(&gSoundMenuNavigate);
+			PlayGameSound(&g_sound_menu_navigate);
 		}
 	}
 
 	if (PRESSED_CHOOSE) {
 		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Action();
-		PlayGameSound(&gSoundMenuChoose);
+		PlayGameSound(&g_sound_menu_choose);
 	}
 
 	if (PRESSED_ESCAPE)
@@ -132,8 +132,8 @@ void PPI_OptionsScreen(void)
 
 void MenuItem_OptionsScreen_Back(void)
 {
-	gCurrentGameState = gPreviousGameState;
-	gPreviousGameState = GS_OPTIONSSCREEN;
+	g_current_game_state = g_previous_game_state;
+	g_previous_game_state = GS_OPTIONSSCREEN;
 	if (SaveRegistryParameters() != ERROR_SUCCESS)
 	{
 		LogMessageA(LL_ERROR, "[%s] SaveRegistryParameters failed!", __FUNCTION__);
@@ -142,34 +142,34 @@ void MenuItem_OptionsScreen_Back(void)
 
 void MenuItem_OptionsScreen_SFXVolume(void)
 {
-	gSFXVolume += 0.1f;
-	if ((uint8_t)(gSFXVolume * 10) > 10)
+	g_sfx_volume += 0.1f;
+	if ((uint8_t)(g_sfx_volume * 10) > 10)
 	{
-		gSFXVolume = 0;
+		g_sfx_volume = 0;
 	}
 	for (uint8_t Counter = 0; Counter < NUMBER_OF_SFX_SOURCE_VOICES; Counter++)
 	{
-		gXAudioSFXSourceVoice[Counter]->lpVtbl->SetVolume(gXAudioSFXSourceVoice[Counter], gSFXVolume, XAUDIO2_COMMIT_NOW);
+		g_xaudio_sfx_source_voice[Counter]->lpVtbl->SetVolume(g_xaudio_sfx_source_voice[Counter], g_sfx_volume, XAUDIO2_COMMIT_NOW);
 	}
 }
 
 void MenuItem_OptionsScreen_MusicVolume(void)
 {
-	gMusicVolume += 0.1f;
-	if ((uint8_t)(gMusicVolume * 10) > 10)
+	g_music_volume += 0.1f;
+	if ((uint8_t)(g_music_volume * 10) > 10)
 	{
-		gMusicVolume = 0;
+		g_music_volume = 0;
 	}
-	gXAudioMusicSourceVoice->lpVtbl->SetVolume(gXAudioMusicSourceVoice, gMusicVolume, XAUDIO2_COMMIT_NOW);
+	g_xaudio_music_source_voice->lpVtbl->SetVolume(g_xaudio_music_source_voice, g_music_volume, XAUDIO2_COMMIT_NOW);
 }
 
 void MenuItem_OptionsScreen_ScreenSize(void)
 {
-	gPerformanceData.CurrentScaleFactor++;
-	if (gPerformanceData.CurrentScaleFactor > gPerformanceData.MaxScaleFactor)
+	g_performance_data.CurrentScaleFactor++;
+	if (g_performance_data.CurrentScaleFactor > g_performance_data.MaxScaleFactor)
 	{
-		gPerformanceData.CurrentScaleFactor = 1;
+		g_performance_data.CurrentScaleFactor = 1;
 	}
 
-	InvalidateRect(gGameWindow, NULL, TRUE);
+	InvalidateRect(g_game_window, NULL, TRUE);
 }
