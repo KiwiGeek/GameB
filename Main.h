@@ -267,7 +267,7 @@ void ProcessPlayerInput(void);
 DWORD InitializeHero(void);
 void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t X, _In_ int16_t Y);
 void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap);
-void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y);
+void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIXEL32* Color, _In_ int16_t x, _In_ int16_t y);
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);
 DWORD SaveRegistryParameters(void);
@@ -280,7 +280,7 @@ DWORD LoadWavFromMemory(_In_ void* Buffer, _Inout_ GAME_SOUND* GameSound);
 DWORD LoadOggFromMemory(_In_ void* Buffer, _In_ uint64_t BufferSize, _Inout_ GAME_SOUND* GameSound);
 DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_ TILEMAP* TileMap);
 DWORD Load32BppBitmapFromMemory(_In_ void* Buffer, _Inout_ GAME_BITMAP* GameBitmap);
-void PlayGameSound(_In_ GAME_SOUND* GameSound);
+void PlayGameSound(_In_ const GAME_SOUND* GameSound);
 void PlayGameMusic(_In_ GAME_SOUND* GameSound);
 #ifdef AVX
 void ClearScreen(_In_ __m256i* Color);
@@ -289,4 +289,5 @@ void ClearScreen(_In_ __m128i* Color);
 #else
 void ClearScreen(_In_ PIXEL32* Pixel);
 #endif
-DWORD AssetLoadingThreadProc(_In_ LPVOID lpParam);
+DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
+void InitializeGlobals(void);

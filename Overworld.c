@@ -27,62 +27,62 @@ void DrawOverworldScreen(void)
 		char buffer[4] = { 0 };
 		// the tile the player is currently on
 		_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][g_player.WorldPos.X / 16], buffer, sizeof(buffer), 10);
-		BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5, (g_player.ScreenPos.Y) + 4);
+		BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4));
 
 		// the tile above the player
 		if (g_player.ScreenPos.Y >= 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][g_player.WorldPos.X / 16], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5, (g_player.ScreenPos.Y) + 4 - 16);
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
 		}
 
 		// the tile below the player
 		if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][g_player.WorldPos.X / 16], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5, (g_player.ScreenPos.Y) + 4 + 16);
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
 		}
 
 		// the tile to the right of the player
 		if (g_player.ScreenPos.X <= GAME_RES_WIDTH - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][(g_player.WorldPos.X / 16) + 1], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 + 16, (g_player.ScreenPos.Y) + 4);
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y+ 4));
 		}
 
 		// the tile to the left of the player
 		if (g_player.ScreenPos.X >= 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][(g_player.WorldPos.X / 16) - 1], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 - 16, (g_player.ScreenPos.Y) + 4);
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4));
 		}
 
 		// the tile to the upper left of the player
 		if (g_player.ScreenPos.X >= 16 && g_player.ScreenPos.Y >= 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][(g_player.WorldPos.X / 16) - 1], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 - 16, (g_player.ScreenPos.Y) + 4 - 16);
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
 		}
 
 		// the tile to the upper right of the player
 		if (g_player.ScreenPos.X <= GAME_RES_WIDTH - 26 && g_player.ScreenPos.Y >= 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][(g_player.WorldPos.X / 16) + 1], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 + 16, (g_player.ScreenPos.Y) + 4 - 16);
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
 		}
 
 		// the tile to the bottom left of the player
 		if (g_player.ScreenPos.X >= 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16) - 1], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 - 16, (g_player.ScreenPos.Y) + 4 + 16);
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
 		}
 
 		// the tile to the bottom right of the player
 		if (g_player.ScreenPos.X <= GAME_RES_WIDTH - 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16) + 1], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 + 16, (g_player.ScreenPos.Y) + 4 + 16);
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
 		}
 	}
 
@@ -99,7 +99,7 @@ void PPI_Overworld(void)
 		SendMessageA(g_game_window, WM_CLOSE, 0, 0);
 	}
 
-	ASSERT((g_camera.X <= g_overworld_area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_overworld_area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!")
+	ASSERT((g_camera.X <= g_current_area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!")
 
 	if (!g_player.MovementRemaining)
 	{
@@ -195,7 +195,7 @@ void PPI_Overworld(void)
 		g_player.MovementRemaining--;
 		if (g_player.Direction == DOWN)
 		{
-			if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 64 || g_camera.Y >= g_overworld_area.bottom - GAME_RES_HEIGHT)
+			if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 64 || g_camera.Y >= g_current_area.bottom - GAME_RES_HEIGHT)
 			{
 				g_player.ScreenPos.Y++;
 			}
@@ -207,7 +207,7 @@ void PPI_Overworld(void)
 		}
 		else if (g_player.Direction == LEFT)
 		{
-			if (g_player.ScreenPos.X > 64 || g_camera.X == 0)
+			if (g_player.ScreenPos.X > 64 || g_camera.X == g_current_area.left)
 			{
 				g_player.ScreenPos.X--;
 			}
@@ -219,7 +219,7 @@ void PPI_Overworld(void)
 		}
 		else if (g_player.Direction == RIGHT)
 		{
-			if (g_player.ScreenPos.X < GAME_RES_WIDTH - 64 || g_camera.X >= g_overworld_area.right - GAME_RES_WIDTH)
+			if (g_player.ScreenPos.X < GAME_RES_WIDTH - 64 || g_camera.X >= g_current_area.right - GAME_RES_WIDTH)
 			{
 				g_player.ScreenPos.X++;
 			}
@@ -232,7 +232,7 @@ void PPI_Overworld(void)
 		}
 		else if (g_player.Direction == UP)
 		{
-			if (g_player.ScreenPos.Y > 64 || g_camera.Y == 0)
+			if (g_player.ScreenPos.Y > 64 || g_camera.Y == g_current_area.top)
 			{
 				g_player.ScreenPos.Y--;
 			}
@@ -268,6 +268,13 @@ void PPI_Overworld(void)
 			case 0:
 			{
 				g_player.SpriteIndex = 0;
+
+				// Is the player standing on a portal (or do, or staircase, etc)?
+				if (g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][g_player.WorldPos.X / 16] == TILE_PORTAL_01)
+				{
+					PortalHandler();
+				}
+
 				break;
 			}
 			default:
@@ -276,4 +283,32 @@ void PPI_Overworld(void)
 			}
 		}
 	}
+}
+
+void PortalHandler(void)
+{
+	if (g_player.WorldPos.X == 272 && g_player.WorldPos.Y == 80)
+	{
+		g_player.WorldPos.X = 3920;
+		g_player.WorldPos.Y = 32;
+		g_camera.X = 3856;
+		g_camera.Y = 0;
+		g_current_area = g_dungeon1_area;
+	}
+	else if (g_player.WorldPos.X == 3920 && g_player.WorldPos.Y == 32)
+	{
+		g_player.WorldPos.X = 272;
+		g_player.WorldPos.Y = 80;
+		g_camera.X = 0;
+		g_camera.Y = 0;
+		g_current_area = g_overworld_area;
+	}
+	else
+	{
+		ASSERT(FALSE, "Player is standing on a portal but we do not have a portal handler for it!")
+	}
+
+	// Fix the player screen position
+	g_player.ScreenPos.X = g_player.WorldPos.X - g_camera.X;
+	g_player.ScreenPos.Y = g_player.WorldPos.Y - g_camera.Y;
 }

@@ -38,7 +38,7 @@ IXAudio2* g_xaudio;
 IXAudio2MasteringVoice* g_xaudio_mastering_voice;
 uint8_t g_sfx_source_voice_selector;
 
-int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ PSTR CommandLine, _In_ INT CmdShow)
+int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ PSTR CommandLine, _In_ INT CmdShow)  // NOLINT(clang-diagnostic-language-extension-token)
 {
 	UNREFERENCED_PARAMETER(Instance);
 	UNREFERENCED_PARAMETER(PreviousInstance);
@@ -48,8 +48,8 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	MSG message = { 0 };
 	int64_t frame_start = 0;
 	int64_t frame_end = 0;
-	int64_t elapsed_microseconds_accumulator_raw = 0;
-	int64_t elapsed_microseconds_accumulator_cooked = 0;
+	uint64_t elapsed_microseconds_accumulator_raw = 0;
+	uint64_t elapsed_microseconds_accumulator_cooked = 0;
 	FILETIME process_creation_time = { 0 };
 	FILETIME process_exit_time = { 0 };
 	int64_t current_user_cpu_time = 0;
@@ -57,20 +57,14 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	int64_t previous_user_cpu_time = 0;
 	int64_t previous_kernel_cpu_time = 0;
 
-	#pragma warning(suppress: 6031)
+#pragma warning(suppress: 6031)
 	InitializeCriticalSectionAndSpinCount(&g_log_critical_section, 0x400);
 	if ((g_essential_assets_loaded_event = CreateEventA(NULL, TRUE, FALSE, "g_essential_assets_loaded_event")) == NULL)
 	{
 		goto Exit;
 	}
 
-	//gCurrentGameState = GS_CHARACTERNAMING;
-	g_game_is_running = TRUE;
-	g_gamepad_id = -1;
-	g_passable_tiles[0] = TILE_GRASS_01;
-	g_passable_tiles[1] = TILE_BRICK_01;
-	g_passable_tiles[2] = TILE_PORTAL_01;
-	g_overworld_area = (RECT){ .left = 0, .top = 0, .right = 3840,.bottom = 2400 };
+	InitializeGlobals();
 
 	if (LoadRegistryParameters() != ERROR_SUCCESS)
 	{
@@ -161,6 +155,15 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	if (CreateMainGameWindow() != ERROR_SUCCESS)
 	{
 		LogMessageA(LL_ERROR, "[%s] CreateMainGameWindow failed!", __FUNCTION__);
+		MessageBoxA(NULL, "Failed to create game window!", "Error!", MB_ICONERROR | MB_OK);
+		goto Exit;
+	}
+
+	DWORD asset_file_attributes = GetFileAttributesA(ASSET_FILE);
+	if ((asset_file_attributes == INVALID_FILE_ATTRIBUTES) || (asset_file_attributes & FILE_ATTRIBUTE_DIRECTORY))
+	{
+		LogMessageA(LL_ERROR, "[%s] The asset file %s was not found! It must reside in the same directory as the game executable.", __FUNCTION__, ASSET_FILE);
+		MessageBoxA(NULL, "The asset file was not found! It must reside in the same directory as the game executable.", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
 	
@@ -216,7 +219,7 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 		RenderFrameGraphics();
 
 		QueryPerformanceCounter((LARGE_INTEGER*)&frame_end);
-		int64_t elapsed_microseconds = frame_end - frame_start;
+		uint64_t elapsed_microseconds = frame_end - frame_start;
 		elapsed_microseconds *= 1000000;
 		elapsed_microseconds /= g_performance_data.PerfFrequency;
 		g_performance_data.TotalFramesRendered++;
@@ -229,7 +232,7 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 			elapsed_microseconds /= g_performance_data.PerfFrequency;
 			QueryPerformanceCounter((LARGE_INTEGER*)&frame_end);
 
-			if (elapsed_microseconds < (TARGET_MICROSECONDS_PER_FRAME * 0.75f))
+			if ((float)elapsed_microseconds < (TARGET_MICROSECONDS_PER_FRAME * 0.75f))
 			{
 				Sleep(1);
 			}
@@ -250,15 +253,15 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 				(FILETIME*)&current_user_cpu_time);
 
 			g_performance_data.CPUPercent = (double)(current_kernel_cpu_time - previous_kernel_cpu_time) + (double)(current_user_cpu_time - previous_user_cpu_time);
-			g_performance_data.CPUPercent /= g_performance_data.CurrentSystemTime - g_performance_data.PreviousSystemTime;
+			g_performance_data.CPUPercent /= (double)(g_performance_data.CurrentSystemTime - g_performance_data.PreviousSystemTime);
 			g_performance_data.CPUPercent /= g_performance_data.SystemInfo.dwNumberOfProcessors;
 			g_performance_data.CPUPercent *= 100;
 
 			GetProcessHandleCount(GetCurrentProcess(), &g_performance_data.HandleCount);
 			K32GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&g_performance_data.MemInfo, sizeof(g_performance_data.MemInfo));
 
-			g_performance_data.RawFPSAverage = 1.0f / ((elapsed_microseconds_accumulator_raw / CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES) * 0.000001f);
-			g_performance_data.CookedFPSAverage = 1.0f / ((elapsed_microseconds_accumulator_cooked / CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES) * 0.000001f);
+			g_performance_data.RawFPSAverage = 1.0f / ((float)elapsed_microseconds_accumulator_raw / (float)CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES * 0.000001f);
+			g_performance_data.CookedFPSAverage = 1.0f / ((float)elapsed_microseconds_accumulator_cooked / (float)CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES * 0.000001f);
 
 			elapsed_microseconds_accumulator_raw = 0;
 			elapsed_microseconds_accumulator_cooked = 0;
@@ -425,8 +428,7 @@ Exit:
 
 BOOL GameIsAlreadyRunning(void)
 {
-	HANDLE mutex = NULL;
-	mutex = CreateMutexA(NULL, FALSE, GAME_NAME "_GameMutex");
+	CreateMutexA(NULL, FALSE, GAME_NAME "_GameMutex");
 
 	if (GetLastError() == ERROR_ALREADY_EXISTS)
 	{
@@ -445,22 +447,22 @@ void ProcessPlayerInput(void)
 
 	g_game_input.EscapeKeyIsDown = GetAsyncKeyState(VK_ESCAPE);
 	g_game_input.DebugKeyIsDown = GetAsyncKeyState(VK_F1);
-	g_game_input.LeftKeyIsDown = GetAsyncKeyState(VK_LEFT) | GetAsyncKeyState('A');
-	g_game_input.RightKeyIsDown = GetAsyncKeyState(VK_RIGHT) | GetAsyncKeyState('D');
-	g_game_input.UpKeyIsDown = GetAsyncKeyState(VK_UP) | GetAsyncKeyState('W');
-	g_game_input.DownKeyIsDown = GetAsyncKeyState(VK_DOWN) | GetAsyncKeyState('S');
+	g_game_input.LeftKeyIsDown = (int16_t)(GetAsyncKeyState(VK_LEFT) | GetAsyncKeyState('A'));
+	g_game_input.RightKeyIsDown = (int16_t)(GetAsyncKeyState(VK_RIGHT) | GetAsyncKeyState('D'));
+	g_game_input.UpKeyIsDown = (int16_t)(GetAsyncKeyState(VK_UP) | GetAsyncKeyState('W'));
+	g_game_input.DownKeyIsDown = (int16_t)(GetAsyncKeyState(VK_DOWN) | GetAsyncKeyState('S'));
 	g_game_input.ChooseKeyIsDown = GetAsyncKeyState(VK_RETURN);
 
 	if (g_gamepad_id > -1)
 	{
 		if (XInputGetState(g_gamepad_id, &g_gamepad_state) == ERROR_SUCCESS)
 		{
-			g_game_input.EscapeKeyIsDown |= (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK);
-			g_game_input.LeftKeyIsDown |= (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
-			g_game_input.RightKeyIsDown |= (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
-			g_game_input.UpKeyIsDown |= (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);
-			g_game_input.DownKeyIsDown |= (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
-			g_game_input.ChooseKeyIsDown |= (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_A);
+			g_game_input.EscapeKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK;
+			g_game_input.LeftKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
+			g_game_input.RightKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+			g_game_input.UpKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
+			g_game_input.DownKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
+			g_game_input.ChooseKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_A;
 		}
 		else
 		{
@@ -520,7 +522,7 @@ void ProcessPlayerInput(void)
 
 		default:
 		{
-			ASSERT(FALSE, "Unknown game state!");
+			ASSERT(FALSE, "Unknown game state!")
 		}
 	}
 
@@ -540,13 +542,10 @@ DWORD InitializeHero(void) {
 	g_player.WorldPos.Y = 64;
 	g_player.CurrentArmor = SUIT_0;
 	g_player.Direction = DOWN;
-	//g_camera.X = 3456;
-	//g_camera.Y = 0;
 	return 0;
-
 }
 
-void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y)
+void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIXEL32* Color, _In_ int16_t x, _In_ int16_t y)
 {
 	const uint16_t char_width = (uint16_t)FontSheet->BitmapInfo.bmiHeader.biWidth / FONT_SHEET_CHARACTERS_PER_ROW;
 	const uint16_t char_height = (uint16_t)FontSheet->BitmapInfo.bmiHeader.biHeight;
@@ -562,19 +561,17 @@ void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIX
 
 	for (int character = 0; character < string_length; character++)
 	{
-		int starting_font_sheet_pixel = 0;
-		int font_sheet_offset = 0;
-		int string_bitmap_offst = 0;
 		PIXEL32 font_sheet_pixel = { 0 };
-		starting_font_sheet_pixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight) -
-			FontSheet->BitmapInfo.bmiHeader.biWidth + (char_width * gFontCharacterPixelOffset[(uint8_t)String[character]]);
+		const int starting_font_sheet_pixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight)
+			- FontSheet->BitmapInfo.bmiHeader.biWidth + (char_width * gFontCharacterPixelOffset[(uint8_t)String[character]]);
 
 		for (int y_pixel = 0; y_pixel <= char_height - 1; y_pixel++)
 		{
 			for (int x_pixel = 0; x_pixel < char_width - 1; x_pixel++)
 			{
-				font_sheet_offset = starting_font_sheet_pixel + x_pixel - (FontSheet->BitmapInfo.bmiHeader.biWidth * y_pixel);
-				string_bitmap_offst = (character * char_width) + ((string_bitmap.BitmapInfo.bmiHeader.biWidth * string_bitmap.BitmapInfo.bmiHeader.biHeight) -
+				const int font_sheet_offset = starting_font_sheet_pixel + x_pixel - (FontSheet->BitmapInfo.bmiHeader.biWidth * y_pixel);
+				const int string_bitmap_offset = (character * char_width) + ((string_bitmap.BitmapInfo.bmiHeader.biWidth * string_bitmap.
+				                                                                                                          BitmapInfo.bmiHeader.biHeight) -
 					string_bitmap.BitmapInfo.bmiHeader.biWidth) + x_pixel - (string_bitmap.BitmapInfo.bmiHeader.biWidth * y_pixel);
 
 				memcpy_s(&font_sheet_pixel, sizeof(PIXEL32), (PIXEL32*)FontSheet->Memory + font_sheet_offset, sizeof(PIXEL32));
@@ -583,7 +580,7 @@ void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIX
 				font_sheet_pixel.Green = Color->Green;
 				font_sheet_pixel.Blue = Color->Blue;
 
-				memcpy_s((PIXEL32*)string_bitmap.Memory + string_bitmap_offst, sizeof(PIXEL32), &font_sheet_pixel, sizeof(PIXEL32));
+				memcpy_s((PIXEL32*)string_bitmap.Memory + string_bitmap_offset, sizeof(PIXEL32), &font_sheet_pixel, sizeof(PIXEL32));
 			}
 		}
 	}
@@ -651,7 +648,7 @@ void RenderFrameGraphics(void)
 
 		default:
 		{
-			ASSERT(FALSE, "GameState not implemented");
+			ASSERT(FALSE, "GameState not implemented")
 		}
 	}
 
@@ -820,7 +817,6 @@ DWORD LoadRegistryParameters(void)
 	{
 		if (result == ERROR_FILE_NOT_FOUND)
 		{
-			result = ERROR_SUCCESS;
 			LogMessageA(LL_INFO, "[%s] Registry value 'LogLevel' not found. Using default of 0. (LOG_LEVEL_NONE)", __FUNCTION__);
 			g_registry_params.LogLevel = LL_NONE;
 		}
@@ -862,8 +858,8 @@ DWORD LoadRegistryParameters(void)
 			goto Exit;
 		}
 	}
-	LogMessageA(LL_INFO, "[%s] SFXVolume is %.1f.", __FUNCTION__, (float)(g_registry_params.SFXVolume / 100.0f));
-	g_sfx_volume = (float)(g_registry_params.SFXVolume / 100.0f);
+	LogMessageA(LL_INFO, "[%s] SFXVolume is %.1f.", __FUNCTION__, (double)g_registry_params.SFXVolume / 100.0);
+	g_sfx_volume = ((float)g_registry_params.SFXVolume / 100.0f);
 
 	result = RegGetValueA(reg_key, NULL, "MusicVolume", RRF_RT_DWORD, NULL, (BYTE*)&g_registry_params.MusicVolume, &reg_bytes_read);
 	if (result != ERROR_SUCCESS)
@@ -880,8 +876,8 @@ DWORD LoadRegistryParameters(void)
 			goto Exit;
 		}
 	}
-	LogMessageA(LL_INFO, "[%s] MusicVolume is %.1f.", __FUNCTION__, (float)(g_registry_params.MusicVolume / 100.0f));
-	g_music_volume = (float)(g_registry_params.MusicVolume / 100.0f);
+	LogMessageA(LL_INFO, "[%s] MusicVolume is %.1f.", __FUNCTION__, (double)g_registry_params.MusicVolume / 100.0);
+	g_music_volume = (float)(g_registry_params.MusicVolume / 100.0);
 
 Exit:
 
@@ -948,8 +944,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 {
 	const size_t message_length = strlen(Message);
 	SYSTEMTIME time = { 0 };
-	HANDLE log_file_handle = INVALID_HANDLE_VALUE;
-	DWORD end_of_file = 0;
+	HANDLE log_file_handle;
 	DWORD number_of_bytes_written = 0;
 	char date_time_string[96] = { 0 };
 	char severity_string[8] = { 0 };
@@ -961,7 +956,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 
 	if (message_length < 1 || message_length > 4096)
 	{
-		ASSERT(FALSE, "Message was either too short or too long!");
+		ASSERT(FALSE, "Message was either too short or too long!")
 		return;
 	}
 
@@ -993,7 +988,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 		}
 		default:
 		{
-			ASSERT(FALSE, "LogLevel was unrecognized.");
+			ASSERT(FALSE, "LogLevel was unrecognized.")
 		}
 	}
 
@@ -1009,11 +1004,11 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 
 	if ((log_file_handle = CreateFileA(LOG_FILE_NAME, FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
 	{
-		ASSERT(FALSE, "Failed to access log file!");
+		ASSERT(FALSE, "Failed to access log file!")
 		return;
 	}
 
-	end_of_file = SetFilePointer(log_file_handle, 0, NULL, FILE_END);
+	SetFilePointer(log_file_handle, 0, NULL, FILE_END);
 
 	WriteFile(log_file_handle, date_time_string, (DWORD)strlen(date_time_string), &number_of_bytes_written, NULL);
 	WriteFile(log_file_handle, severity_string, (DWORD)strlen(severity_string), &number_of_bytes_written, NULL);
@@ -1030,15 +1025,15 @@ void DrawDebugInfo(void)
 {
 	char debug_text_buffer[64] = { 0 };
 	PIXEL32 white = { 0xFF,0xFF, 0xFF, 0xFF };
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSRaw:  %.01f", g_performance_data.RawFPSAverage);
+	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSRaw:  %.01f", (double)g_performance_data.RawFPSAverage);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 0);
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSCookd:%.01f", g_performance_data.CookedFPSAverage);
+	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSCookd:%.01f", (double)g_performance_data.CookedFPSAverage);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 8);
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "MinTimer:%.02f", g_performance_data.MinimumTimerResolution / 10000.0f);
+	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "MinTimer:%.02f", (double)g_performance_data.MinimumTimerResolution / 10000.0);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 16);
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "MaxTimer:%.02f", g_performance_data.MaximumTimerResolution / 10000.0f);
+	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "MaxTimer:%.02f", (double)g_performance_data.MaximumTimerResolution / 10000.0);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 24);
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CurTimer:%.02f", g_performance_data.CurrentTimerResolution / 10000.0f);
+	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CurTimer:%.02f", (double)g_performance_data.CurrentTimerResolution / 10000.0);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 32);
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Handles: %lu", g_performance_data.HandleCount);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 40);
@@ -1071,11 +1066,10 @@ void FindFirstConnectedGamepad(void)
 
 HRESULT InitializeSoundEngine(void)
 {
-	HRESULT result = S_OK;
-	WAVEFORMATEX sfx_wave_format = { 0 };
-	WAVEFORMATEX music_wave_format = { 0 };
+	WAVEFORMATEX sfx_wave_format;
+	WAVEFORMATEX music_wave_format;
 
-	result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	HRESULT result = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if (result != S_OK)
 	{
 		LogMessageA(LL_ERROR, "[%s] CoInitializeEx failed with 0x%08lx!", __FUNCTION__, result);
@@ -1336,7 +1330,6 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 	{
 		if (*cursor == '\"')
 		{
-			cursor++;
 			break;
 		}
 		else
@@ -1477,7 +1470,7 @@ Exit:
 	return error;
 }
 
-void PlayGameSound(_In_ GAME_SOUND* GameSound)
+void PlayGameSound(_In_ const GAME_SOUND* GameSound)
 {
 	g_xaudio_sfx_source_voice[g_sfx_source_voice_selector]->lpVtbl->SubmitSourceBuffer(g_xaudio_sfx_source_voice[g_sfx_source_voice_selector], &GameSound->Buffer, NULL);
 	g_xaudio_sfx_source_voice[g_sfx_source_voice_selector]->lpVtbl->Start(g_xaudio_sfx_source_voice[g_sfx_source_voice_selector], 0, XAUDIO2_COMMIT_NOW);
@@ -1573,7 +1566,7 @@ DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In
 		}
 		default:
 		{
-			ASSERT(FALSE, "Unknown resource type!");
+			ASSERT(FALSE, "Unknown resource type!")
 		}
 	}
 
@@ -1584,12 +1577,12 @@ Exit:
 	return error;
 }
 
-DWORD AssetLoadingThreadProc(_In_ LPVOID lpParam)
+DWORD AssetLoadingThreadProc(_In_ LPVOID Param)
 {
 
-	UNREFERENCED_PARAMETER(lpParam);
+	UNREFERENCED_PARAMETER(Param);
 	
-	DWORD error = ERROR_SUCCESS;
+	DWORD error;
 
 	if ((error = LoadAssetFromArchive(ASSET_FILE, "6x7Font.bmpx", RT_BMPX, &g_6x7_font)) != ERROR_SUCCESS)
 	{
@@ -1701,4 +1694,21 @@ DWORD AssetLoadingThreadProc(_In_ LPVOID lpParam)
 
 Exit:
 	return error;
+}
+
+void InitializeGlobals(void)
+{
+	g_current_game_state = GS_OPENING_SPLASH_SCREEN;
+	g_game_is_running = TRUE;
+	g_gamepad_id = -1;
+
+	ASSERT(_countof(g_passable_tiles) == 3, "Wrong count of passable tiles!")
+	g_passable_tiles[0] = TILE_GRASS_01;
+	g_passable_tiles[1] = TILE_BRICK_01;
+	g_passable_tiles[2] = TILE_PORTAL_01;
+
+	g_overworld_area = (RECT)	{ .left = 0,		.top = 0,	.right = 3840,	.bottom = 2400 };
+	g_dungeon1_area = (RECT)	{ .left = 3856,	.top = 0,	.right = 4240,	.bottom = 240 };
+
+	g_current_area = g_overworld_area;
 }

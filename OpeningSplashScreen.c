@@ -105,7 +105,7 @@ void PPI_OpeningSplashScreen(void)
 		{
 			DWORD thread_exit_code = ERROR_SUCCESS;
 			GetExitCodeThread(g_asset_loading_thread_handle, &thread_exit_code);
-			if (thread_exit_code != ERROR_SUCCESS)
+			if (thread_exit_code == ERROR_SUCCESS)
 			{
 				g_previous_game_state = g_current_game_state;
 				g_current_game_state = GS_TITLE_SCREEN;
