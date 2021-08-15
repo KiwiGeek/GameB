@@ -113,17 +113,17 @@ void DrawCharacterNamingScreen(void)
 	}
 
 	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g_6x7_font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2), 16);
-	Blit32BppBitmapToBuffer(&g_Player.Sprite[SUIT_0][FACING_DOWN_0], 153, 85);
+	Blit32BppBitmapToBuffer(&g_player.Sprite[SUIT_0][FACING_DOWN_0], 153, 85);
 
 	for (uint8_t Letter = 0; Letter < 8; Letter++)
 	{
-		if (g_Player.Name[Letter] == '\0')
+		if (g_player.Name[Letter] == '\0')
 		{
 			BlitStringToBuffer("_", &g_6x7_font, &TextColor, 173 + (Letter * 6), 93);
 		}
 		else
 		{
-			BlitStringToBuffer(&g_Player.Name[Letter], &g_6x7_font, &TextColor, 173 + (Letter * 6), 93);
+			BlitStringToBuffer(&g_player.Name[Letter], &g_6x7_font, &TextColor, 173 + (Letter * 6), 93);
 		}
 
 	}
@@ -249,23 +249,23 @@ void PPI_CharacterNaming(void)
 
 void MenuItem_CharacterNaming_Add(void)
 {
-	if (strlen(g_Player.Name) < 8)
+	if (strlen(g_player.Name) < 8)
 	{
-		g_Player.Name[strlen(g_Player.Name)] = gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Name[0];
+		g_player.Name[strlen(g_player.Name)] = gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Name[0];
 		PlayGameSound(&g_sound_menu_choose);
 	}
 }
 
 void MenuItem_CharacterNaming_Back(void)
 {
-	if (strlen(g_Player.Name) < 1)
+	if (strlen(g_player.Name) < 1)
 	{
 		g_previous_game_state = g_current_game_state;
-		g_current_game_state = GS_TITLESCREEN;
+		g_current_game_state = GS_TITLE_SCREEN;
 	}
 	else
 	{
-		g_Player.Name[strlen(g_Player.Name) - 1] = '\0';
+		g_player.Name[strlen(g_player.Name) - 1] = '\0';
 	}
 
 	PlayGameSound(&g_sound_menu_choose);
@@ -273,11 +273,11 @@ void MenuItem_CharacterNaming_Back(void)
 
 void MenuItem_CharacterNaming_OK(void)
 {
-	if (strlen(g_Player.Name) > 0)
+	if (strlen(g_player.Name) > 0)
 	{
 		g_previous_game_state = g_current_game_state;
 		g_current_game_state = GS_OVERWORLD;
-		g_Player.Active = TRUE;
+		g_player.Active = TRUE;
 		PlayGameSound(&g_sound_menu_choose);
 	}
 }

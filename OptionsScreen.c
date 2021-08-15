@@ -133,7 +133,7 @@ void PPI_OptionsScreen(void)
 void MenuItem_OptionsScreen_Back(void)
 {
 	g_current_game_state = g_previous_game_state;
-	g_previous_game_state = GS_OPTIONSSCREEN;
+	g_previous_game_state = GS_OPTIONS_SCREEN;
 	if (SaveRegistryParameters() != ERROR_SUCCESS)
 	{
 		LogMessageA(LL_ERROR, "[%s] SaveRegistryParameters failed!", __FUNCTION__);

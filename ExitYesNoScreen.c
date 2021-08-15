@@ -60,5 +60,5 @@ void MenuItem_ExitYesNo_Yes(void)
 void MenuItem_ExitYesNo_No(void)
 {
 	g_current_game_state = g_previous_game_state;
-	g_previous_game_state = GS_EXITYESNOSCREEN;
+	g_previous_game_state = GS_EXIT_YES_NO_SCREEN;
 }

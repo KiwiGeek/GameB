@@ -77,7 +77,7 @@ void DrawOpeningSplashScreen(void)
 					MessageBoxA(g_game_window, "Asset loading failed! Check log for more details.", "Error", MB_OK | MB_ICONERROR);
 				}
 				g_previous_game_state = g_current_game_state;
-				g_current_game_state = GS_TITLESCREEN;
+				g_current_game_state = GS_TITLE_SCREEN;
 			}
 		}
 
@@ -101,7 +101,10 @@ void PPI_OpeningSplashScreen(void)
 {
 	if (PRESSED_ESCAPE)
 	{
-		g_previous_game_state = g_current_game_state;
-		g_current_game_state = GS_TITLESCREEN;
+		if (WaitForSingleObject(g_asset_loading_thread_handle, 0) == WAIT_OBJECT_0)
+		{
+			g_previous_game_state = g_current_game_state;
+			g_current_game_state = GS_TITLE_SCREEN;
+		}
 	}
 }

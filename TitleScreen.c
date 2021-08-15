@@ -22,7 +22,7 @@ void DrawTitleScreen(void)
 		TextColor.Red = 0;
 		TextColor.Green = 0;
 		TextColor.Blue = 0;
-		if (g_Player.Active)
+		if (g_player.Active)
 		{
 			gMenu_TitleScreen.SelectedItem = 0;
 		}
@@ -90,7 +90,7 @@ void PPI_TitleScreen(void)
 		{
 			if (gMenu_TitleScreen.SelectedItem == 1)	// Don't move to "Resume" if there's no game currently in progress
 			{
-				if (g_Player.Active)
+				if (g_player.Active)
 				{
 					gMenu_TitleScreen.SelectedItem--;
 					PlayGameSound(&g_sound_menu_navigate);
@@ -115,13 +115,13 @@ void PPI_TitleScreen(void)
 void MenuItem_TitleScreen_Options(void)
 {
 	g_previous_game_state = g_current_game_state;
-	g_current_game_state = GS_OPTIONSSCREEN;
+	g_current_game_state = GS_OPTIONS_SCREEN;
 }
 
 void MenuItem_TitleScreen_Exit(void)
 {
 	g_previous_game_state = g_current_game_state;
-	g_current_game_state = GS_EXITYESNOSCREEN;
+	g_current_game_state = GS_EXIT_YES_NO_SCREEN;
 }
 
 
@@ -134,5 +134,5 @@ void MenuItem_TitleScreen_StartNew(void)
 {
 	// prompt for new game if they're already in a game, otherwise just go to the character naming screen.
 	g_previous_game_state = g_current_game_state;
-	g_current_game_state = GS_CHARACTERNAMING;
+	g_current_game_state = GS_CHARACTER_NAMING;
 }

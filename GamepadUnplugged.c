@@ -22,6 +22,6 @@ void PPI_GamepadUnplugged(void)
 	if (g_gamepad_id > -1 || (PRESSED_ESCAPE))
 	{
 		g_current_game_state = g_previous_game_state;
-		g_previous_game_state = GS_GAMEPADUNPLUGGED;
+		g_previous_game_state = GS_GAMEPAD_UNPLUGGED;
 	}
 }
