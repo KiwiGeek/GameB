@@ -137,7 +137,7 @@ void DrawCharacterNamingScreen(void)
 			gMenu_CharacterNaming.Items[Counter]->Y);
 	}
 
-	BlitStringToBuffer("»",
+	BlitStringToBuffer("\xBB",
 		&g_6x7_font,
 		&TextColor,
 		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->X - 6,

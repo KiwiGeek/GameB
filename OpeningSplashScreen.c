@@ -42,7 +42,7 @@ void DrawOpeningSplashScreen(void)
 			BlitStringToBuffer("\xf2", &g_6x7_font, &(PIXEL32) {32, 32, 32, 255 }, GAME_RES_WIDTH - 6, GAME_RES_HEIGHT - 7);
 		}
 	}
-	
+
 
 	if (local_frame_counter >= 120)
 	{
@@ -103,8 +103,14 @@ void PPI_OpeningSplashScreen(void)
 	{
 		if (WaitForSingleObject(g_asset_loading_thread_handle, 0) == WAIT_OBJECT_0)
 		{
-			g_previous_game_state = g_current_game_state;
-			g_current_game_state = GS_TITLE_SCREEN;
+			DWORD thread_exit_code = ERROR_SUCCESS;
+			GetExitCodeThread(g_asset_loading_thread_handle, &thread_exit_code);
+			if (thread_exit_code != ERROR_SUCCESS)
+			{
+				g_previous_game_state = g_current_game_state;
+				g_current_game_state = GS_TITLE_SCREEN;
+			}
+
 		}
 	}
 }

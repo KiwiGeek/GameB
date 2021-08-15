@@ -10,90 +10,90 @@ MENU gMenu_OptionsScreen = { "Options", 0, _countof(gMI_OptionsScreenItems), gMI
 
 void DrawOptionsScreen(void)
 {
-	PIXEL32 Grey = { 0x6F, 0x6F, 0x6F, 0x6F };
-	static uint64_t LocalFrameCounter;
-	static uint64_t LastFrameSeen;
-	static PIXEL32 TextColor = { 0x00, 0x00, 0x00, 0x00 };
-	char ScreenSizeString[64] = { 0 };
+	PIXEL32 grey = { 0x6F, 0x6F, 0x6F, 0x6F };
+	static uint64_t local_frame_counter;
+	static uint64_t last_frame_seen;
+	static PIXEL32 text_color = { 0x00, 0x00, 0x00, 0x00 };
+	char screen_size_string[64] = { 0 };
 
-	if (g_performance_data.TotalFramesRendered > LastFrameSeen + 1)
+	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
-		LocalFrameCounter = 0;
-		TextColor.Red = 0;
-		TextColor.Green = 0;
-		TextColor.Blue = 0;
+		local_frame_counter = 0;
+		text_color.Red = 0;
+		text_color.Green = 0;
+		text_color.Blue = 0;
 		gMenu_OptionsScreen.SelectedItem = 0;
 	}
 
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	if ((LocalFrameCounter > 0) && (LocalFrameCounter <= 45) && (LocalFrameCounter % 15 == 0))
+	if ((local_frame_counter > 0) && (local_frame_counter <= 45) && (local_frame_counter % 15 == 0))
 	{
-		TextColor.Red += 64;
-		TextColor.Green += 64;
-		TextColor.Blue += 64;
+		text_color.Red += 64;
+		text_color.Green += 64;
+		text_color.Blue += 64;
 	}
-	if (LocalFrameCounter == 60)
+	if (local_frame_counter == 60)
 	{
-		TextColor.Red = 255;
-		TextColor.Green = 255;
-		TextColor.Blue = 255;
+		text_color.Red = 255;
+		text_color.Green = 255;
+		text_color.Blue = 255;
 	}
 
-	for (uint8_t MenuItem = 0; MenuItem < gMenu_OptionsScreen.ItemCount; MenuItem++)
+	for (uint8_t menu_item = 0; menu_item < gMenu_OptionsScreen.ItemCount; menu_item++)
 	{
 
-		if (gMenu_OptionsScreen.Items[MenuItem]->Enabled)
+		if (gMenu_OptionsScreen.Items[menu_item]->Enabled)
 		{
-			BlitStringToBuffer(gMenu_OptionsScreen.Items[MenuItem]->Name,
+			BlitStringToBuffer(gMenu_OptionsScreen.Items[menu_item]->Name,
 				&g_6x7_font,
-				&TextColor,
-				gMenu_OptionsScreen.Items[MenuItem]->X,
-				gMenu_OptionsScreen.Items[MenuItem]->Y);
+				&text_color,
+				gMenu_OptionsScreen.Items[menu_item]->X,
+				gMenu_OptionsScreen.Items[menu_item]->Y);
 		}
 	}
 
-	for (uint8_t Volume = 0; Volume < 10; Volume++)
+	for (uint8_t volume = 0; volume < 10; volume++)
 	{
-		if (Volume >= (uint8_t)(g_sfx_volume * 10))
+		if (volume >= (uint8_t)(g_sfx_volume * 10))
 		{
-			if (TextColor.Red == 255)
+			if (text_color.Red == 255)
 			{
-				BlitStringToBuffer("\xf2", &g_6x7_font, &Grey, 224 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
+				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, 224 + (volume * 6), gMI_OptionsScreen_SFXVolume.Y);
 			}
 		}
 		else
 		{
-			BlitStringToBuffer("\xf2", &g_6x7_font, &TextColor, 224 + (Volume * 6), gMI_OptionsScreen_SFXVolume.Y);
+			BlitStringToBuffer("\xf2", &g_6x7_font, &text_color, 224 + (volume * 6), gMI_OptionsScreen_SFXVolume.Y);
 		}
 	}
 
-	for (uint8_t Volume = 0; Volume < 10; Volume++)
+	for (uint8_t volume = 0; volume < 10; volume++)
 	{
-		if (Volume >= (uint8_t)(g_music_volume * 10))
+		if (volume >= (uint8_t)(g_music_volume * 10))
 		{
-			if (TextColor.Red == 255)
+			if (text_color.Red == 255)
 			{
-				BlitStringToBuffer("\xf2", &g_6x7_font, &Grey, 224 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
+				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, 224 + (volume * 6), gMI_OptionsScreen_MusicVolume.Y);
 			}
 		}
 		else
 		{
-			BlitStringToBuffer("\xf2", &g_6x7_font, &TextColor, 224 + (Volume * 6), gMI_OptionsScreen_MusicVolume.Y);
+			BlitStringToBuffer("\xf2", &g_6x7_font, &text_color, 224 + (volume * 6), gMI_OptionsScreen_MusicVolume.Y);
 		}
 	}
 
-	snprintf(ScreenSizeString, sizeof(ScreenSizeString), "%dx%d", GAME_RES_WIDTH * g_performance_data.CurrentScaleFactor, GAME_RES_HEIGHT * g_performance_data.CurrentScaleFactor);
-	BlitStringToBuffer(ScreenSizeString, &g_6x7_font, &TextColor, 224, gMI_OptionsScreen_ScreenSize.Y);
+	snprintf(screen_size_string, sizeof(screen_size_string), "%dx%d", GAME_RES_WIDTH * g_performance_data.CurrentScaleFactor, GAME_RES_HEIGHT * g_performance_data.CurrentScaleFactor);
+	BlitStringToBuffer(screen_size_string, &g_6x7_font, &text_color, 224, gMI_OptionsScreen_ScreenSize.Y);
 
-	BlitStringToBuffer("»",
+	BlitStringToBuffer("\xBB",
 		&g_6x7_font,
-		&TextColor,
+		&text_color,
 		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->X - 6,
 		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Y);
 
-	LocalFrameCounter++;
-	LastFrameSeen = g_performance_data.TotalFramesRendered;
+	local_frame_counter++;
+	last_frame_seen = g_performance_data.TotalFramesRendered;
 }
 
 

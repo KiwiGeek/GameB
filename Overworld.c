@@ -20,7 +20,7 @@ void DrawOverworldScreen(void)
 
 	BlitBackgroundToBuffer(&g_overworld01.GameBitmap);
 
-	Blit32BppBitmapToBuffer(&g_player.Sprite[g_player.CurrentArmor][g_player.SpriteIndex + g_player.Direction], g_player.ScreenPos.X, g_player.ScreenPos.Y);
+	Blit32BppBitmapToBuffer(&g_player.Sprite[g_player.CurrentArmor][g_player.SpriteIndex + g_player.Direction], (int16_t)g_player.ScreenPos.X, (int16_t)g_player.ScreenPos.Y);
 
 	if (g_performance_data.DisplayDebugInfo)
 	{
@@ -37,14 +37,14 @@ void DrawOverworldScreen(void)
 		}
 
 		// the tile below the player
-		if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
+		if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][g_player.WorldPos.X / 16], buffer, sizeof(buffer), 10);
 			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5, (g_player.ScreenPos.Y) + 4 + 16);
 		}
 
 		// the tile to the right of the player
-		if (g_player.ScreenPos.X <= GAME_RES_WIDTH - 26)
+		if (g_player.ScreenPos.X <= GAME_RES_WIDTH - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][(g_player.WorldPos.X / 16) + 1], buffer, sizeof(buffer), 10);
 			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 + 16, (g_player.ScreenPos.Y) + 4);
@@ -72,14 +72,14 @@ void DrawOverworldScreen(void)
 		}
 
 		// the tile to the bottom left of the player
-		if (g_player.ScreenPos.X >= 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
+		if (g_player.ScreenPos.X >= 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16) - 1], buffer, sizeof(buffer), 10);
 			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 - 16, (g_player.ScreenPos.Y) + 4 + 16);
 		}
 
 		// the tile to the bottom right of the player
-		if (g_player.ScreenPos.X <= GAME_RES_WIDTH - 26 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
+		if (g_player.ScreenPos.X <= GAME_RES_WIDTH - 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16) + 1], buffer, sizeof(buffer), 10);
 			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (g_player.ScreenPos.X) + 5 + 16, (g_player.ScreenPos.Y) + 4 + 16);

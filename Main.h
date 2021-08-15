@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include <xaudio2.h>
 #pragma comment(lib, "XAudio2.lib")
+// ReSharper disable once CppUnusedIncludeDirective
 #include <stdio.h>
 #include <Psapi.h>
 #include <Xinput.h>
@@ -22,6 +23,7 @@
 #endif
 
 #pragma warning(pop)
+// ReSharper disable once CppUnusedIncludeDirective
 #include "Tiles.h"
 
 #ifdef _DEBUG
@@ -37,7 +39,7 @@
 #define GAME_BPP		32
 #define GAME_DRAWING_AREA_MEMORY_SIZE			(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
 #define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
-#define TARGET_MICROSECONDS_PER_FRAME			1667ULL
+#define TARGET_MICROSECONDS_PER_FRAME			16667ULL
 #define NUMBER_OF_SFX_SOURCE_VOICES				4
 #define SUIT_0			0
 #define SUIT_1			1
@@ -131,9 +133,10 @@ typedef struct GAME_INPUT
 #pragma warning(disable: 4820)	// disable warning about structure padding
 #pragma warning(disable: 5045)	// disable warning about Spectre/Meltdown CPU vulnerability
 
-typedef LONG(NTAPI* _NtQueryTimerResolution) (OUT PULONG MinimumResolution, OUT PULONG MaximumResolution, OUT PULONG CurrentResolution);
+typedef LONG (NTAPI* NtQueryTimerResolution)(OUT PULONG MinimumResolution, OUT PULONG MaximumResolution,
+                                              OUT PULONG CurrentResolution);
 
-_NtQueryTimerResolution nt_query_timer_resolution;
+NtQueryTimerResolution nt_query_timer_resolution;
 
 typedef struct GAME_BITMAP
 {
@@ -251,7 +254,7 @@ int8_t g_gamepad_id;
 HWND g_game_window;
 IXAudio2SourceVoice* g_xaudio_sfx_source_voice[NUMBER_OF_SFX_SOURCE_VOICES];
 IXAudio2SourceVoice* g_xaudio_music_source_voice;
-uint8_t g_passable_tiles[1];
+uint8_t g_passable_tiles[3];
 UPOINT g_camera;
 HANDLE g_asset_loading_thread_handle;
 HANDLE g_essential_assets_loaded_event;
@@ -262,8 +265,8 @@ DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
 void ProcessPlayerInput(void);
 DWORD InitializeHero(void);
-void Blit32BppBitmapToBuffer(_In_ GAME_BITMAP* GameBitmap, _In_ uint16_t x, _In_ uint16_t y);
-void BlitBackgroundToBuffer(_In_ GAME_BITMAP* GameBitmap);
+void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t X, _In_ int16_t Y);
+void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap);
 void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y);
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);

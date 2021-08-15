@@ -1,14 +1,12 @@
-REM TODO: DELETE THESE TWO LINES AFTER WE NO LONGER NEED THEM
-REM del %GAMEBDIR%\x64\Debug\Assets\ /Q
-REM del %GAMEBDIR%\x64\Debug\Assets\Maps /Q
-REM rmdir %GAMEBDIR%\x64\Debug\Assets\Maps
-REM rmdir %GAMEBDIR%\x64\Debug\Assets
-REM xcopy %GAMEBDIR%\Assets %GAMEBDIR%\x64\Debug\Assets /i /s
+@ECHO OFF
 
+REM -- Clean up old asset archive --
+ECHO Cleaning up asset build artifacts
 del Assets.dat
 del CopyAssets.log
 
 REM --- BITMAPS ---
+ECHO Bundling bitmaps into asset archive
 MyMiniz.exe Assets.dat + .\Assets\6x7font.bmpx >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Hero_Suit0_Down_Standing.bmpx >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Hero_Suit0_Down_Walk1.bmpx >> CopyAssets.log
@@ -25,22 +23,32 @@ MyMiniz.exe Assets.dat + .\Assets\Hero_Suit0_Up_Walk2.bmpx >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Maps\Overworld01.bmpx >> CopyAssets.log
 
 REM --- SOUNDS ---
+ECHO Bundling sounds into asset archive
 MyMiniz.exe Assets.dat + .\Assets\MenuChoose.wav >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\MenuNavigate.wav >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\SplashScreen.wav >> CopyAssets.log
 
 REM --- MUSIC ---
-
+ECHO Bundling music into asset archive
 MyMiniz.exe Assets.dat + .\Assets\Overworld01.ogg >> CopyAssets.log
 
 REM --- TILEMAPS ---
-
+ECHO Bundling tilemap into asset archive
 MyMiniz.exe Assets.dat + .\Assets\Maps\Overworld01.tmx >> CopyAssets.log
 
 REM --- TILEBITMAPS ---
+ECHO Bundling unnecessary tilebitmaps into asset archive
 MyMiniz.exe Assets.dat + .\Assets\Maps\Grass01.bmp >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Maps\Water01.bmp >> CopyAssets.log
+MyMiniz.exe Assets.dat + .\Assets\Maps\Bricks01.bmp >> CopyAssets.log
+MyMiniz.exe Assets.dat + .\Assets\Maps\Debug01.bmp >> CopyAssets.log
+MyMiniz.exe Assets.dat + .\Assets\Maps\Portal01.bmp >> CopyAssets.log
+
+REM --- TILESETS ---
+ECHO Bundling unucessary tileset into asset archive
 MyMiniz.exe Assets.dat + .\Assets\Maps\Tileset01.tsx >> CopyAssets.log
 
-REM copy Assets.dat into whatever directory or directories it needs to be in
+REM -- Copy asset bundle into debug and release folders --
+ECHO Copying asset bundle to Debug and Release folders
 copy assets.dat %GAMEBDIR%\x64\Debug\assets.dat
+copy assets.dat %GAMEBDIR%\x64\Release\assets.dat

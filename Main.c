@@ -68,6 +68,8 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 	g_game_is_running = TRUE;
 	g_gamepad_id = -1;
 	g_passable_tiles[0] = TILE_GRASS_01;
+	g_passable_tiles[1] = TILE_BRICK_01;
+	g_passable_tiles[2] = TILE_PORTAL_01;
 	g_overworld_area = (RECT){ .left = 0, .top = 0, .right = 3840,.bottom = 2400 };
 
 	if (LoadRegistryParameters() != ERROR_SUCCESS)
@@ -84,7 +86,7 @@ int _stdcall WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstanc
 		goto Exit;
 	}
 
-	if ((nt_query_timer_resolution = (_NtQueryTimerResolution)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryTimerResolution")) == NULL)
+	if ((nt_query_timer_resolution = (NtQueryTimerResolution)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryTimerResolution")) == NULL)
 	{
 		LogMessageA(LL_ERROR, "[%s] Couldn't find the NtQueryTimerResolution function in ntdll.dll! GetProcAddress failed! Error 0x%081x!", __FUNCTION__, GetLastError());
 		MessageBoxA(NULL, "Couldn't find the NtQueryTimerResolution function in ntdll.dll!", "Error!", MB_ICONEXCLAMATION | MB_OK);
@@ -317,7 +319,7 @@ DWORD CreateMainGameWindow(void)
 
 	DWORD result = ERROR_SUCCESS;
 
-	WNDCLASSEXA windowClass = { 0 };
+	WNDCLASSEXA windowClass;
 
 	windowClass.cbSize = sizeof(WNDCLASSEXA);
 	windowClass.style = 0;
@@ -366,12 +368,12 @@ DWORD CreateMainGameWindow(void)
 		goto Exit;
 	}
 
-	for (uint8_t Counter = 1; Counter < 12; Counter++)
+	for (uint8_t counter = 1; counter < 12; counter++)
 	{
-		if ((GAME_RES_WIDTH * Counter > (g_performance_data.MonitorInfo.rcMonitor.right - g_performance_data.MonitorInfo.rcMonitor.left)) ||
-			(GAME_RES_HEIGHT * Counter > (g_performance_data.MonitorInfo.rcMonitor.bottom - g_performance_data.MonitorInfo.rcMonitor.top)))
+		if ((GAME_RES_WIDTH * counter > (g_performance_data.MonitorInfo.rcMonitor.right - g_performance_data.MonitorInfo.rcMonitor.left)) ||
+			(GAME_RES_HEIGHT * counter > (g_performance_data.MonitorInfo.rcMonitor.bottom - g_performance_data.MonitorInfo.rcMonitor.top)))
 		{
-			g_performance_data.MaxScaleFactor = Counter - 1;
+			g_performance_data.MaxScaleFactor = counter - 1;
 			break;
 		}
 	}
@@ -546,10 +548,10 @@ DWORD InitializeHero(void) {
 
 void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIXEL32* Color, _In_ uint16_t x, _In_ uint16_t y)
 {
-	uint16_t char_width = (uint16_t)FontSheet->BitmapInfo.bmiHeader.biWidth / FONT_SHEET_CHARACTERS_PER_ROW;
-	uint16_t char_height = (uint16_t)FontSheet->BitmapInfo.bmiHeader.biHeight;
-	uint16_t bytes_per_character = (char_width * char_height * (FontSheet->BitmapInfo.bmiHeader.biBitCount / 8));
-	uint16_t string_length = (uint16_t)strlen(String);
+	const uint16_t char_width = (uint16_t)FontSheet->BitmapInfo.bmiHeader.biWidth / FONT_SHEET_CHARACTERS_PER_ROW;
+	const uint16_t char_height = (uint16_t)FontSheet->BitmapInfo.bmiHeader.biHeight;
+	const uint16_t bytes_per_character = (char_width * char_height * (FontSheet->BitmapInfo.bmiHeader.biBitCount / 8));
+	const uint16_t string_length = (uint16_t)strlen(String);
 	GAME_BITMAP string_bitmap = { 0 };
 	string_bitmap.BitmapInfo.bmiHeader.biBitCount = GAME_BPP;
 	string_bitmap.BitmapInfo.bmiHeader.biHeight = char_height;
@@ -658,9 +660,9 @@ void RenderFrameGraphics(void)
 		DrawDebugInfo();
 	}
 
-	HDC DeviceContext = GetDC(g_game_window);
+	HDC device_context = GetDC(g_game_window);
 
-	StretchDIBits(DeviceContext,
+	StretchDIBits(device_context,
 		((g_performance_data.MonitorInfo.rcMonitor.right - g_performance_data.MonitorInfo.rcMonitor.left) / 2) - ((GAME_RES_WIDTH * g_performance_data.CurrentScaleFactor) / 2),
 		((g_performance_data.MonitorInfo.rcMonitor.bottom - g_performance_data.MonitorInfo.rcMonitor.top) / 2) - ((GAME_RES_HEIGHT * g_performance_data.CurrentScaleFactor) / 2),
 		(GAME_RES_WIDTH * g_performance_data.CurrentScaleFactor),
@@ -674,7 +676,7 @@ void RenderFrameGraphics(void)
 		DIB_RGB_COLORS,
 		SRCCOPY);
 
-	ReleaseDC(g_game_window, DeviceContext);
+	ReleaseDC(g_game_window, device_context);
 }
 
 #ifdef AVX
@@ -705,39 +707,48 @@ __forceinline void ClearScreen(_In_ PIXEL32* Pixel)
 }
 #endif
 
-void Blit32BppBitmapToBuffer(_In_ GAME_BITMAP* GameBitmap, _In_ uint16_t x, _In_ uint16_t y)
+void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int16_t X, _In_ const int16_t Y)
 {
-
-	int32_t StartingScreenPixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * y) + x;
-
-	int32_t StartingBitmapPixel = ((GameBitmap->BitmapInfo.bmiHeader.biWidth * GameBitmap->BitmapInfo.bmiHeader.biHeight)
+	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
+	const int32_t starting_bitmap_pixel = ((GameBitmap->BitmapInfo.bmiHeader.biWidth * GameBitmap->BitmapInfo.bmiHeader.biHeight)
 		- GameBitmap->BitmapInfo.bmiHeader.biWidth);
+	PIXEL32 bitmap_pixel = { 0 };
 
-	int32_t MemoryOffset = 0;
-	int32_t BitmapOffset = 0;
-	PIXEL32 BitmapPixel = { 0 };
-
-	for (int16_t yPixel = 0; yPixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; yPixel++)
+	for (int32_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
 	{
-		for (int16_t xPixel = 0; xPixel < GameBitmap->BitmapInfo.bmiHeader.biWidth; xPixel++)
+
+		if ((Y + y_pixel < 0) || (Y + y_pixel >= GAME_RES_HEIGHT))
 		{
-			MemoryOffset = StartingScreenPixel + xPixel - (GAME_RES_WIDTH * yPixel);
-			BitmapOffset = StartingBitmapPixel + xPixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * yPixel);
-			memcpy_s(&BitmapPixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + BitmapOffset, sizeof(PIXEL32));
-			if (BitmapPixel.Alpha == 255)
+			continue;
+		}
+
+		for (int32_t x_pixel = 0; x_pixel < GameBitmap->BitmapInfo.bmiHeader.biWidth; x_pixel++)
+		{
+
+			if ((X + x_pixel < 0) || (X + x_pixel >= GAME_RES_WIDTH))
 			{
-				memcpy_s((PIXEL32*)g_back_buffer.Memory + MemoryOffset, sizeof(PIXEL32), &BitmapPixel, sizeof(PIXEL32));
+				continue;
+			}
+
+			const int32_t memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
+			const int32_t bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+
+			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
+
+			if (bitmap_pixel.Alpha == 255)
+			{
+				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 			}
 		}
 	}
 
 }
 
-void BlitBackgroundToBuffer(_In_ GAME_BITMAP* GameBitmap)
+void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap)
 {
-	int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH);
+	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH);
 
-	int32_t starting_bitmap_pixel = ((GameBitmap->BitmapInfo.bmiHeader.biWidth * GameBitmap->BitmapInfo.bmiHeader.biHeight)
+	const int32_t starting_bitmap_pixel = ((GameBitmap->BitmapInfo.bmiHeader.biWidth * GameBitmap->BitmapInfo.bmiHeader.biHeight)
 		- GameBitmap->BitmapInfo.bmiHeader.biWidth) + g_camera.X - (GameBitmap->BitmapInfo.bmiHeader.biWidth * g_camera.Y);
 
 	int32_t memory_offset;
@@ -842,7 +853,6 @@ DWORD LoadRegistryParameters(void)
 	{
 		if (result == ERROR_FILE_NOT_FOUND)
 		{
-			result = ERROR_SUCCESS;
 			LogMessageA(LL_INFO, "[%s] Registry value 'SFXVolume' not found. Using default of 0.5", __FUNCTION__);
 			g_registry_params.SFXVolume = 50;
 		}
@@ -852,7 +862,7 @@ DWORD LoadRegistryParameters(void)
 			goto Exit;
 		}
 	}
-	LogMessageA(LL_INFO, "[%s] SFXVolume is %.1f.", __FUNCTION__, (g_registry_params.SFXVolume / 100.0f));
+	LogMessageA(LL_INFO, "[%s] SFXVolume is %.1f.", __FUNCTION__, (float)(g_registry_params.SFXVolume / 100.0f));
 	g_sfx_volume = (float)(g_registry_params.SFXVolume / 100.0f);
 
 	result = RegGetValueA(reg_key, NULL, "MusicVolume", RRF_RT_DWORD, NULL, (BYTE*)&g_registry_params.MusicVolume, &reg_bytes_read);
@@ -884,56 +894,54 @@ Exit:
 
 DWORD SaveRegistryParameters(void)
 {
-	DWORD Result = ERROR_SUCCESS;
-	HKEY RegKey = NULL;
-	DWORD RegDisposition = 0;
-	DWORD SFXVolume = (DWORD)(g_sfx_volume * 100.0f);
-	DWORD MusicVolume = (DWORD)(g_music_volume * 100.0f);
-	Result = RegCreateKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\" GAME_NAME, 0, NULL, 0, KEY_ALL_ACCESS, NULL, &RegKey, &RegDisposition);
+	HKEY reg_key = NULL;
+	DWORD reg_disposition = 0;
+	const DWORD sfx_volume = (DWORD)(g_sfx_volume * 100.0f);
+	const DWORD music_volume = (DWORD)(g_music_volume * 100.0f);
+	DWORD result = RegCreateKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\" GAME_NAME, 0, NULL, 0, KEY_ALL_ACCESS, NULL,
+	                               &reg_key, &reg_disposition);
 
-	if (Result != ERROR_SUCCESS)
+	if (result != ERROR_SUCCESS)
 	{
-		LogMessageA(LL_ERROR, "[%s] RegCreateKey failed with error code 0x%08lx!", __FUNCTION__, Result);
+		LogMessageA(LL_ERROR, "[%s] RegCreateKey failed with error code 0x%08lx!", __FUNCTION__, result);
 		goto Exit;
 	}
 
 	LogMessageA(LL_INFO, "[%s] Reg key open for save. ", __FUNCTION__);
 
-	Result = RegSetValueExA(RegKey, "SFXVolume", 0, REG_DWORD, (const BYTE*)&SFXVolume, sizeof(DWORD));
-	if (Result != ERROR_SUCCESS)
+	result = RegSetValueExA(reg_key, "SFXVolume", 0, REG_DWORD, (const BYTE*)&sfx_volume, sizeof(DWORD));
+	if (result != ERROR_SUCCESS)
 	{
-		LogMessageA(LL_ERROR, "[%s] Failed to set 'SFXVolume' in registry. Error code 0x%08lx!", __FUNCTION__, Result);
+		LogMessageA(LL_ERROR, "[%s] Failed to set 'SFXVolume' in registry. Error code 0x%08lx!", __FUNCTION__, result);
 		goto Exit;
 	}
 
-	LogMessageA(LL_INFO, "[%s] SFXVolume saved %d. ", __FUNCTION__, SFXVolume);
+	LogMessageA(LL_INFO, "[%s] SFXVolume saved %d. ", __FUNCTION__, sfx_volume);
 
-	Result = RegSetValueExA(RegKey, "MusicVolume", 0, REG_DWORD, (const BYTE*)&MusicVolume, sizeof(DWORD));
-	if (Result != ERROR_SUCCESS)
+	result = RegSetValueExA(reg_key, "MusicVolume", 0, REG_DWORD, (const BYTE*)&music_volume, sizeof(DWORD));
+	if (result != ERROR_SUCCESS)
 	{
-		LogMessageA(LL_ERROR, "[%s] Failed to set 'MusicVolume' in registry. Error code 0x%08lx!", __FUNCTION__, Result);
+		LogMessageA(LL_ERROR, "[%s] Failed to set 'MusicVolume' in registry. Error code 0x%08lx!", __FUNCTION__, result);
 		goto Exit;
 	}
 
-	LogMessageA(LL_INFO, "[%s] MusicVolume saved %d. ", __FUNCTION__, MusicVolume);
+	LogMessageA(LL_INFO, "[%s] MusicVolume saved %d. ", __FUNCTION__, music_volume);
 
-	Result = RegSetValueExA(RegKey, "ScaleFactor", 0, REG_DWORD, &g_performance_data.CurrentScaleFactor, sizeof(DWORD));
-	if (Result != ERROR_SUCCESS)
+	result = RegSetValueExA(reg_key, "ScaleFactor", 0, REG_DWORD, &g_performance_data.CurrentScaleFactor, sizeof(DWORD));
+	if (result != ERROR_SUCCESS)
 	{
-		LogMessageA(LL_ERROR, "[%s] Failed to set 'ScaleFactor' in registry. Error code 0x%08lx!", __FUNCTION__, Result);
+		LogMessageA(LL_ERROR, "[%s] Failed to set 'ScaleFactor' in registry. Error code 0x%08lx!", __FUNCTION__, result);
 		goto Exit;
 	}
 
 	LogMessageA(LL_INFO, "[%s] ScaleFactor saved %d. ", __FUNCTION__, g_performance_data.CurrentScaleFactor);
 
-
-
 Exit:
-	if (RegKey)
+	if (reg_key)
 	{
-		RegCloseKey(RegKey);
+		RegCloseKey(reg_key);
 	}
-	return Result;
+	return result;
 }
 
 void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
@@ -1018,7 +1026,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 	LeaveCriticalSection(&g_log_critical_section);
 }
 
-__forceinline void DrawDebugInfo(void)
+void DrawDebugInfo(void)
 {
 	char debug_text_buffer[64] = { 0 };
 	PIXEL32 white = { 0xFF,0xFF, 0xFF, 0xFF };
@@ -1051,12 +1059,12 @@ __forceinline void DrawDebugInfo(void)
 void FindFirstConnectedGamepad(void)
 {
 	g_gamepad_id = -1;
-	for (int8_t GamepadIndex = 0; GamepadIndex < XUSER_MAX_COUNT && g_gamepad_id == -1; GamepadIndex++)
+	for (int8_t gamepad_index = 0; gamepad_index < XUSER_MAX_COUNT && g_gamepad_id == -1; gamepad_index++)
 	{
-		XINPUT_STATE State = { 0 };
-		if (XInputGetState(GamepadIndex, &State) == ERROR_SUCCESS)
+		XINPUT_STATE state = { 0 };
+		if (XInputGetState(gamepad_index, &state) == ERROR_SUCCESS)
 		{
-			g_gamepad_id = GamepadIndex;
+			g_gamepad_id = gamepad_index;
 		}
 	}
 }
@@ -1269,7 +1277,7 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 		bytes_read++;
 	}
 
-	for (uint8_t Counter = 0; Counter < 6; Counter++)
+	for (uint8_t counter = 0; counter < 6; counter++)
 	{
 		if (*cursor == '\"')
 		{
@@ -1277,7 +1285,7 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 		}
 		else
 		{
-			temp_buffer[Counter] = *cursor;
+			temp_buffer[counter] = *cursor;
 			cursor++;
 		}
 	}

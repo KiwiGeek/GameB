@@ -12,16 +12,16 @@ MENU gMenu_TitleScreen = { "Title Screen Menu", 1, _countof(gMI_TitleScreenItems
 
 void DrawTitleScreen(void)
 {
-	static uint64_t LocalFrameCounter;
-	static uint64_t LastFrameSeen;
-	static PIXEL32 TextColor = { 0x00, 0x00, 0x00, 0x00 };
+	static uint64_t local_frame_counter;
+	static uint64_t last_frame_seen;
+	static PIXEL32 text_color = { 0x00, 0x00, 0x00, 0x00 };
 
-	if (g_performance_data.TotalFramesRendered > LastFrameSeen + 1)
+	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
-		LocalFrameCounter = 0;
-		TextColor.Red = 0;
-		TextColor.Green = 0;
-		TextColor.Blue = 0;
+		local_frame_counter = 0;
+		text_color.Red = 0;
+		text_color.Green = 0;
+		text_color.Blue = 0;
 		if (g_player.Active)
 		{
 			gMenu_TitleScreen.SelectedItem = 0;
@@ -34,42 +34,42 @@ void DrawTitleScreen(void)
 
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	if ((LocalFrameCounter > 0) && (LocalFrameCounter <= 45) && (LocalFrameCounter % 15 == 0))
+	if ((local_frame_counter > 0) && (local_frame_counter <= 45) && (local_frame_counter % 15 == 0))
 	{
-		TextColor.Red += 64;
-		TextColor.Green += 64;
-		TextColor.Blue += 64;
+		text_color.Red += 64;
+		text_color.Green += 64;
+		text_color.Blue += 64;
 	}
-	if (LocalFrameCounter == 60)
+	if (local_frame_counter == 60)
 	{
-		TextColor.Red = 255;
-		TextColor.Green = 255;
-		TextColor.Blue = 255;
+		text_color.Red = 255;
+		text_color.Green = 255;
+		text_color.Blue = 255;
 	}
 
-	BlitStringToBuffer(GAME_NAME, &g_6x7_font, &TextColor, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(GAME_NAME) * 6 / 2), 60);
+	BlitStringToBuffer(GAME_NAME, &g_6x7_font, &text_color, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(GAME_NAME) * 6 / 2), 60);
 
-	for (uint8_t MenuItem = 0; MenuItem < gMenu_TitleScreen.ItemCount; MenuItem++)
+	for (uint8_t menu_item = 0; menu_item < gMenu_TitleScreen.ItemCount; menu_item++)
 	{
 
-		if (gMenu_TitleScreen.Items[MenuItem]->Enabled)
+		if (gMenu_TitleScreen.Items[menu_item]->Enabled)
 		{
-			BlitStringToBuffer(gMenu_TitleScreen.Items[MenuItem]->Name,
+			BlitStringToBuffer(gMenu_TitleScreen.Items[menu_item]->Name,
 				&g_6x7_font,
-				&TextColor,
-				gMenu_TitleScreen.Items[MenuItem]->X,
-				gMenu_TitleScreen.Items[MenuItem]->Y);
+				&text_color,
+				gMenu_TitleScreen.Items[menu_item]->X,
+				gMenu_TitleScreen.Items[menu_item]->Y);
 		}
 	}
 
-	BlitStringToBuffer("»",
+	BlitStringToBuffer("\xBB",
 		&g_6x7_font,
-		&TextColor,
+		&text_color,
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->X - 6,
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Y);
 
-	LocalFrameCounter++;
-	LastFrameSeen = g_performance_data.TotalFramesRendered;
+	local_frame_counter++;
+	last_frame_seen = g_performance_data.TotalFramesRendered;
 }
 
 void PPI_TitleScreen(void)
