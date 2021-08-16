@@ -45,7 +45,7 @@ MyMiniz.exe Assets.dat + .\Assets\Maps\Debug01.bmp >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Maps\Portal01.bmp >> CopyAssets.log
 
 REM --- TILESETS ---
-ECHO Bundling unucessary tileset into asset archive
+ECHO Bundling unnecessary tileset into asset archive
 MyMiniz.exe Assets.dat + .\Assets\Maps\Tileset01.tsx >> CopyAssets.log
 
 REM -- Copy asset bundle into debug and release folders --

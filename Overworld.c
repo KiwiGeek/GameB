@@ -47,7 +47,7 @@ void DrawOverworldScreen(void)
 		if (g_player.ScreenPos.X <= GAME_RES_WIDTH - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][(g_player.WorldPos.X / 16) + 1], buffer, sizeof(buffer), 10);
-			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y+ 4));
+			BlitStringToBuffer(buffer, &g_6x7_font, &(PIXEL32) { 0xFF, 0xFF, 0xFF, 0xFF }, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4));
 		}
 
 		// the tile to the left of the player
@@ -101,214 +101,214 @@ void PPI_Overworld(void)
 
 	ASSERT((g_camera.X <= g_current_area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!")
 
-	if (!g_player.MovementRemaining)
-	{
-		if (g_game_input.DownKeyIsDown)
+		if (!g_player.MovementRemaining)
 		{
-			// are we at the bottom of the map?
-			if (g_player.WorldPos.Y < g_overworld01.GameBitmap.BitmapInfo.bmiHeader.biHeight - 16)
+			if (g_game_input.DownKeyIsDown)
+			{
+				// are we at the bottom of the map?
+				if (g_player.WorldPos.Y < g_overworld01.GameBitmap.BitmapInfo.bmiHeader.biHeight - 16)
+				{
+					BOOL can_move_to_desired_tile = FALSE;
+					for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
+					{
+
+						if (g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16)] == g_passable_tiles[counter])
+						{
+							can_move_to_desired_tile = TRUE;
+							break;
+						}
+					}
+
+					if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 16 && can_move_to_desired_tile)
+					{
+						g_player.MovementRemaining = 16;
+						g_player.Direction = DOWN;
+					}
+
+				}
+			}
+
+			else if (g_game_input.LeftKeyIsDown)
 			{
 				BOOL can_move_to_desired_tile = FALSE;
 				for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
 				{
-
-					if (g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16)] == g_passable_tiles[counter])
+					if (g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16)][(g_player.WorldPos.X / 16) - 1] == g_passable_tiles[counter])
 					{
 						can_move_to_desired_tile = TRUE;
 						break;
 					}
 				}
-
-				if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 16 && can_move_to_desired_tile)
+				if (g_player.ScreenPos.X > 0 && can_move_to_desired_tile)
 				{
 					g_player.MovementRemaining = 16;
-					g_player.Direction = DOWN;
+					g_player.Direction = LEFT;
 				}
+			}
 
+			else if (g_game_input.RightKeyIsDown)
+			{
+				// are we at the right of the map?
+				if (g_player.WorldPos.X < g_overworld01.GameBitmap.BitmapInfo.bmiHeader.biWidth - 16)
+				{
+					BOOL can_move_to_desired_tile = FALSE;
+					for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
+					{
+						if (g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16)][(g_player.WorldPos.X / 16) + 1] == g_passable_tiles[counter])
+						{
+							can_move_to_desired_tile = TRUE;
+							break;
+						}
+					}
+					if (g_player.ScreenPos.X < GAME_RES_WIDTH - 16 && can_move_to_desired_tile)
+					{
+						g_player.MovementRemaining = 16;
+						g_player.Direction = RIGHT;
+					}
+				}
+			}
+
+			else if (g_game_input.UpKeyIsDown)
+			{
+				BOOL can_move_to_desired_tile = FALSE;
+				if (g_player.ScreenPos.Y > 0)
+				{
+
+					for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
+					{
+						if (g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][(g_player.WorldPos.X / 16)] == g_passable_tiles[counter])
+						{
+							can_move_to_desired_tile = TRUE;
+							break;
+						}
+					}
+				}
+				if (g_player.ScreenPos.Y > 0 && can_move_to_desired_tile)
+				{
+					g_player.MovementRemaining = 16;
+					g_player.Direction = UP;
+				}
 			}
 		}
-
-		else if (g_game_input.LeftKeyIsDown)
+		else
 		{
-			BOOL can_move_to_desired_tile = FALSE;
-			for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
+			g_player.MovementRemaining--;
+			if (g_player.Direction == DOWN)
 			{
-				if (g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16)][(g_player.WorldPos.X / 16) - 1] == g_passable_tiles[counter])
+				if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 64 || g_camera.Y >= g_current_area.bottom - GAME_RES_HEIGHT)
 				{
-					can_move_to_desired_tile = TRUE;
+					g_player.ScreenPos.Y++;
+				}
+				else
+				{
+					g_camera.Y++;
+				}
+				g_player.WorldPos.Y++;
+			}
+			else if (g_player.Direction == LEFT)
+			{
+				if (g_player.ScreenPos.X > 64 || g_camera.X == g_current_area.left)
+				{
+					g_player.ScreenPos.X--;
+				}
+				else
+				{
+					g_camera.X--;
+				}
+				g_player.WorldPos.X--;
+			}
+			else if (g_player.Direction == RIGHT)
+			{
+				if (g_player.ScreenPos.X < GAME_RES_WIDTH - 64 || g_camera.X >= g_current_area.right - GAME_RES_WIDTH)
+				{
+					g_player.ScreenPos.X++;
+				}
+				else
+				{
+					g_camera.X++;
+				}
+				g_player.WorldPos.X++;
+
+			}
+			else if (g_player.Direction == UP)
+			{
+				if (g_player.ScreenPos.Y > 64 || g_camera.Y == g_current_area.top)
+				{
+					g_player.ScreenPos.Y--;
+				}
+				else
+				{
+					g_camera.Y--;
+				}
+				g_player.WorldPos.Y--;
+			}
+
+			switch (g_player.MovementRemaining)
+			{
+				case 15:
+				{
+					g_player.HasPlayerMovedSincePortal = TRUE;
+					g_player.SpriteIndex = 0;
 					break;
 				}
-			}
-			if (g_player.ScreenPos.X > 0 && can_move_to_desired_tile)
-			{
-				g_player.MovementRemaining = 16;
-				g_player.Direction = LEFT;
-			}
-		}
-
-		else if (g_game_input.RightKeyIsDown)
-		{
-			// are we at the right of the map?
-			if (g_player.WorldPos.X < g_overworld01.GameBitmap.BitmapInfo.bmiHeader.biWidth - 16)
-			{
-				BOOL can_move_to_desired_tile = FALSE;
-				for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
+				case 11:
 				{
-					if (g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16)][(g_player.WorldPos.X / 16) + 1] == g_passable_tiles[counter])
+					g_player.SpriteIndex = 1;
+					break;
+				}
+				case 7:
+				{
+					g_player.SpriteIndex = 0;
+					break;
+				}
+				case 3:
+				{
+					g_player.SpriteIndex = 2;
+					break;
+				}
+				case 0:
+				{
+					ASSERT(g_player.ScreenPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.")
+					ASSERT(g_player.ScreenPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.")
+					ASSERT(g_player.WorldPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.")
+					ASSERT(g_player.WorldPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.")
+
+					g_player.SpriteIndex = 0;
+
+					// Is the player standing on a portal (or do, or staircase, etc)?
+					if (g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][g_player.WorldPos.X / 16] == TILE_PORTAL_01)
 					{
-						can_move_to_desired_tile = TRUE;
-						break;
+						if (g_player.HasPlayerMovedSincePortal == TRUE)
+						{
+							PortalHandler();
+						}
 					}
+
+					break;
 				}
-				if (g_player.ScreenPos.X < GAME_RES_WIDTH - 16 && can_move_to_desired_tile)
+				default:
 				{
-					g_player.MovementRemaining = 16;
-					g_player.Direction = RIGHT;
+
 				}
 			}
 		}
-
-		else if (g_game_input.UpKeyIsDown)
-		{
-			BOOL can_move_to_desired_tile = FALSE;
-			if (g_player.ScreenPos.Y > 0)
-			{
-
-				for (uint8_t counter = 0; counter < (uint8_t)_countof(g_passable_tiles); counter++)
-				{
-					if (g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][(g_player.WorldPos.X / 16)] == g_passable_tiles[counter])
-					{
-						can_move_to_desired_tile = TRUE;
-						break;
-					}
-				}
-			}
-			if (g_player.ScreenPos.Y > 0 && can_move_to_desired_tile)
-			{
-				g_player.MovementRemaining = 16;
-				g_player.Direction = UP;
-			}
-		}
-	}
-	else
-	{
-		g_player.MovementRemaining--;
-		if (g_player.Direction == DOWN)
-		{
-			if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 64 || g_camera.Y >= g_current_area.bottom - GAME_RES_HEIGHT)
-			{
-				g_player.ScreenPos.Y++;
-			}
-			else
-			{
-				g_camera.Y++;
-			}
-			g_player.WorldPos.Y++;
-		}
-		else if (g_player.Direction == LEFT)
-		{
-			if (g_player.ScreenPos.X > 64 || g_camera.X == g_current_area.left)
-			{
-				g_player.ScreenPos.X--;
-			}
-			else
-			{
-				g_camera.X--;
-			}
-			g_player.WorldPos.X--;
-		}
-		else if (g_player.Direction == RIGHT)
-		{
-			if (g_player.ScreenPos.X < GAME_RES_WIDTH - 64 || g_camera.X >= g_current_area.right - GAME_RES_WIDTH)
-			{
-				g_player.ScreenPos.X++;
-			}
-			else
-			{
-				g_camera.X++;
-			}
-			g_player.WorldPos.X++;
-
-		}
-		else if (g_player.Direction == UP)
-		{
-			if (g_player.ScreenPos.Y > 64 || g_camera.Y == g_current_area.top)
-			{
-				g_player.ScreenPos.Y--;
-			}
-			else
-			{
-				g_camera.Y--;
-			}
-			g_player.WorldPos.Y--;
-		}
-
-		switch (g_player.MovementRemaining)
-		{
-			case 16:
-			{
-				g_player.SpriteIndex = 0;
-				break;
-			}
-			case 12:
-			{
-				g_player.SpriteIndex = 1;
-				break;
-			}
-			case 8:
-			{
-				g_player.SpriteIndex = 0;
-				break;
-			}
-			case 4:
-			{
-				g_player.SpriteIndex = 2;
-				break;
-			}
-			case 0:
-			{
-				g_player.SpriteIndex = 0;
-
-				// Is the player standing on a portal (or do, or staircase, etc)?
-				if (g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][g_player.WorldPos.X / 16] == TILE_PORTAL_01)
-				{
-					PortalHandler();
-				}
-
-				break;
-			}
-			default:
-			{
-
-			}
-		}
-	}
 }
 
 void PortalHandler(void)
 {
-	if (g_player.WorldPos.X == 272 && g_player.WorldPos.Y == 80)
+	g_player.HasPlayerMovedSincePortal = FALSE;
+
+	for (uint32_t counter = 0; counter < _countof(g_portals); counter++)
 	{
-		g_player.WorldPos.X = 3920;
-		g_player.WorldPos.Y = 32;
-		g_camera.X = 3856;
-		g_camera.Y = 0;
-		g_current_area = g_dungeon1_area;
-	}
-	else if (g_player.WorldPos.X == 3920 && g_player.WorldPos.Y == 32)
-	{
-		g_player.WorldPos.X = 272;
-		g_player.WorldPos.Y = 80;
-		g_camera.X = 0;
-		g_camera.Y = 0;
-		g_current_area = g_overworld_area;
-	}
-	else
-	{
-		ASSERT(FALSE, "Player is standing on a portal but we do not have a portal handler for it!")
+		if (g_player.WorldPos.X == g_portals[counter]->WorldPos.X && g_player.WorldPos.Y == g_portals[counter]->WorldPos.Y)
+		{
+			g_player.WorldPos = g_portals[counter]->WorldDestination;
+			g_player.ScreenPos = g_portals[counter]->ScreenDestination;
+			g_camera = g_portals[counter]->CameraPos;
+			g_current_area = g_portals[counter]->DestinationArea;
+			return;
+		}
 	}
 
-	// Fix the player screen position
-	g_player.ScreenPos.X = g_player.WorldPos.X - g_camera.X;
-	g_player.ScreenPos.Y = g_player.WorldPos.Y - g_camera.Y;
+	ASSERT(FALSE, "Player is standing on a portal, but we do not have a portal handler for it")
 }

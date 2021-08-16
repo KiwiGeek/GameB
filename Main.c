@@ -9,28 +9,26 @@
 #include "stb_vorbis.h"
 #include "miniz.h"
 
-
-CRITICAL_SECTION g_log_critical_section;
-
-int gFontCharacterPixelOffset[] = {
-	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
-		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-	//	   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?
-		94,64,87,66,67,68,70,85,72,73,71,77,88,74,91,92,52,53,54,55,56,57,58,59,60,61,86,84,89,75,90,93,
-	//	@  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  [  \  ]  ^  _
-		65,0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,80,78,81,69,76,
-	//	`  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  {  |  }  ~  ..
-		62,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,82,79,83,63,93,
-	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
-		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-	//	.. .. .. .. .. .. .. .. .. .. .. «  .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. »  .. .. .. ..
-		93,93,93,93,93,93,93,93,93,93,93,96,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,95,93,93,93,93,
-	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..
-		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-	//	.. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. F2 .. .. .. .. .. .. .. .. .. .. .. .. ..
-		93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,97,93,93,93,93,93,93,93,93,93,93,93,93,93
+int g_font_character_pixel_offset[] = {
+	/*      .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..*/
+	/*    */93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	/*          !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?*/
+	/*    */94,64,87,66,67,68,70,85,72,73,71,77,88,74,91,92,52,53,54,55,56,57,58,59,60,61,86,84,89,75,90,93,
+	/*       @  A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z  [  \  ]  ^  _*/
+	/*    */65,0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,80,78,81,69,76,
+	/*       `  a  b  c  d  e  f  g  h  i  j  k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z  {  |  }  ~ ..*/
+	/*    */62,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,82,79,83,63,93,
+	/*      .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..*/
+	/*    */93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	/*      .. .. .. .. .. .. .. .. .. .. ..  « .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..  » .. .. .. ..*/
+	/*    */93,93,93,93,93,93,93,93,93,93,93,96,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,95,93,93,93,93,
+	/*      .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..*/
+	/*    */93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
+	/*      .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. F2 .. .. .. .. .. .. .. .. .. .. .. .. ..*/
+	/*    */93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,97,93,93,93,93,93,93,93,93,93,93,93,93,93
 };
 
+CRITICAL_SECTION g_log_critical_section;
 BOOL g_window_has_focus;
 REGISTRY_PARAMS g_registry_params;
 XINPUT_STATE g_gamepad_state;
@@ -119,7 +117,7 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 		}
 		default:
 		{
-			LogMessageA(LL_INFO, "[%s] CPU Architecture: Unknown", __FUNCTION__);
+			LogMessageA(LL_WARNING, "[%s] CPU Architecture: Unknown", __FUNCTION__);
 		}
 	}
 
@@ -166,20 +164,20 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 		MessageBoxA(NULL, "The asset file was not found! It must reside in the same directory as the game executable.", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
-	
+
 	if ((g_asset_loading_thread_handle = CreateThread(NULL, 0, AssetLoadingThreadProc, NULL, 0, NULL)) == NULL)
 	{
 		MessageBox(NULL, "CreateThread failed!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
-	
+
 	if (InitializeSoundEngine() != S_OK)
 	{
 		MessageBox(NULL, "InitializeSoundEngine failed", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
 	}
 
-	
+
 	QueryPerformanceFrequency((LARGE_INTEGER*)&g_performance_data.PerfFrequency);
 
 	g_back_buffer.BitmapInfo.bmiHeader.biSize = sizeof(g_back_buffer.BitmapInfo.bmiHeader);
@@ -545,7 +543,7 @@ DWORD InitializeHero(void) {
 	return 0;
 }
 
-void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIXEL32* Color, _In_ int16_t x, _In_ int16_t y)
+void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontSheet, _In_ const PIXEL32* Color, _In_ const int16_t X, _In_ const int16_t Y)
 {
 	const uint16_t char_width = (uint16_t)FontSheet->BitmapInfo.bmiHeader.biWidth / FONT_SHEET_CHARACTERS_PER_ROW;
 	const uint16_t char_height = (uint16_t)FontSheet->BitmapInfo.bmiHeader.biHeight;
@@ -563,7 +561,7 @@ void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIX
 	{
 		PIXEL32 font_sheet_pixel = { 0 };
 		const int starting_font_sheet_pixel = (FontSheet->BitmapInfo.bmiHeader.biWidth * FontSheet->BitmapInfo.bmiHeader.biHeight)
-			- FontSheet->BitmapInfo.bmiHeader.biWidth + (char_width * gFontCharacterPixelOffset[(uint8_t)String[character]]);
+			- FontSheet->BitmapInfo.bmiHeader.biWidth + (char_width * g_font_character_pixel_offset[(uint8_t)String[character]]);
 
 		for (int y_pixel = 0; y_pixel <= char_height - 1; y_pixel++)
 		{
@@ -571,7 +569,7 @@ void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIX
 			{
 				const int font_sheet_offset = starting_font_sheet_pixel + x_pixel - (FontSheet->BitmapInfo.bmiHeader.biWidth * y_pixel);
 				const int string_bitmap_offset = (character * char_width) + ((string_bitmap.BitmapInfo.bmiHeader.biWidth * string_bitmap.
-				                                                                                                          BitmapInfo.bmiHeader.biHeight) -
+					BitmapInfo.bmiHeader.biHeight) -
 					string_bitmap.BitmapInfo.bmiHeader.biWidth) + x_pixel - (string_bitmap.BitmapInfo.bmiHeader.biWidth * y_pixel);
 
 				memcpy_s(&font_sheet_pixel, sizeof(PIXEL32), (PIXEL32*)FontSheet->Memory + font_sheet_offset, sizeof(PIXEL32));
@@ -585,7 +583,7 @@ void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIX
 		}
 	}
 
-	Blit32BppBitmapToBuffer(&string_bitmap, x, y);
+	Blit32BppBitmapToBuffer(&string_bitmap, X, Y);
 
 	if (string_bitmap.Memory)
 	{
@@ -677,7 +675,7 @@ void RenderFrameGraphics(void)
 }
 
 #ifdef AVX
-_forceinline void ClearScreen(_In_ __m256i* Color)
+void ClearScreen(_In_ const __m256i* Color)
 {
 	for (int index = 0; index < (GAME_RES_WIDTH * GAME_RES_HEIGHT) / 8; index++)
 	{
@@ -685,21 +683,19 @@ _forceinline void ClearScreen(_In_ __m256i* Color)
 	}
 }
 #elif defined SSE2
-_forceinline void ClearScreen(_In_ __m128i* Color)
+void ClearScreen(_In_ const __m128i* Color)
 {
-
 	for (int index = 0; index < (GAME_RES_WIDTH * GAME_RES_HEIGHT) / 4; index++)
 	{
-		_mm_store_si128((__m128i*)gBackBuffer.Memory + index, *Color);
+		_mm_store_si128((__m128i*)g_back_buffer.Memory + index, *Color);
 	}
-
 }
 #else
-__forceinline void ClearScreen(_In_ PIXEL32* Pixel)
+void ClearScreen(_In_ const PIXEL32* Pixel)
 {
 	for (int x = 0; x < GAME_RES_WIDTH * GAME_RES_HEIGHT; x++)
 	{
-		memcpy((PIXEL32*)gBackBuffer.Memory + x, Pixel, sizeof(PIXEL32));
+		memcpy((PIXEL32*)g_back_buffer.Memory + x, Pixel, sizeof(PIXEL32));
 	}
 }
 #endif
@@ -763,27 +759,26 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap)
 		}
 	}
 #elif defined SSE2
-	__m128i BitmapQuadPixel;
-	for (int16_t yPixel = 0; yPixel < GAME_RES_HEIGHT; yPixel++)
+	for (int16_t y_pixel = 0; y_pixel < GAME_RES_HEIGHT; y_pixel++)
 	{
-		for (int16_t xPixel = 0; xPixel < GAME_RES_WIDTH; xPixel += 4)
+		for (int16_t x_pixel = 0; x_pixel < GAME_RES_WIDTH; x_pixel += 4)
 		{
-			MemoryOffset = StartingScreenPixel + xPixel - (GAME_RES_WIDTH * yPixel);
-			BitmapOffset = StartingBitmapPixel + xPixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * yPixel);
-			BitmapQuadPixel = _mm_load_si128((const __m128i*)((PIXEL32*)GameBitmap->Memory + BitmapOffset));
-			_mm_store_si128((__m128i*)((PIXEL32*)gBackBuffer.Memory + MemoryOffset), BitmapQuadPixel);
+			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
+			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+			const __m128i bitmap_quad_pixel = _mm_load_si128((const __m128i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
+			_mm_store_si128((__m128i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_quad_pixel);
 		}
 	}
 #else
-	PIXEL32 BitmapPixel = { 0 };
-	for (int16_t yPixel = 0; yPixel < GAME_RES_HEIGHT; yPixel++)
+	PIXEL32 bitmap_pixel = { 0 };
+	for (int16_t y_pixel = 0; y_pixel < GAME_RES_HEIGHT; y_pixel++)
 	{
-		for (int16_t xPixel = 0; xPixel < GAME_RES_WIDTH; xPixel++)
+		for (int16_t x_pixel = 0; x_pixel < GAME_RES_WIDTH; x_pixel++)
 		{
-			MemoryOffset = StartingScreenPixel + xPixel - (GAME_RES_WIDTH * yPixel);
-			BitmapOffset = StartingBitmapPixel + xPixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * yPixel);
-			memcpy_s(&BitmapPixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + BitmapOffset, sizeof(PIXEL32));
-			memcpy_s((PIXEL32*)gBackBuffer.Memory + MemoryOffset, sizeof(PIXEL32), &BitmapPixel, sizeof(PIXEL32));
+			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
+			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
+			memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 		}
 	}
 #endif
@@ -795,7 +790,7 @@ DWORD LoadRegistryParameters(void)
 	DWORD reg_disposition = 0;
 	DWORD reg_bytes_read = sizeof(DWORD);
 	DWORD result = RegCreateKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\" GAME_NAME, 0, NULL, 0, KEY_ALL_ACCESS, NULL,
-	                               &reg_key, &reg_disposition);
+		&reg_key, &reg_disposition);
 
 	if (result != ERROR_SUCCESS)
 	{
@@ -895,7 +890,7 @@ DWORD SaveRegistryParameters(void)
 	const DWORD sfx_volume = (DWORD)(g_sfx_volume * 100.0f);
 	const DWORD music_volume = (DWORD)(g_music_volume * 100.0f);
 	DWORD result = RegCreateKeyExA(HKEY_CURRENT_USER, "SOFTWARE\\" GAME_NAME, 0, NULL, 0, KEY_ALL_ACCESS, NULL,
-	                               &reg_key, &reg_disposition);
+		&reg_key, &reg_disposition);
 
 	if (result != ERROR_SUCCESS)
 	{
@@ -957,7 +952,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 	if (message_length < 1 || message_length > 4096)
 	{
 		ASSERT(FALSE, "Message was either too short or too long!")
-		return;
+			return;
 	}
 
 	switch (LogLevel)
@@ -1005,7 +1000,6 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 	if ((log_file_handle = CreateFileA(LOG_FILE_NAME, FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
 	{
 		ASSERT(FALSE, "Failed to access log file!")
-		return;
 	}
 
 	SetFilePointer(log_file_handle, 0, NULL, FILE_END);
@@ -1024,7 +1018,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 void DrawDebugInfo(void)
 {
 	char debug_text_buffer[64] = { 0 };
-	PIXEL32 white = { 0xFF,0xFF, 0xFF, 0xFF };
+	const PIXEL32 white = { 0xFF,0xFF, 0xFF, 0xFF };
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSRaw:  %.01f", (double)g_performance_data.RawFPSAverage);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 0);
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSCookd:%.01f", (double)g_performance_data.CookedFPSAverage);
@@ -1049,6 +1043,8 @@ void DrawDebugInfo(void)
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 80);
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CameraXY:%hu,%hu", g_camera.X, g_camera.Y);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 88);
+	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Movement:%u", g_player.MovementRemaining);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 96);
 }
 
 void FindFirstConnectedGamepad(void)
@@ -1197,7 +1193,7 @@ Exit:
 	return error;
 }
 
-DWORD LoadOggFromMemory(_In_ void* Buffer, _In_ uint64_t BufferSize, _Inout_ GAME_SOUND* GameSound)
+DWORD LoadOggFromMemory(_In_ const void* Buffer, _In_ const uint64_t BufferSize, _Inout_ GAME_SOUND* GameSound)
 {
 	DWORD error = ERROR_SUCCESS;
 	int channels = 0;
@@ -1223,7 +1219,7 @@ DWORD LoadOggFromMemory(_In_ void* Buffer, _In_ uint64_t BufferSize, _Inout_ GAM
 	GameSound->Buffer.pAudioData = (BYTE*)decoded_audio;
 
 Exit:
-	
+
 	return error;
 }
 
@@ -1349,8 +1345,8 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 	}
 
 	LogMessageA(LL_INFO, "[%s] TileMap dimensions: %dx%d", __FUNCTION__, TileMap->Width, TileMap->Height);
-	uint16_t rows = TileMap->Height;
-	uint16_t columns = TileMap->Width;
+	const uint16_t rows = TileMap->Height;
+	const uint16_t columns = TileMap->Width;
 	TileMap->Map = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, rows * sizeof(void*));
 
 	if (TileMap->Map == NULL)
@@ -1444,7 +1440,7 @@ DWORD Load32BppBitmapFromMemory(_In_ void* Buffer, _Inout_ GAME_BITMAP* GameBitm
 	DWORD pixel_data_offset = 0;
 
 	memcpy(&bitmap_header, Buffer, sizeof(WORD));
-	
+
 	if (bitmap_header != 0x4D42) // "BM" Backwards
 	{
 		error = ERROR_INVALID_DATA;
@@ -1454,8 +1450,8 @@ DWORD Load32BppBitmapFromMemory(_In_ void* Buffer, _Inout_ GAME_BITMAP* GameBitm
 	memcpy(&pixel_data_offset, (BYTE*)Buffer + 0xA, sizeof(DWORD));
 	memcpy(&GameBitmap->BitmapInfo.bmiHeader, (BYTE*)Buffer + 0xE, sizeof(BITMAPINFOHEADER));
 
-	GameBitmap->Memory = (BYTE*)Buffer +pixel_data_offset;
-	
+	GameBitmap->Memory = (BYTE*)Buffer + pixel_data_offset;
+
 Exit:
 
 	if (error == ERROR_SUCCESS)
@@ -1483,7 +1479,7 @@ void PlayGameSound(_In_ const GAME_SOUND* GameSound)
 
 void PlayGameMusic(_In_ GAME_SOUND* GameSound)
 {
-	g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice,0 ,0);
+	g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
 	g_xaudio_music_source_voice->lpVtbl->FlushSourceBuffers(g_xaudio_music_source_voice);
 	GameSound->Buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
 	g_xaudio_music_source_voice->lpVtbl->SubmitSourceBuffer(g_xaudio_music_source_voice, &GameSound->Buffer, NULL);
@@ -1506,7 +1502,7 @@ DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In
 	}
 
 	LogMessageA(LL_INFO, "[%s] Archive %s opened.", __FUNCTION__, ArchiveName);
-	
+
 	for (uint32_t file_index = 0; file_index < mz_zip_reader_get_num_files(&archive); file_index++)
 	{
 		mz_zip_archive_file_stat compressed_file_statistics = { 0 };
@@ -1527,9 +1523,9 @@ DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In
 				LogMessageA(LL_ERROR, "[%s] mz_zip_reader_file_stat failed with 0x%08lx! Archive: %s File: %s Error: %s", __FUNCTION__, error, ArchiveName, AssetFileName, mz_zip_get_error_string(error));
 				goto Exit;
 			}
-			
+
 			LogMessageA(LL_INFO, "[%s] File %s found in asset file %s and extracted to heap.", __FUNCTION__, AssetFileName, ArchiveName);
-			
+
 			break;
 		}
 
@@ -1573,7 +1569,7 @@ DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In
 Exit:
 
 	mz_zip_reader_end(&archive);
-	
+
 	return error;
 }
 
@@ -1581,7 +1577,7 @@ DWORD AssetLoadingThreadProc(_In_ LPVOID Param)
 {
 
 	UNREFERENCED_PARAMETER(Param);
-	
+
 	DWORD error;
 
 	if ((error = LoadAssetFromArchive(ASSET_FILE, "6x7Font.bmpx", RT_BMPX, &g_6x7_font)) != ERROR_SUCCESS)
@@ -1702,13 +1698,37 @@ void InitializeGlobals(void)
 	g_game_is_running = TRUE;
 	g_gamepad_id = -1;
 
-	ASSERT(_countof(g_passable_tiles) == 3, "Wrong count of passable tiles!")
+	ASSERT((_countof(g_passable_tiles) == 3), "Wrong count of passable tiles!")
 	g_passable_tiles[0] = TILE_GRASS_01;
 	g_passable_tiles[1] = TILE_BRICK_01;
 	g_passable_tiles[2] = TILE_PORTAL_01;
 
-	g_overworld_area = (RECT)	{ .left = 0,		.top = 0,	.right = 3840,	.bottom = 2400 };
-	g_dungeon1_area = (RECT)	{ .left = 3856,	.top = 0,	.right = 4240,	.bottom = 240 };
+	g_overworld_area = (RECT){ .left = 0,		.top = 0,	.right = 3840,	.bottom = 2400 };
+	g_dungeon1_area = (RECT){ .left = 3856,	.top = 0,	.right = 4240,	.bottom = 240 };
 
 	g_current_area = g_overworld_area;
+
+	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!")
+
+	g_portal001 = (PORTAL){
+		.DestinationArea	= g_dungeon1_area,
+		.CameraPos			= (UPOINT) {.X = 3856,.Y = 0},
+		.ScreenDestination	= (UPOINT) {.X = 64,	.Y = 32},
+		.WorldDestination	= (UPOINT) {.X = 3920,.Y = 32},
+		.WorldPos			= (UPOINT) {.X = 272,	.Y = 80}
+	};
+
+	g_portal002 = (PORTAL){
+		.DestinationArea	= g_overworld_area,
+		.CameraPos			= (UPOINT) {.X = 0,	.Y = 0},
+		.ScreenDestination	= (UPOINT) {.X = 272,	.Y = 80},
+		.WorldDestination	= (UPOINT) {.X = 272,	.Y = 80},
+		.WorldPos			= (UPOINT) {.X = 3920,.Y = 32}
+	};
+
+	g_portals[0] = &g_portal001;
+	g_portals[1] = &g_portal002;
 }
+
+// HasPlayerMovedSincePortal is unnecessary
+// ScreenDestination can be calculated by subtracting CameraPos from WorldDestination, so is unnecessary

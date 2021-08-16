@@ -203,6 +203,8 @@ typedef struct HERO
 	DIRECTION Direction;
 	uint8_t CurrentArmor;
 	uint8_t SpriteIndex;
+	uint64_t StepsTaken;
+	BOOL HasPlayerMovedSincePortal;
 	int16_t HP;
 	int32_t XP;
 	int16_t Money;
@@ -267,7 +269,7 @@ void ProcessPlayerInput(void);
 DWORD InitializeHero(void);
 void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t X, _In_ int16_t Y);
 void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap);
-void BlitStringToBuffer(_In_ char* String, _In_ GAME_BITMAP* FontSheet, _In_ PIXEL32* Color, _In_ int16_t x, _In_ int16_t y);
+void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontSheet, _In_ const PIXEL32* Color, _In_ int16_t X, _In_ int16_t Y);
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);
 DWORD SaveRegistryParameters(void);
@@ -277,17 +279,17 @@ void FindFirstConnectedGamepad(void);
 HRESULT InitializeSoundEngine(void);
 DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In_ RESOURCE_TYPE ResourceType, _Inout_ void* Resource);
 DWORD LoadWavFromMemory(_In_ void* Buffer, _Inout_ GAME_SOUND* GameSound);
-DWORD LoadOggFromMemory(_In_ void* Buffer, _In_ uint64_t BufferSize, _Inout_ GAME_SOUND* GameSound);
+DWORD LoadOggFromMemory(_In_ const void* Buffer, _In_ uint64_t BufferSize, _Inout_ GAME_SOUND* GameSound);
 DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_ TILEMAP* TileMap);
 DWORD Load32BppBitmapFromMemory(_In_ void* Buffer, _Inout_ GAME_BITMAP* GameBitmap);
 void PlayGameSound(_In_ const GAME_SOUND* GameSound);
 void PlayGameMusic(_In_ GAME_SOUND* GameSound);
 #ifdef AVX
-void ClearScreen(_In_ __m256i* Color);
+void ClearScreen(_In_ const __m256i* Color);
 #elif defined SSE2
-void ClearScreen(_In_ __m128i* Color);
+void ClearScreen(_In_ const __m128i* Color);
 #else
-void ClearScreen(_In_ PIXEL32* Pixel);
+void ClearScreen(_In_ const PIXEL32* Pixel);
 #endif
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
 void InitializeGlobals(void);
