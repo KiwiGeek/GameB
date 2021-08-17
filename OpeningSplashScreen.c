@@ -25,6 +25,8 @@ void DrawOpeningSplashScreen(void)
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
 		local_frame_counter = 0;
+		memset(&text_color, 0, sizeof(PIXEL32));
+		g_input_enabled = FALSE;
 	}
 
 	if (g_performance_data.TotalFramesRendered % 30 == 0)
@@ -41,6 +43,10 @@ void DrawOpeningSplashScreen(void)
 		{
 			BlitStringToBuffer("\xf2", &g_6x7_font, &(PIXEL32) {32, 32, 32, 255 }, GAME_RES_WIDTH - 6, GAME_RES_HEIGHT - 7);
 		}
+	}
+	else
+	{
+		g_input_enabled = TRUE;
 	}
 
 
@@ -101,8 +107,8 @@ void PPI_OpeningSplashScreen(void)
 {
 	if (PRESSED_ESCAPE)
 	{
-		if (WaitForSingleObject(g_asset_loading_thread_handle, 0) == WAIT_OBJECT_0)
-		{
+		////if (WaitForSingleObject(g_asset_loading_thread_handle, 0) == WAIT_OBJECT_0)
+		//{
 			DWORD thread_exit_code = ERROR_SUCCESS;
 			GetExitCodeThread(g_asset_loading_thread_handle, &thread_exit_code);
 			if (thread_exit_code == ERROR_SUCCESS)
@@ -111,6 +117,6 @@ void PPI_OpeningSplashScreen(void)
 				g_current_game_state = GS_TITLE_SCREEN;
 			}
 
-		}
+	//	}
 	}
 }

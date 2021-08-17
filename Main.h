@@ -260,6 +260,7 @@ uint8_t g_passable_tiles[3];
 UPOINT g_camera;
 HANDLE g_asset_loading_thread_handle;
 HANDLE g_essential_assets_loaded_event;
+BOOL g_input_enabled;
 BOOL g_game_is_running;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
@@ -267,8 +268,8 @@ DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
 void ProcessPlayerInput(void);
 DWORD InitializeHero(void);
-void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t X, _In_ int16_t Y);
-void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap);
+void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t X, _In_ int16_t Y, _In_ int16_t BrightnessAdjustment);
+void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t BrightnessAdjustment);
 void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontSheet, _In_ const PIXEL32* Color, _In_ int16_t X, _In_ int16_t Y);
 void RenderFrameGraphics(void);
 DWORD LoadRegistryParameters(void);

@@ -19,25 +19,40 @@ void DrawOptionsScreen(void)
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
 		local_frame_counter = 0;
-		text_color.Red = 0;
-		text_color.Green = 0;
-		text_color.Blue = 0;
+		memset(&text_color, 0, sizeof(PIXEL32));
 		gMenu_OptionsScreen.SelectedItem = 0;
+		g_input_enabled = FALSE;
 	}
 
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	if ((local_frame_counter > 0) && (local_frame_counter <= 45) && (local_frame_counter % 15 == 0))
+	if (local_frame_counter == 10)
 	{
-		text_color.Red += 64;
-		text_color.Green += 64;
-		text_color.Blue += 64;
+		text_color.Red = 64;
+		text_color.Green = 64;
+		text_color.Blue = 64;
 	}
-	if (local_frame_counter == 60)
+
+	if (local_frame_counter == 20)
+	{
+		text_color.Red = 128;
+		text_color.Green = 128;
+		text_color.Blue = 128;
+	}
+
+	if (local_frame_counter == 30)
+	{
+		text_color.Red = 192;
+		text_color.Green = 192;
+		text_color.Blue = 192;
+	}
+
+	if (local_frame_counter == 40)
 	{
 		text_color.Red = 255;
 		text_color.Green = 255;
 		text_color.Blue = 255;
+		g_input_enabled = TRUE;
 	}
 
 	for (uint8_t menu_item = 0; menu_item < gMenu_OptionsScreen.ItemCount; menu_item++)

@@ -438,7 +438,7 @@ BOOL GameIsAlreadyRunning(void)
 void ProcessPlayerInput(void)
 {
 
-	if (g_window_has_focus == FALSE)
+	if (g_window_has_focus == FALSE || g_input_enabled == FALSE)
 	{
 		return;
 	}
@@ -583,7 +583,7 @@ void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontShe
 		}
 	}
 
-	Blit32BppBitmapToBuffer(&string_bitmap, X, Y);
+	Blit32BppBitmapToBuffer(&string_bitmap, X, Y, 0);
 
 	if (string_bitmap.Memory)
 	{
@@ -700,7 +700,7 @@ void ClearScreen(_In_ const PIXEL32* Pixel)
 }
 #endif
 
-void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int16_t X, _In_ const int16_t Y)
+void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int16_t X, _In_ const int16_t Y, _In_ int16_t BrightnessAdjustment)
 {
 	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
 	const int32_t starting_bitmap_pixel = ((GameBitmap->BitmapInfo.bmiHeader.biWidth * GameBitmap->BitmapInfo.bmiHeader.biHeight)
@@ -730,6 +730,9 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 
 			if (bitmap_pixel.Alpha == 255)
 			{
+				bitmap_pixel.Red   = (uint8_t)min(255, max(0, bitmap_pixel.Red   + BrightnessAdjustment));
+				bitmap_pixel.Blue  = (uint8_t)min(255, max(0, bitmap_pixel.Blue  + BrightnessAdjustment));
+				bitmap_pixel.Green = (uint8_t)min(255, max(0, bitmap_pixel.Green + BrightnessAdjustment));
 				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 			}
 		}
@@ -737,7 +740,7 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 
 }
 
-void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap)
+void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t BrightnessAdjustment)
 {
 	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH);
 
@@ -754,7 +757,11 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap)
 		{
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
-			const __m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
+			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
+			for (int8_t i = 0; i < 32; i++)
+			{
+				bitmap_octo_pixel.m256i_u8[i] = (uint8_t)min(255, max(0, bitmap_octo_pixel.m256i_u8[i] + BrightnessAdjustment));
+			}
 			_mm256_store_si256((__m256i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_octo_pixel);
 		}
 	}
@@ -765,7 +772,11 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap)
 		{
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
-			const __m128i bitmap_quad_pixel = _mm_load_si128((const __m128i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
+			__m128i bitmap_quad_pixel = _mm_load_si128((const __m128i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
+			for (int8_t i = 0; i < 16; i++)
+			{
+				bitmap_quad_pixel.m128i_u8[i] = (uint8_t)min(255, max(0, bitmap_quad_pixel.m128i_u8[i] + BrightnessAdjustment));
+			}
 			_mm_store_si128((__m128i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_quad_pixel);
 		}
 	}
@@ -778,6 +789,10 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap)
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
 			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
+			bitmap_pixel.Red = (uint8_t)min(255, max(0, bitmap_pixel.Red + BrightnessAdjustment));
+			bitmap_pixel.Green = (uint8_t)min(255, max(0, bitmap_pixel.Green + BrightnessAdjustment));
+			bitmap_pixel.Blue = (uint8_t)min(255, max(0, bitmap_pixel.Blue + BrightnessAdjustment));
+			bitmap_pixel.Alpha = (uint8_t)min(255, max(0, bitmap_pixel.Alpha + BrightnessAdjustment));
 			memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 		}
 	}
@@ -1698,6 +1713,7 @@ void InitializeGlobals(void)
 	g_game_is_running = TRUE;
 	g_gamepad_id = -1;
 
+#pragma warning(suppress: 4127)
 	ASSERT((_countof(g_passable_tiles) == 3), "Wrong count of passable tiles!")
 	g_passable_tiles[0] = TILE_GRASS_01;
 	g_passable_tiles[1] = TILE_BRICK_01;
@@ -1708,6 +1724,7 @@ void InitializeGlobals(void)
 
 	g_current_area = g_overworld_area;
 
+#pragma warning(suppress: 4127)
 	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!")
 
 	g_portal001 = (PORTAL){
@@ -1732,3 +1749,5 @@ void InitializeGlobals(void)
 
 // HasPlayerMovedSincePortal is unnecessary
 // ScreenDestination can be calculated by subtracting CameraPos from WorldDestination, so is unnecessary
+// Can remove check for assets loaded in PPI_OpeningSplashScreen as input is locked until it is.
+// put in a starting call to find gamepads before 2seconds pass.

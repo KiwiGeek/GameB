@@ -144,6 +144,8 @@
    functions (such as tdefl_compress_mem_to_heap() and tinfl_decompress_mem_to_heap()) won't work. */
 /*#define MINIZ_NO_MALLOC */
 
+#pragma warning(disable:4668 4820 4548 4255 4127 4548 4061 5045)
+
 #if defined(__TINYC__) && (defined(__linux) || defined(__linux__))
 /* TODO: Work around "error: include file 'sys\utime.h' when compiling with tcc on Linux */
 #define MINIZ_NO_TIME
@@ -1348,3 +1350,5 @@ MINIZ_EXPORT void *mz_zip_extract_archive_file_to_heap_v2(const char *pZip_filen
 #endif
 
 #endif /* MINIZ_NO_ARCHIVE_APIS */
+
+#pragma warning(default: 4668 4820 4548 4255 4127 4548 4061)

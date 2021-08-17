@@ -25,7 +25,7 @@
  *
  **************************************************************************/
 
-
+#pragma warning(disable:26451 6386 6297 4548 4820 4127 5045 4255 4061)
 
 typedef unsigned char mz_validate_uint16[sizeof(mz_uint16) == 2 ? 1 : -1];
 typedef unsigned char mz_validate_uint32[sizeof(mz_uint32) == 4 ? 1 : -1];
@@ -7737,3 +7737,5 @@ extern "C" {
 #endif
 
 #endif /*#ifndef MINIZ_NO_ARCHIVE_APIS*/
+
+#pragma warning(default: 26451 6386 6297 4548 4820 4127 5045 4255 4061)

@@ -6,11 +6,32 @@ void DrawOverworldScreen(void)
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
 	static PIXEL32 text_color;
+	static int16_t brightness_adjustment = -255;
 
 	if (g_performance_data.TotalFramesRendered > (last_frame_seen + 1))
 	{
 		local_frame_counter = 0;
 		memset(&text_color, 0, sizeof(PIXEL32));
+		brightness_adjustment = -255;
+		g_input_enabled = FALSE;
+	}
+
+	if (local_frame_counter == 10)
+	{
+		brightness_adjustment = -128;
+	}
+	if (local_frame_counter == 20)
+	{
+		brightness_adjustment = -64;
+	}
+	if (local_frame_counter == 30)
+	{
+		brightness_adjustment = -32;
+	}
+	if (local_frame_counter == 40)
+	{
+		brightness_adjustment = 0;
+		g_input_enabled = TRUE;
 	}
 
 	if (local_frame_counter == 60)
@@ -18,9 +39,12 @@ void DrawOverworldScreen(void)
 		PlayGameMusic(&g_music_overworld01);
 	}
 
-	BlitBackgroundToBuffer(&g_overworld01.GameBitmap);
+	BlitBackgroundToBuffer(&g_overworld01.GameBitmap, brightness_adjustment);
 
-	Blit32BppBitmapToBuffer(&g_player.Sprite[g_player.CurrentArmor][g_player.SpriteIndex + g_player.Direction], (int16_t)g_player.ScreenPos.X, (int16_t)g_player.ScreenPos.Y);
+	Blit32BppBitmapToBuffer(&g_player.Sprite[g_player.CurrentArmor][g_player.SpriteIndex + g_player.Direction], 
+							(int16_t)g_player.ScreenPos.X, 
+							(int16_t)g_player.ScreenPos.Y,
+							brightness_adjustment);
 
 	if (g_performance_data.DisplayDebugInfo)
 	{
