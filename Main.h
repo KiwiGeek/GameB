@@ -285,12 +285,6 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 DWORD Load32BppBitmapFromMemory(_In_ void* Buffer, _Inout_ GAME_BITMAP* GameBitmap);
 void PlayGameSound(_In_ const GAME_SOUND* GameSound);
 void PlayGameMusic(_In_ GAME_SOUND* GameSound);
-#ifdef AVX
-void ClearScreen(_In_ const __m256i* Color);
-#elif defined SSE2
-void ClearScreen(_In_ const __m128i* Color);
-#else
-void ClearScreen(_In_ const PIXEL32* Pixel);
-#endif
+BOOL MusicIsPlaying(void);
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
 void InitializeGlobals(void);

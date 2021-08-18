@@ -5,3 +5,5 @@
 #define TILE_DEBUG_01	3
 #define TILE_BRICK_01	4
 #define TILE_PORTAL_01	5
+#define TILE_BRICK_02	6
+#define TILE_BRICK_03	7

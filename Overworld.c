@@ -1,6 +1,8 @@
 #include "Main.h"
 #include "Overworld.h"
 
+BOOL fade;
+
 void DrawOverworldScreen(void)
 {
 	static uint64_t local_frame_counter;
@@ -8,8 +10,9 @@ void DrawOverworldScreen(void)
 	static PIXEL32 text_color;
 	static int16_t brightness_adjustment = -255;
 
-	if (g_performance_data.TotalFramesRendered > (last_frame_seen + 1))
+	if (fade == TRUE || g_performance_data.TotalFramesRendered > (last_frame_seen + 1))
 	{
+		fade = FALSE;
 		local_frame_counter = 0;
 		memset(&text_color, 0, sizeof(PIXEL32));
 		brightness_adjustment = -255;
@@ -36,7 +39,10 @@ void DrawOverworldScreen(void)
 
 	if (local_frame_counter == 60)
 	{
-		PlayGameMusic(&g_music_overworld01);
+		if (MusicIsPlaying() == FALSE)
+		{
+			PlayGameMusic(&g_music_overworld01);
+		}
 	}
 
 	BlitBackgroundToBuffer(&g_overworld01.GameBitmap, brightness_adjustment);
@@ -330,6 +336,7 @@ void PortalHandler(void)
 			g_player.ScreenPos = g_portals[counter]->ScreenDestination;
 			g_camera = g_portals[counter]->CameraPos;
 			g_current_area = g_portals[counter]->DestinationArea;
+			fade = TRUE;
 			return;
 		}
 	}

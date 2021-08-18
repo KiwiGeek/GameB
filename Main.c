@@ -567,18 +567,21 @@ void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontShe
 		{
 			for (int x_pixel = 0; x_pixel < char_width - 1; x_pixel++)
 			{
-				const int font_sheet_offset = starting_font_sheet_pixel + x_pixel - (FontSheet->BitmapInfo.bmiHeader.biWidth * y_pixel);
-				const int string_bitmap_offset = (character * char_width) + ((string_bitmap.BitmapInfo.bmiHeader.biWidth * string_bitmap.
-					BitmapInfo.bmiHeader.biHeight) -
-					string_bitmap.BitmapInfo.bmiHeader.biWidth) + x_pixel - (string_bitmap.BitmapInfo.bmiHeader.biWidth * y_pixel);
+				const int font_sheet_offset = starting_font_sheet_pixel + x_pixel - FontSheet->BitmapInfo.bmiHeader.biWidth * y_pixel;
+				const int string_bitmap_offset = character * char_width
+					+ (string_bitmap.BitmapInfo.bmiHeader.biWidth * string_bitmap.BitmapInfo.bmiHeader.biHeight - string_bitmap.BitmapInfo.bmiHeader.biWidth)
+					+ x_pixel - string_bitmap.BitmapInfo.bmiHeader.biWidth * y_pixel;
 
 				memcpy_s(&font_sheet_pixel, sizeof(PIXEL32), (PIXEL32*)FontSheet->Memory + font_sheet_offset, sizeof(PIXEL32));
 
-				font_sheet_pixel.Red = Color->Red;
-				font_sheet_pixel.Green = Color->Green;
-				font_sheet_pixel.Blue = Color->Blue;
+				if (font_sheet_pixel.Alpha == 255)
+				{
+					font_sheet_pixel.Red = Color->Red;
+					font_sheet_pixel.Green = Color->Green;
+					font_sheet_pixel.Blue = Color->Blue;
 
-				memcpy_s((PIXEL32*)string_bitmap.Memory + string_bitmap_offset, sizeof(PIXEL32), &font_sheet_pixel, sizeof(PIXEL32));
+					memcpy_s((PIXEL32*)string_bitmap.Memory + string_bitmap_offset, sizeof(PIXEL32), &font_sheet_pixel, sizeof(PIXEL32));
+				}
 			}
 		}
 	}
@@ -675,32 +678,6 @@ void RenderFrameGraphics(void)
 	ReleaseDC(g_game_window, device_context);
 }
 
-#ifdef AVX
-void ClearScreen(_In_ const __m256i* Color)
-{
-	for (int index = 0; index < (GAME_RES_WIDTH * GAME_RES_HEIGHT) / 8; index++)
-	{
-		_mm256_store_si256((__m256i*)g_back_buffer.Memory + index, *Color);
-	}
-}
-#elif defined SSE2
-void ClearScreen(_In_ const __m128i* Color)
-{
-	for (int index = 0; index < (GAME_RES_WIDTH * GAME_RES_HEIGHT) / 4; index++)
-	{
-		_mm_store_si128((__m128i*)g_back_buffer.Memory + index, *Color);
-	}
-}
-#else
-void ClearScreen(_In_ const PIXEL32* Pixel)
-{
-	for (int x = 0; x < GAME_RES_WIDTH * GAME_RES_HEIGHT; x++)
-	{
-		memcpy((PIXEL32*)g_back_buffer.Memory + x, Pixel, sizeof(PIXEL32));
-	}
-}
-#endif
-
 void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int16_t X, _In_ const int16_t Y, _In_ int16_t BrightnessAdjustment)
 {
 	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
@@ -758,17 +735,14 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 		{
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
-			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
 
+			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
 			__m256i half_1 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 0));
 			half_1 = _mm256_add_epi16(half_1, _mm256_set1_epi16(BrightnessAdjustment));
-
 			__m256i half_2 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 1));
 			half_2 = _mm256_add_epi16(half_2, _mm256_set1_epi16(BrightnessAdjustment));
-
 			const __m256i recombined = _mm256_packus_epi16(half_1, half_2);
 			bitmap_octo_pixel = _mm256_permute4x64_epi64(recombined, _MM_SHUFFLE(3, 1, 2, 0));
-
 			_mm256_store_si256((__m256i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_octo_pixel);  // NOLINT(clang-diagnostic-cast-align)
 		}
 	}
@@ -779,11 +753,13 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 		{
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+
 			__m128i bitmap_quad_pixel = _mm_load_si128((const __m128i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
-			for (int8_t i = 0; i < 16; i++)
-			{
-				bitmap_quad_pixel.m128i_u8[i] = (uint8_t)min(255, max(0, bitmap_quad_pixel.m128i_u8[i] + BrightnessAdjustment));
-			}
+			__m128i half_1 = _mm_unpacklo_epi8(bitmap_quad_pixel, _mm_setzero_si128());
+			half_1 = _mm_add_epi16(half_1, _mm_set1_epi16(BrightnessAdjustment));
+			__m128i half_2 = _mm_unpackhi_epi8(bitmap_quad_pixel, _mm_setzero_si128());
+			half_2 = _mm_add_epi16(half_2, _mm_set1_epi16(BrightnessAdjustment));
+			bitmap_quad_pixel = _mm_packus_epi16(half_1, half_2);
 			_mm_store_si128((__m128i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_quad_pixel);
 		}
 	}
@@ -1508,6 +1484,17 @@ void PlayGameMusic(_In_ GAME_SOUND* GameSound)
 	g_xaudio_music_source_voice->lpVtbl->Start(g_xaudio_music_source_voice, 0, XAUDIO2_COMMIT_NOW);
 }
 
+BOOL MusicIsPlaying(void)
+{
+	XAUDIO2_VOICE_STATE state = { 0 };
+	g_xaudio_music_source_voice->lpVtbl->GetState(g_xaudio_music_source_voice, &state, 0);
+	if (state.BuffersQueued > 0)
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
 DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In_ RESOURCE_TYPE ResourceType, _Inout_ void* Resource)
 {
 	DWORD error = ERROR_SUCCESS;
@@ -1754,7 +1741,6 @@ void InitializeGlobals(void)
 	g_portals[1] = &g_portal002;
 }
 
-// HasPlayerMovedSincePortal is unnecessary
 // ScreenDestination can be calculated by subtracting CameraPos from WorldDestination, so is unnecessary
 // Can remove check for assets loaded in PPI_OpeningSplashScreen as input is locked until it is.
 // put in a starting call to find gamepads before 2seconds pass.
