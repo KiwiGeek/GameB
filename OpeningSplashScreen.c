@@ -82,8 +82,9 @@ void DrawOpeningSplashScreen(void)
 					g_game_is_running = FALSE;
 					MessageBoxA(g_game_window, "Asset loading failed! Check log for more details.", "Error", MB_OK | MB_ICONERROR);
 				}
+
 				g_previous_game_state = g_current_game_state;
-				g_current_game_state = GS_TITLE_SCREEN;
+				g_current_game_state = GS_OVERWORLD;
 			}
 		}
 
@@ -107,8 +108,8 @@ void PPI_OpeningSplashScreen(void)
 {
 	if (PRESSED_ESCAPE)
 	{
-		////if (WaitForSingleObject(g_asset_loading_thread_handle, 0) == WAIT_OBJECT_0)
-		//{
+		if (WaitForSingleObject(g_asset_loading_thread_handle, 0) == WAIT_OBJECT_0)
+		{
 			DWORD thread_exit_code = ERROR_SUCCESS;
 			GetExitCodeThread(g_asset_loading_thread_handle, &thread_exit_code);
 			if (thread_exit_code == ERROR_SUCCESS)
@@ -117,6 +118,6 @@ void PPI_OpeningSplashScreen(void)
 				g_current_game_state = GS_TITLE_SCREEN;
 			}
 
-	//	}
+		}
 	}
 }

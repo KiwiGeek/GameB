@@ -455,12 +455,12 @@ void ProcessPlayerInput(void)
 	{
 		if (XInputGetState(g_gamepad_id, &g_gamepad_state) == ERROR_SUCCESS)
 		{
-			g_game_input.EscapeKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK;
-			g_game_input.LeftKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
-			g_game_input.RightKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
-			g_game_input.UpKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
-			g_game_input.DownKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
-			g_game_input.ChooseKeyIsDown |= g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_A;
+			g_game_input.EscapeKeyIsDown	= (int16_t)((int)g_game_input.EscapeKeyIsDown	| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK));
+			g_game_input.LeftKeyIsDown		= (int16_t)((int)g_game_input.LeftKeyIsDown		| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT));
+			g_game_input.RightKeyIsDown		= (int16_t)((int)g_game_input.RightKeyIsDown	| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT));
+			g_game_input.UpKeyIsDown		= (int16_t)((int)g_game_input.UpKeyIsDown		| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP));
+			g_game_input.DownKeyIsDown		= (int16_t)((int)g_game_input.DownKeyIsDown		| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN));
+			g_game_input.ChooseKeyIsDown	= (int16_t)((int)g_game_input.ChooseKeyIsDown	| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_A));
 		}
 		else
 		{
@@ -655,6 +655,7 @@ void RenderFrameGraphics(void)
 		DrawDebugInfo();
 	}
 
+	// ReSharper disable once CppLocalVariableMayBeConst
 	HDC device_context = GetDC(g_game_window);
 
 	StretchDIBits(device_context,
@@ -757,12 +758,18 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 		{
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
-			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
-			for (int8_t i = 0; i < 32; i++)
-			{
-				bitmap_octo_pixel.m256i_u8[i] = (uint8_t)min(255, max(0, bitmap_octo_pixel.m256i_u8[i] + BrightnessAdjustment));
-			}
-			_mm256_store_si256((__m256i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_octo_pixel);
+			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
+
+			__m256i half_1 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 0));
+			half_1 = _mm256_add_epi16(half_1, _mm256_set1_epi16(BrightnessAdjustment));
+
+			__m256i half_2 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 1));
+			half_2 = _mm256_add_epi16(half_2, _mm256_set1_epi16(BrightnessAdjustment));
+
+			const __m256i recombined = _mm256_packus_epi16(half_1, half_2);
+			bitmap_octo_pixel = _mm256_permute4x64_epi64(recombined, _MM_SHUFFLE(3, 1, 2, 0));
+
+			_mm256_store_si256((__m256i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_octo_pixel);  // NOLINT(clang-diagnostic-cast-align)
 		}
 	}
 #elif defined SSE2
@@ -1295,7 +1302,7 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 		}
 	}
 
-	TileMap->Width = (uint16_t)atoi(temp_buffer);
+	TileMap->Width = (uint16_t)strtol(temp_buffer, NULL, 10);
 
 	if (TileMap->Width == 0)
 	{
@@ -1350,7 +1357,7 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 		}
 	}
 
-	TileMap->Height = (uint16_t)atoi(temp_buffer);
+	TileMap->Height = (uint16_t)strtol(temp_buffer, NULL, 10);
 
 	if (TileMap->Height == 0)
 	{
@@ -1421,10 +1428,10 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 			{
 				if (*cursor == ',' || *cursor == '<')
 				{
-					if (((TileMap->Map[row][column]) = (uint8_t)atoi(temp_buffer)) == 0)
+					if (((TileMap->Map[row][column]) = (uint8_t)strtol(temp_buffer, NULL, 10)) == 0)
 					{
 						error = ERROR_INVALID_DATA;
-						LogMessageA(LL_ERROR, "[%s] atoi failed while converting tile map data! 0x%08lx!", __FUNCTION__, error);
+						LogMessageA(LL_ERROR, "[%s] strtol failed while converting tile map data! 0x%08lx!", __FUNCTION__, error);
 						goto Exit;
 					}
 
