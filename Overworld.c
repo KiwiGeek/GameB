@@ -300,8 +300,8 @@ void PPI_Overworld(void)
 				{
 					ASSERT(g_player.ScreenPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.")
 					ASSERT(g_player.ScreenPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.")
-					ASSERT(g_player.WorldPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.")
-					ASSERT(g_player.WorldPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.")
+					ASSERT(g_player.WorldPos.X  % 16 == 0, "Player did not land on a position that is a multiple of 16.")
+					ASSERT(g_player.WorldPos.Y  % 16 == 0, "Player did not land on a position that is a multiple of 16.")
 
 					g_player.SpriteIndex = 0;
 
@@ -313,6 +313,19 @@ void PPI_Overworld(void)
 							PortalHandler();
 						}
 					}
+					else
+					{
+						// Random monster encounter?
+						DWORD random = 0;
+						rand_s((unsigned int*)&random);
+						random = random % 100;
+						if (random > 90)
+						{
+							RandomMonsterEncounter();
+						}
+					}
+
+					g_player.StepsTaken++;
 
 					break;
 				}
@@ -342,4 +355,10 @@ void PortalHandler(void)
 	}
 
 	ASSERT(FALSE, "Player is standing on a portal, but we do not have a portal handler for it")
+}
+
+void RandomMonsterEncounter(void)
+{
+	g_previous_game_state = g_current_game_state;
+	g_current_game_state = GS_BATTLE;
 }

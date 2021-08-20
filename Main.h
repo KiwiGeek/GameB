@@ -1,5 +1,7 @@
 #pragma once
 
+#define _CRT_RAND_S
+
 #pragma warning(disable: 28251)
 #pragma warning(disable: 4668 4711)
 

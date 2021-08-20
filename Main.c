@@ -5,6 +5,7 @@
 #include "OpeningSplashScreen.h"
 #include "OptionsScreen.h"
 #include "Overworld.h"
+#include "Battle.h"
 #include "TitleScreen.h"
 #include "stb_vorbis.h"
 #include "miniz.h"
@@ -500,6 +501,7 @@ void ProcessPlayerInput(void)
 		}
 		case GS_BATTLE:
 		{
+			PPI_Battle();
 			break;
 		}
 		case GS_CHARACTER_NAMING:
@@ -632,6 +634,7 @@ void RenderFrameGraphics(void)
 
 		case GS_BATTLE:
 		{
+			DrawBattleScreen();
 			break;
 		}
 
