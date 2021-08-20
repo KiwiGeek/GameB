@@ -455,12 +455,12 @@ void ProcessPlayerInput(void)
 	{
 		if (XInputGetState(g_gamepad_id, &g_gamepad_state) == ERROR_SUCCESS)
 		{
-			g_game_input.EscapeKeyIsDown	= (int16_t)((int)g_game_input.EscapeKeyIsDown	| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK));
-			g_game_input.LeftKeyIsDown		= (int16_t)((int)g_game_input.LeftKeyIsDown		| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT));
-			g_game_input.RightKeyIsDown		= (int16_t)((int)g_game_input.RightKeyIsDown	| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT));
-			g_game_input.UpKeyIsDown		= (int16_t)((int)g_game_input.UpKeyIsDown		| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP));
-			g_game_input.DownKeyIsDown		= (int16_t)((int)g_game_input.DownKeyIsDown		| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN));
-			g_game_input.ChooseKeyIsDown	= (int16_t)((int)g_game_input.ChooseKeyIsDown	| (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_A));
+			g_game_input.EscapeKeyIsDown = (int16_t)((int)g_game_input.EscapeKeyIsDown | (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK));
+			g_game_input.LeftKeyIsDown = (int16_t)((int)g_game_input.LeftKeyIsDown | (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT));
+			g_game_input.RightKeyIsDown = (int16_t)((int)g_game_input.RightKeyIsDown | (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT));
+			g_game_input.UpKeyIsDown = (int16_t)((int)g_game_input.UpKeyIsDown | (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP));
+			g_game_input.DownKeyIsDown = (int16_t)((int)g_game_input.DownKeyIsDown | (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN));
+			g_game_input.ChooseKeyIsDown = (int16_t)((int)g_game_input.ChooseKeyIsDown | (g_gamepad_state.Gamepad.wButtons & XINPUT_GAMEPAD_A));
 		}
 		else
 		{
@@ -684,37 +684,88 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 	const int32_t starting_bitmap_pixel = ((GameBitmap->BitmapInfo.bmiHeader.biWidth * GameBitmap->BitmapInfo.bmiHeader.biHeight)
 		- GameBitmap->BitmapInfo.bmiHeader.biWidth);
 	PIXEL32 bitmap_pixel = { 0 };
-
-	for (int32_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
+	int32_t memory_offset;
+	int32_t bitmap_offset;
+#ifdef AVX
+	for (int16_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
 	{
-
-		if ((Y + y_pixel < 0) || (Y + y_pixel >= GAME_RES_HEIGHT))
+		int16_t pixels_remaining_on_this_row = (int16_t)GameBitmap->BitmapInfo.bmiHeader.biWidth;
+		int16_t x_pixel = 0;
+		while (pixels_remaining_on_this_row >= 8)
 		{
-			continue;
+			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
+			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+
+			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
+
+			__m256i half_1 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 0));
+			half_1 = _mm256_add_epi16(half_1, _mm256_set_epi16(
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment
+			));
+
+			__m256i half_2 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 1));
+			half_2 = _mm256_add_epi16(half_2, _mm256_set_epi16(
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment
+			));
+
+			const __m256i recombined = _mm256_packus_epi16(half_1, half_2);
+			bitmap_octo_pixel = _mm256_permute4x64_epi64(recombined, _MM_SHUFFLE(3, 1, 2, 0));
+
+			const __m256i mask = _mm256_cmpeq_epi8(bitmap_octo_pixel, _mm256_set1_epi8(-1));
+			_mm256_maskstore_epi32((int*)g_back_buffer.Memory + memory_offset, mask, bitmap_octo_pixel);  // NOLINT(clang-diagnostic-cast-align)
+			
+			pixels_remaining_on_this_row -= 8;
+			x_pixel += 8;
 		}
 
-		for (int32_t x_pixel = 0; x_pixel < GameBitmap->BitmapInfo.bmiHeader.biWidth; x_pixel++)
+		while (pixels_remaining_on_this_row > 0)
 		{
-
-			if ((X + x_pixel < 0) || (X + x_pixel >= GAME_RES_WIDTH))
-			{
-				continue;
-			}
-
-			const int32_t memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
-			const int32_t bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
+			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
 
 			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
 
 			if (bitmap_pixel.Alpha == 255)
 			{
-				bitmap_pixel.Red   = (uint8_t)min(255, max(0, bitmap_pixel.Red   + BrightnessAdjustment));
-				bitmap_pixel.Blue  = (uint8_t)min(255, max(0, bitmap_pixel.Blue  + BrightnessAdjustment));
+				bitmap_pixel.Red = (uint8_t)min(255, max(0, bitmap_pixel.Red + BrightnessAdjustment));
+				bitmap_pixel.Green = (uint8_t)min(255, max(0, bitmap_pixel.Green + BrightnessAdjustment));
+				bitmap_pixel.Blue = (uint8_t)min(255, max(0, bitmap_pixel.Blue + BrightnessAdjustment));
+				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
+			}
+			pixels_remaining_on_this_row--;
+			x_pixel++;
+		}
+}
+
+#elif defined SSE2
+
+#else
+	for (int32_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
+	{
+		for (int32_t x_pixel = 0; x_pixel < GameBitmap->BitmapInfo.bmiHeader.biWidth; x_pixel++)
+		{
+			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
+			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+
+			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
+
+			if (bitmap_pixel.Alpha == 255)
+			{
+				bitmap_pixel.Red = (uint8_t)min(255, max(0, bitmap_pixel.Red + BrightnessAdjustment));
+				bitmap_pixel.Blue = (uint8_t)min(255, max(0, bitmap_pixel.Blue + BrightnessAdjustment));
 				bitmap_pixel.Green = (uint8_t)min(255, max(0, bitmap_pixel.Green + BrightnessAdjustment));
 				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 			}
 		}
 	}
+#endif
+
 
 }
 
@@ -780,7 +831,7 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 		}
 	}
 #endif
-}
+	}
 
 DWORD LoadRegistryParameters(void)
 {
@@ -1709,7 +1760,7 @@ void InitializeGlobals(void)
 
 #pragma warning(suppress: 4127)
 	ASSERT((_countof(g_passable_tiles) == 3), "Wrong count of passable tiles!")
-	g_passable_tiles[0] = TILE_GRASS_01;
+		g_passable_tiles[0] = TILE_GRASS_01;
 	g_passable_tiles[1] = TILE_BRICK_01;
 	g_passable_tiles[2] = TILE_PORTAL_01;
 
@@ -1721,20 +1772,20 @@ void InitializeGlobals(void)
 #pragma warning(suppress: 4127)
 	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!")
 
-	g_portal001 = (PORTAL){
-		.DestinationArea	= g_dungeon1_area,
-		.CameraPos			= (UPOINT) {.X = 3856,.Y = 0},
-		.ScreenDestination	= (UPOINT) {.X = 64,	.Y = 32},
-		.WorldDestination	= (UPOINT) {.X = 3920,.Y = 32},
-		.WorldPos			= (UPOINT) {.X = 272,	.Y = 80}
+		g_portal001 = (PORTAL){
+			.DestinationArea = g_dungeon1_area,
+			.CameraPos = (UPOINT) {.X = 3856,.Y = 0},
+			.ScreenDestination = (UPOINT) {.X = 64,	.Y = 32},
+			.WorldDestination = (UPOINT) {.X = 3920,.Y = 32},
+			.WorldPos = (UPOINT) {.X = 272,	.Y = 80}
 	};
 
 	g_portal002 = (PORTAL){
-		.DestinationArea	= g_overworld_area,
-		.CameraPos			= (UPOINT) {.X = 0,	.Y = 0},
-		.ScreenDestination	= (UPOINT) {.X = 272,	.Y = 80},
-		.WorldDestination	= (UPOINT) {.X = 272,	.Y = 80},
-		.WorldPos			= (UPOINT) {.X = 3920,.Y = 32}
+		.DestinationArea = g_overworld_area,
+		.CameraPos = (UPOINT) {.X = 0,	.Y = 0},
+		.ScreenDestination = (UPOINT) {.X = 272,	.Y = 80},
+		.WorldDestination = (UPOINT) {.X = 272,	.Y = 80},
+		.WorldPos = (UPOINT) {.X = 3920,.Y = 32}
 	};
 
 	g_portals[0] = &g_portal001;
