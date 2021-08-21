@@ -296,6 +296,7 @@ void MenuItem_CharacterNaming_OK(void)
 		g_previous_game_state = g_current_game_state;
 		g_current_game_state = GS_OVERWORLD;
 		g_player.Active = TRUE;
+
 		PlayGameSound(&g_sound_menu_choose);
 	}
 }

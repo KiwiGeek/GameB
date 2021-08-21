@@ -84,7 +84,9 @@ void DrawOpeningSplashScreen(void)
 				}
 
 				g_previous_game_state = g_current_game_state;
-				g_current_game_state = GS_OVERWORLD;
+				g_current_game_state = GS_TITLE_SCREEN;
+
+				//g_current_game_state = GS_OVERWORLD;
 			}
 		}
 

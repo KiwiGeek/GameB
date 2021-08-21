@@ -123,10 +123,12 @@ void DrawOverworldScreen(void)
 void PPI_Overworld(void)
 {
 
-	// TODO remove this - it is just for debugging
 	if (PRESSED_ESCAPE)
 	{
-		SendMessageA(g_game_window, WM_CLOSE, 0, 0);
+		g_previous_game_state = g_current_game_state;
+		g_current_game_state = GS_TITLE_SCREEN;
+		PauseMusic();
+		return;
 	}
 
 	ASSERT((g_camera.X <= g_current_area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!")

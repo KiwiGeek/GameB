@@ -1,6 +1,6 @@
 #pragma once
 
-#define _CRT_RAND_S
+#define _CRT_RAND_S  // NOLINT(clang-diagnostic-reserved-id-macro, bugprone-reserved-identifier)
 
 #pragma warning(disable: 28251)
 #pragma warning(disable: 4668 4711)
@@ -19,6 +19,7 @@
 #pragma comment(lib, "Winmm.lib")
 #define AVX					// AVX, SSE2 or nothing
 #ifdef AVX
+// ReSharper disable once CppUnusedIncludeDirective
 #include <immintrin.h>
 #elif defined SSE2
 #include <emmintrin.h>
@@ -93,7 +94,8 @@ typedef enum GAME_STATE
 	GS_BATTLE,
 	GS_OPTIONS_SCREEN,
 	GS_EXIT_YES_NO_SCREEN,
-	GS_GAMEPAD_UNPLUGGED
+	GS_GAMEPAD_UNPLUGGED,
+	GS_NEW_GAME_ARE_YOU_SURE
 } GAME_STATE;
 
 typedef enum RESOURCE_TYPE
@@ -287,6 +289,9 @@ DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_
 DWORD Load32BppBitmapFromMemory(_In_ void* Buffer, _Inout_ GAME_BITMAP* GameBitmap);
 void PlayGameSound(_In_ const GAME_SOUND* GameSound);
 void PlayGameMusic(_In_ GAME_SOUND* GameSound);
+void PauseMusic(void);
+void StopMusic(void);
+//void ResumeMusic(void);
 BOOL MusicIsPlaying(void);
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
 void InitializeGlobals(void);

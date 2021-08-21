@@ -5,9 +5,10 @@
 
 MENUITEM gMI_ResumeGame = { "Resume", (GAME_RES_WIDTH / 2) - ((6 * 6) / 2), 100, FALSE, MenuItem_TitleScreen_Resume };
 MENUITEM gMI_StartNewGame = { "Start New Game", (GAME_RES_WIDTH / 2) - ((14 * 6) / 2), 115, TRUE, MenuItem_TitleScreen_StartNew };
-MENUITEM gMI_Options = { "Options", (GAME_RES_WIDTH / 2) - ((7 * 6) / 2), 130, TRUE, MenuItem_TitleScreen_Options };
-MENUITEM gMI_Exit = { "Exit", (GAME_RES_WIDTH / 2) - ((4 * 6) / 2), 145, TRUE, MenuItem_TitleScreen_Exit };
-MENUITEM* gMI_TitleScreenItems[] = { &gMI_ResumeGame, &gMI_StartNewGame, &gMI_Options, &gMI_Exit };
+MENUITEM gMI_LoadSavedGame = { "Load Saved Game", (GAME_RES_WIDTH / 2) - ((15 * 6) / 2), 130, TRUE, MenuItem_TitleScreen_LoadSaved };
+MENUITEM gMI_Options = { "Options", (GAME_RES_WIDTH / 2) - ((7 * 6) / 2), 145, TRUE, MenuItem_TitleScreen_Options };
+MENUITEM gMI_Exit = { "Exit", (GAME_RES_WIDTH / 2) - ((4 * 6) / 2), 160, TRUE, MenuItem_TitleScreen_Exit };
+MENUITEM* gMI_TitleScreenItems[] = { &gMI_ResumeGame, &gMI_StartNewGame, &gMI_LoadSavedGame, &gMI_Options, &gMI_Exit };
 MENU gMenu_TitleScreen = { "Title Screen Menu", 1, _countof(gMI_TitleScreenItems), gMI_TitleScreenItems };
 
 void DrawTitleScreen(void)
@@ -18,12 +19,14 @@ void DrawTitleScreen(void)
 
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
+
 		local_frame_counter = 0;
 		memset(&text_color, 0, sizeof(PIXEL32));
 
 		if (g_player.Active)
 		{
 			gMenu_TitleScreen.SelectedItem = 0;
+			gMI_ResumeGame.Enabled = TRUE;
 		}
 		else
 		{
@@ -82,7 +85,7 @@ void DrawTitleScreen(void)
 	BlitStringToBuffer("\xBB",
 		&g_6x7_font,
 		&text_color,
-		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->X - 6,
+		(int16_t)(gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->X - 6),
 		gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Y);
 
 	local_frame_counter++;
@@ -128,6 +131,32 @@ void PPI_TitleScreen(void)
 
 }
 
+void MenuItem_TitleScreen_Resume(void)
+{
+	g_previous_game_state = g_current_game_state;
+	g_current_game_state = GS_OVERWORLD;
+}
+
+void MenuItem_TitleScreen_StartNew(void)
+{
+
+	if (g_player.Active == TRUE)
+	{
+		g_previous_game_state = g_current_game_state;
+		g_current_game_state = GS_NEW_GAME_ARE_YOU_SURE;
+	}
+	else
+	{
+		g_previous_game_state = g_current_game_state;
+		g_current_game_state = GS_CHARACTER_NAMING;
+	}
+
+}
+
+void MenuItem_TitleScreen_LoadSaved(void)
+{
+	
+}
 
 void MenuItem_TitleScreen_Options(void)
 {
@@ -141,15 +170,3 @@ void MenuItem_TitleScreen_Exit(void)
 	g_current_game_state = GS_EXIT_YES_NO_SCREEN;
 }
 
-
-void MenuItem_TitleScreen_Resume(void)
-{
-
-}
-
-void MenuItem_TitleScreen_StartNew(void)
-{
-	// prompt for new game if they're already in a game, otherwise just go to the character naming screen.
-	g_previous_game_state = g_current_game_state;
-	g_current_game_state = GS_CHARACTER_NAMING;
-}

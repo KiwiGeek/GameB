@@ -7,6 +7,7 @@
 #include "Overworld.h"
 #include "Battle.h"
 #include "TitleScreen.h"
+#include "NewGameAreYouSure.h"
 #include "stb_vorbis.h"
 #include "miniz.h"
 
@@ -519,6 +520,11 @@ void ProcessPlayerInput(void)
 			PPI_ExitYesNo();
 			break;
 		}
+		case GS_NEW_GAME_ARE_YOU_SURE:
+		{
+			PPI_NewGameAreYouSure();
+			break;
+		}
 
 		default:
 		{
@@ -536,6 +542,8 @@ void ProcessPlayerInput(void)
 }
 
 DWORD InitializeHero(void) {
+	g_player.HP = 20;
+	g_player.Money = 0;
 	g_player.ScreenPos.X = 192;
 	g_player.ScreenPos.Y = 64;
 	g_player.WorldPos.X = 192;
@@ -650,6 +658,12 @@ void RenderFrameGraphics(void)
 			break;
 		}
 
+		case GS_NEW_GAME_ARE_YOU_SURE:
+		{
+			DrawNewGameAreYouSureScreen();
+			break;
+		}
+
 		default:
 		{
 			ASSERT(FALSE, "GameState not implemented")
@@ -690,6 +704,7 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 	int32_t memory_offset;
 	int32_t bitmap_offset;
 #ifdef AVX
+
 	for (int16_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
 	{
 		int16_t pixels_remaining_on_this_row = (int16_t)GameBitmap->BitmapInfo.bmiHeader.biWidth;
@@ -701,28 +716,28 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 
 			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
 
-			__m256i half_1 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 0));
-			half_1 = _mm256_add_epi16(half_1, _mm256_set_epi16(
+			__m256i half1 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 0));
+			half1 = _mm256_add_epi16(half1, _mm256_set_epi16(
 				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
 				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
 				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
 				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment
 			));
 
-			__m256i half_2 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 1));
-			half_2 = _mm256_add_epi16(half_2, _mm256_set_epi16(
+			__m256i half2 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 1));
+			half2 = _mm256_add_epi16(half2, _mm256_set_epi16(
 				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
 				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
 				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
 				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment
 			));
 
-			const __m256i recombined = _mm256_packus_epi16(half_1, half_2);
+			const __m256i recombined = _mm256_packus_epi16(half1, half2);
 			bitmap_octo_pixel = _mm256_permute4x64_epi64(recombined, _MM_SHUFFLE(3, 1, 2, 0));
 
 			const __m256i mask = _mm256_cmpeq_epi8(bitmap_octo_pixel, _mm256_set1_epi8(-1));
 			_mm256_maskstore_epi32((int*)g_back_buffer.Memory + memory_offset, mask, bitmap_octo_pixel);  // NOLINT(clang-diagnostic-cast-align)
-			
+
 			pixels_remaining_on_this_row -= 8;
 			x_pixel += 8;
 		}
@@ -744,11 +759,62 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 			pixels_remaining_on_this_row--;
 			x_pixel++;
 		}
-}
+	}
 
 #elif defined SSE2
 
+	for (int16_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
+	{
+		int16_t pixels_remaining_on_this_row = (int16_t)GameBitmap->BitmapInfo.bmiHeader.biWidth;
+		int16_t x_pixel = 0;
+
+		while (pixels_remaining_on_this_row >= 4)
+		{
+			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
+			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+
+			__m128i bitmap_quad_pixel = _mm_load_si128((const __m128i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
+
+			__m128i half1 = _mm_unpacklo_epi8(bitmap_quad_pixel, _mm_setzero_si128());
+			half1 = _mm_add_epi16(half1, _mm_set_epi16(
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment));
+
+			__m128i Half2 = _mm_unpackhi_epi8(bitmap_quad_pixel, _mm_setzero_si128());
+			Half2 = _mm_add_epi16(Half2, _mm_set_epi16(
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
+				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment));
+
+			bitmap_quad_pixel = _mm_packus_epi16(half1, Half2);
+
+			_mm_store_si128((__m128i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_quad_pixel);
+
+			pixels_remaining_on_this_row -= 4;
+			x_pixel += 4;
+		}
+
+		while (pixels_remaining_on_this_row > 0)
+		{
+			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
+			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
+
+			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
+
+			if (bitmap_pixel.Alpha == 255)
+			{
+				bitmap_pixel.Red = (uint8_t)min(255, max((bitmap_pixel.Red + BrightnessAdjustment), 0));
+				bitmap_pixel.Green = (uint8_t)min(255, max((bitmap_pixel.Green + BrightnessAdjustment), 0));
+				bitmap_pixel.Blue = (uint8_t)min(255, max((bitmap_pixel.Blue + BrightnessAdjustment), 0));
+				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
+			}
+
+			pixels_remaining_on_this_row--;
+			x_pixel++;
+		}
+	}
+
 #else
+
 	for (int32_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
 	{
 		for (int32_t x_pixel = 0; x_pixel < GameBitmap->BitmapInfo.bmiHeader.biWidth; x_pixel++)
@@ -767,6 +833,7 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 			}
 		}
 	}
+
 #endif
 
 
@@ -783,6 +850,7 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 	int32_t bitmap_offset;
 
 #ifdef AVX
+
 	for (int16_t y_pixel = 0; y_pixel < GAME_RES_HEIGHT; y_pixel++)
 	{
 		for (int16_t x_pixel = 0; x_pixel < GAME_RES_WIDTH; x_pixel += 8)
@@ -800,7 +868,9 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 			_mm256_store_si256((__m256i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_octo_pixel);  // NOLINT(clang-diagnostic-cast-align)
 		}
 	}
+
 #elif defined SSE2
+
 	for (int16_t y_pixel = 0; y_pixel < GAME_RES_HEIGHT; y_pixel++)
 	{
 		for (int16_t x_pixel = 0; x_pixel < GAME_RES_WIDTH; x_pixel += 4)
@@ -817,7 +887,9 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 			_mm_store_si128((__m128i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_quad_pixel);
 		}
 	}
+
 #else
+
 	PIXEL32 bitmap_pixel = { 0 };
 	for (int16_t y_pixel = 0; y_pixel < GAME_RES_HEIGHT; y_pixel++)
 	{
@@ -833,8 +905,9 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 			memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 		}
 	}
+
 #endif
-	}
+}
 
 DWORD LoadRegistryParameters(void)
 {
@@ -1528,6 +1601,22 @@ void PlayGameSound(_In_ const GAME_SOUND* GameSound)
 		g_sfx_source_voice_selector = 0;
 	}
 }
+
+void PauseMusic(void)
+{
+	g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
+}
+
+void StopMusic(void)
+{
+	g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
+	g_xaudio_music_source_voice->lpVtbl->FlushSourceBuffers(g_xaudio_music_source_voice);
+}
+//
+//void ResumeMusic(void)
+//{
+//	g_xaudio_music_source_voice->lpVtbl->Start(g_xaudio_music_source_voice, 0, XAUDIO2_COMMIT_NOW);
+//}
 
 void PlayGameMusic(_In_ GAME_SOUND* GameSound)
 {
