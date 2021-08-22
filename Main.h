@@ -161,13 +161,25 @@ typedef struct GAME_AREA
 	GAME_SOUND* Music;
 } GAME_AREA;
 
-typedef struct PIXEL32
+typedef union PIXEL32
 {
-	uint8_t Blue;
-	uint8_t Green;
-	uint8_t Red;
-	uint8_t Alpha;
+	struct COLORS
+	{
+		uint8_t Blue;
+		uint8_t Green;
+		uint8_t Red;
+		uint8_t Alpha;
+	} colors;
+	DWORD bytes;
 } PIXEL32;
+
+//typedef struct PIXEL32
+//{
+//	uint8_t Blue;
+//	uint8_t Green;
+//	uint8_t Red;
+//	uint8_t Alpha;
+//} PIXEL32;
 
 typedef struct GAME_PERF_DATA
 {
@@ -301,7 +313,8 @@ void PlayGameSound(_In_ const GAME_SOUND* GameSound);
 void PlayGameMusic(_In_ GAME_SOUND* GameSound);
 void PauseMusic(void);
 void StopMusic(void);
-//void ResumeMusic(void);
 BOOL MusicIsPlaying(void);
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
 void InitializeGlobals(void);
+void RandomMonsterEncounter(void);
+void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ int16_t Width, _In_ int16_t Height, _In_ PIXEL32 BackgroundColor, _In_ BOOL Bordered);

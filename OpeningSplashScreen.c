@@ -59,15 +59,15 @@ void DrawOpeningSplashScreen(void)
 
 		if ((local_frame_counter >= 180) && (local_frame_counter <= 210) && (local_frame_counter % 15 == 0))
 		{
-			text_color.Red -= 64;
-			text_color.Green -= 64;
-			text_color.Blue -= 64;
+			text_color.colors.Red -= 64;
+			text_color.colors.Green -= 64;
+			text_color.colors.Blue -= 64;
 		}
 		if (local_frame_counter == 225)
 		{
-			text_color.Red = 0;
-			text_color.Green = 0;
-			text_color.Blue = 0;
+			text_color.colors.Red = 0;
+			text_color.colors.Green = 0;
+			text_color.colors.Blue = 0;
 		}
 
 		if (local_frame_counter >= 240)

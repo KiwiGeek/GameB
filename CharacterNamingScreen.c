@@ -102,30 +102,30 @@ void DrawCharacterNamingScreen(void)
 
 	if (local_frame_counter == 10)
 	{
-		text_color.Red = 64;
-		text_color.Green = 64;
-		text_color.Blue = 64;
+		text_color.colors.Red = 64;
+		text_color.colors.Green = 64;
+		text_color.colors.Blue = 64;
 		brightness_adjustment = -128;
 	}
 	if (local_frame_counter == 20)
 	{
-		text_color.Red = 128;
-		text_color.Green = 128;
-		text_color.Blue = 128;
+		text_color.colors.Red = 128;
+		text_color.colors.Green = 128;
+		text_color.colors.Blue = 128;
 		brightness_adjustment = -64;
 	}
 	if (local_frame_counter == 30)
 	{
-		text_color.Red = 192;
-		text_color.Green = 192;
-		text_color.Blue = 192;
+		text_color.colors.Red = 192;
+		text_color.colors.Green = 192;
+		text_color.colors.Blue = 192;
 		brightness_adjustment = -32;
 	}
 	if (local_frame_counter == 40)
 	{
-		text_color.Red = 255;
-		text_color.Green = 255;
-		text_color.Blue = 255;
+		text_color.colors.Red = 255;
+		text_color.colors.Green = 255;
+		text_color.colors.Blue = 255;
 		brightness_adjustment = 0;
 		g_input_enabled = TRUE;
 	}

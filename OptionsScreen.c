@@ -28,30 +28,30 @@ void DrawOptionsScreen(void)
 
 	if (local_frame_counter == 10)
 	{
-		text_color.Red = 64;
-		text_color.Green = 64;
-		text_color.Blue = 64;
+		text_color.colors.Red = 64;
+		text_color.colors.Green = 64;
+		text_color.colors.Blue = 64;
 	}
 
 	if (local_frame_counter == 20)
 	{
-		text_color.Red = 128;
-		text_color.Green = 128;
-		text_color.Blue = 128;
+		text_color.colors.Red = 128;
+		text_color.colors.Green = 128;
+		text_color.colors.Blue = 128;
 	}
 
 	if (local_frame_counter == 30)
 	{
-		text_color.Red = 192;
-		text_color.Green = 192;
-		text_color.Blue = 192;
+		text_color.colors.Red = 192;
+		text_color.colors.Green = 192;
+		text_color.colors.Blue = 192;
 	}
 
 	if (local_frame_counter == 40)
 	{
-		text_color.Red = 255;
-		text_color.Green = 255;
-		text_color.Blue = 255;
+		text_color.colors.Red = 255;
+		text_color.colors.Green = 255;
+		text_color.colors.Blue = 255;
 		g_input_enabled = TRUE;
 	}
 
@@ -72,7 +72,7 @@ void DrawOptionsScreen(void)
 	{
 		if (volume >= (uint8_t)(g_sfx_volume * 10))
 		{
-			if (text_color.Red == 255)
+			if (text_color.colors.Red == 255)
 			{
 				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, 224 + (volume * 6), gMI_OptionsScreen_SFXVolume.Y);
 			}
@@ -87,7 +87,7 @@ void DrawOptionsScreen(void)
 	{
 		if (volume >= (uint8_t)(g_music_volume * 10))
 		{
-			if (text_color.Red == 255)
+			if (text_color.colors.Red == 255)
 			{
 				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, 224 + (volume * 6), gMI_OptionsScreen_MusicVolume.Y);
 			}

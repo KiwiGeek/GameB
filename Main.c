@@ -585,11 +585,11 @@ void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontShe
 
 				memcpy_s(&font_sheet_pixel, sizeof(PIXEL32), (PIXEL32*)FontSheet->Memory + font_sheet_offset, sizeof(PIXEL32));
 
-				if (font_sheet_pixel.Alpha == 255)
+				if (font_sheet_pixel.colors.Alpha == 255)
 				{
-					font_sheet_pixel.Red = Color->Red;
-					font_sheet_pixel.Green = Color->Green;
-					font_sheet_pixel.Blue = Color->Blue;
+					font_sheet_pixel.colors.Red = Color->colors.Red;
+					font_sheet_pixel.colors.Green = Color->colors.Green;
+					font_sheet_pixel.colors.Blue = Color->colors.Blue;
 
 					memcpy_s((PIXEL32*)string_bitmap.Memory + string_bitmap_offset, sizeof(PIXEL32), &font_sheet_pixel, sizeof(PIXEL32));
 				}
@@ -750,11 +750,11 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 
 			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
 
-			if (bitmap_pixel.Alpha == 255)
+			if (bitmap_pixel.colors.Alpha == 255)
 			{
-				bitmap_pixel.Red = (uint8_t)min(255, max(0, bitmap_pixel.Red + BrightnessAdjustment));
-				bitmap_pixel.Green = (uint8_t)min(255, max(0, bitmap_pixel.Green + BrightnessAdjustment));
-				bitmap_pixel.Blue = (uint8_t)min(255, max(0, bitmap_pixel.Blue + BrightnessAdjustment));
+				bitmap_pixel.colors.Red = (uint8_t)min(255, max(0, bitmap_pixel.colors.Red + BrightnessAdjustment));
+				bitmap_pixel.colors.Green = (uint8_t)min(255, max(0, bitmap_pixel.colors.Green + BrightnessAdjustment));
+				bitmap_pixel.colors.Blue = (uint8_t)min(255, max(0, bitmap_pixel.colors.Blue + BrightnessAdjustment));
 				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 			}
 			pixels_remaining_on_this_row--;
@@ -1144,7 +1144,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 void DrawDebugInfo(void)
 {
 	char debug_text_buffer[64] = { 0 };
-	const PIXEL32 white = { 0xFF,0xFF, 0xFF, 0xFF };
+	const PIXEL32 white = {{0xFF,0xFF, 0xFF, 0xFF}};
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSRaw:  %.01f", (double)g_performance_data.RawFPSAverage);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 0);
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSCookd:%.01f", (double)g_performance_data.CookedFPSAverage);
@@ -1903,6 +1903,16 @@ void InitializeGlobals(void)
 
 	g_portals[0] = &g_portal001;
 	g_portals[1] = &g_portal002;
+}
+
+void DrawWindow(_In_ const int16_t X, _In_ const int16_t Y, _In_ const int16_t Width, _In_ const int16_t Height, _In_ PIXEL32 BackgroundColor, _In_ const BOOL Bordered)
+{
+	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
+	for (int16_t row = 0; row < Height; row++)
+	{
+		const int32_t memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
+		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, BackgroundColor.bytes, Width);
+	}
 }
 
 // ScreenDestination can be calculated by subtracting CameraPos from WorldDestination, so is unnecessary
