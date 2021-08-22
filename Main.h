@@ -154,6 +154,13 @@ typedef struct GAME_SOUND
 	XAUDIO2_BUFFER Buffer;
 } GAME_SOUND;
 
+typedef struct GAME_AREA
+{
+	char* Name;
+	RECT Area;
+	GAME_SOUND* Music;
+} GAME_AREA;
+
 typedef struct PIXEL32
 {
 	uint8_t Blue;
@@ -205,10 +212,11 @@ typedef struct HERO
 	UPOINT WorldPos;
 	uint8_t MovementRemaining;
 	DIRECTION Direction;
+	BOOL HasPlayerMovedSincePortal;
 	uint8_t CurrentArmor;
 	uint8_t SpriteIndex;
 	uint64_t StepsTaken;
-	BOOL HasPlayerMovedSincePortal;
+	uint8_t RandomEncounterPercentage;
 	int16_t HP;
 	int32_t XP;
 	int16_t Money;
@@ -253,9 +261,11 @@ GAME_SOUND g_sound_menu_navigate;
 GAME_SOUND g_sound_menu_choose;
 GAME_SOUND g_sound_splash_screen;
 GAME_SOUND g_music_overworld01;
+GAME_SOUND g_music_dungeon01;
 HERO g_player;
 float g_sfx_volume;
 float g_music_volume;
+BOOL g_music_is_paused;
 int8_t g_gamepad_id;
 HWND g_game_window;
 IXAudio2SourceVoice* g_xaudio_sfx_source_voice[NUMBER_OF_SFX_SOURCE_VOICES];

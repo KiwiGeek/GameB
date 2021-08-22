@@ -550,6 +550,7 @@ DWORD InitializeHero(void) {
 	g_player.WorldPos.Y = 64;
 	g_player.CurrentArmor = SUIT_0;
 	g_player.Direction = DOWN;
+	g_player.RandomEncounterPercentage = 90;
 	return 0;
 }
 
@@ -1605,33 +1606,35 @@ void PlayGameSound(_In_ const GAME_SOUND* GameSound)
 void PauseMusic(void)
 {
 	g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
+	g_music_is_paused = TRUE;
 }
 
-void StopMusic(void)
+void StopMusic(void) 
 {
 	g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
 	g_xaudio_music_source_voice->lpVtbl->FlushSourceBuffers(g_xaudio_music_source_voice);
+	g_music_is_paused = FALSE;
 }
-//
-//void ResumeMusic(void)
-//{
-//	g_xaudio_music_source_voice->lpVtbl->Start(g_xaudio_music_source_voice, 0, XAUDIO2_COMMIT_NOW);
-//}
 
 void PlayGameMusic(_In_ GAME_SOUND* GameSound)
 {
-	g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
-	g_xaudio_music_source_voice->lpVtbl->FlushSourceBuffers(g_xaudio_music_source_voice);
-	GameSound->Buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
-	g_xaudio_music_source_voice->lpVtbl->SubmitSourceBuffer(g_xaudio_music_source_voice, &GameSound->Buffer, NULL);
+	if (g_music_is_paused == FALSE)
+	{
+		g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
+		g_xaudio_music_source_voice->lpVtbl->FlushSourceBuffers(g_xaudio_music_source_voice);
+		GameSound->Buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+		g_xaudio_music_source_voice->lpVtbl->SubmitSourceBuffer(g_xaudio_music_source_voice, &GameSound->Buffer, NULL);
+	}
+
 	g_xaudio_music_source_voice->lpVtbl->Start(g_xaudio_music_source_voice, 0, XAUDIO2_COMMIT_NOW);
+	g_music_is_paused = FALSE;
 }
 
 BOOL MusicIsPlaying(void)
 {
 	XAUDIO2_VOICE_STATE state = { 0 };
 	g_xaudio_music_source_voice->lpVtbl->GetState(g_xaudio_music_source_voice, &state, 0);
-	if (state.BuffersQueued > 0)
+	if ((state.BuffersQueued) > 0 && (g_music_is_paused == FALSE))
 	{
 		return TRUE;
 	}
@@ -1776,6 +1779,12 @@ DWORD AssetLoadingThreadProc(_In_ LPVOID Param)
 		goto Exit;
 	}
 
+	if ((error = LoadAssetFromArchive(ASSET_FILE, "Dungeon01.ogg", RT_OGG, &g_music_dungeon01)) != ERROR_SUCCESS)
+	{
+		LogMessageA(LL_ERROR, "[%s] Loading Dungeon01.ogg failed with 0x%08lx!", __FUNCTION__, error);
+		goto Exit;
+	}
+
 	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Down_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_0])) != ERROR_SUCCESS)
 	{
 		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Down_Standing.bmpx failed with 0x%08lx!", __FUNCTION__, error);
@@ -1856,15 +1865,27 @@ void InitializeGlobals(void)
 	g_passable_tiles[1] = TILE_BRICK_01;
 	g_passable_tiles[2] = TILE_PORTAL_01;
 
-	g_overworld_area = (RECT){ .left = 0,		.top = 0,	.right = 3840,	.bottom = 2400 };
-	g_dungeon1_area = (RECT){ .left = 3856,	.top = 0,	.right = 4240,	.bottom = 240 };
+	g_overworld_area = (GAME_AREA)
+	{
+		.Name = "The World",
+		.Area = (RECT) { .left = 0, .top = 0, .right = 3840, .bottom = 2400 },
+		.Music = &g_music_overworld01
+	};
+
+
+	g_dungeon1_area = (GAME_AREA)
+	{
+		.Name =  "Dungeon 01",
+		.Area = (RECT){ .left = 3856, .top = 0, .right = 4240, .bottom = 240 },
+		.Music = &g_music_dungeon01
+	};
 
 	g_current_area = g_overworld_area;
 
 #pragma warning(suppress: 4127)
 	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!")
 
-		g_portal001 = (PORTAL){
+	g_portal001 = (PORTAL){
 			.DestinationArea = g_dungeon1_area,
 			.CameraPos = (UPOINT) {.X = 3856,.Y = 0},
 			.ScreenDestination = (UPOINT) {.X = 64,	.Y = 32},

@@ -41,7 +41,7 @@ void DrawOverworldScreen(void)
 	{
 		if (MusicIsPlaying() == FALSE)
 		{
-			PlayGameMusic(&g_music_overworld01);
+			PlayGameMusic(g_current_area.Music);
 		}
 	}
 
@@ -131,7 +131,7 @@ void PPI_Overworld(void)
 		return;
 	}
 
-	ASSERT((g_camera.X <= g_current_area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!")
+	ASSERT((g_camera.X <= g_current_area.Area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.Area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!")
 
 		if (!g_player.MovementRemaining)
 		{
@@ -227,7 +227,7 @@ void PPI_Overworld(void)
 			g_player.MovementRemaining--;
 			if (g_player.Direction == DOWN)
 			{
-				if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 64 || g_camera.Y >= g_current_area.bottom - GAME_RES_HEIGHT)
+				if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 64 || g_camera.Y >= g_current_area.Area.bottom - GAME_RES_HEIGHT)
 				{
 					g_player.ScreenPos.Y++;
 				}
@@ -239,7 +239,7 @@ void PPI_Overworld(void)
 			}
 			else if (g_player.Direction == LEFT)
 			{
-				if (g_player.ScreenPos.X > 64 || g_camera.X == g_current_area.left)
+				if (g_player.ScreenPos.X > 64 || g_camera.X == g_current_area.Area.left)
 				{
 					g_player.ScreenPos.X--;
 				}
@@ -251,7 +251,7 @@ void PPI_Overworld(void)
 			}
 			else if (g_player.Direction == RIGHT)
 			{
-				if (g_player.ScreenPos.X < GAME_RES_WIDTH - 64 || g_camera.X >= g_current_area.right - GAME_RES_WIDTH)
+				if (g_player.ScreenPos.X < GAME_RES_WIDTH - 64 || g_camera.X >= g_current_area.Area.right - GAME_RES_WIDTH)
 				{
 					g_player.ScreenPos.X++;
 				}
@@ -264,7 +264,7 @@ void PPI_Overworld(void)
 			}
 			else if (g_player.Direction == UP)
 			{
-				if (g_player.ScreenPos.Y > 64 || g_camera.Y == g_current_area.top)
+				if (g_player.ScreenPos.Y > 64 || g_camera.Y == g_current_area.Area.top)
 				{
 					g_player.ScreenPos.Y--;
 				}
@@ -321,7 +321,7 @@ void PPI_Overworld(void)
 						DWORD random = 0;
 						rand_s((unsigned int*)&random);
 						random = random % 100;
-						if (random > 90)
+						if (random > g_player.RandomEncounterPercentage)
 						{
 							RandomMonsterEncounter();
 						}
@@ -347,6 +347,7 @@ void PortalHandler(void)
 	{
 		if (g_player.WorldPos.X == g_portals[counter]->WorldPos.X && g_player.WorldPos.Y == g_portals[counter]->WorldPos.Y)
 		{
+			StopMusic();
 			g_player.WorldPos = g_portals[counter]->WorldDestination;
 			g_player.ScreenPos = g_portals[counter]->ScreenDestination;
 			g_camera = g_portals[counter]->CameraPos;
