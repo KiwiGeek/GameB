@@ -60,13 +60,13 @@
 #define FACING_UPWARD_1	10
 #define FACING_UPWARD_2	11
 
-#define PRESSED_UP g_game_input.UpKeyIsDown				&& !g_game_input.UpKeyWasDown
-#define PRESSED_DOWN g_game_input.DownKeyIsDown			&& !g_game_input.DownKeyWasDown
-#define PRESSED_LEFT g_game_input.LeftKeyIsDown			&& !g_game_input.LeftKeyWasDown
-#define PRESSED_RIGHT g_game_input.RightKeyIsDown		&& !g_game_input.RightKeyWasDown
-#define PRESSED_ESCAPE g_game_input.EscapeKeyIsDown		&& !g_game_input.EscapeKeyWasDown
-#define PRESSED_CHOOSE g_game_input.ChooseKeyIsDown		&& !g_game_input.ChooseKeyWasDown
-#define PRESSED_DEBUG g_game_input.DebugKeyIsDown		&& !g_game_input.DebugKeyWasDown
+#define PRESSED_UP g_game_input.UpKeyIsDown && !g_game_input.UpKeyWasDown
+#define PRESSED_DOWN g_game_input.DownKeyIsDown && !g_game_input.DownKeyWasDown
+#define PRESSED_LEFT g_game_input.LeftKeyIsDown && !g_game_input.LeftKeyWasDown
+#define PRESSED_RIGHT g_game_input.RightKeyIsDown && !g_game_input.RightKeyWasDown
+#define PRESSED_ESCAPE g_game_input.EscapeKeyIsDown && !g_game_input.EscapeKeyWasDown
+#define PRESSED_CHOOSE g_game_input.ChooseKeyIsDown && !g_game_input.ChooseKeyWasDown
+#define PRESSED_DEBUG g_game_input.DebugKeyIsDown && !g_game_input.DebugKeyWasDown
 
 typedef enum DIRECTION
 { 
@@ -106,6 +106,15 @@ typedef enum RESOURCE_TYPE
 	RT_BMPX
 } RESOURCE_TYPE;
 
+typedef enum WINDOW_FLAGS
+{
+	WF_BORDERED = 1,
+	WF_HORIZONTALLY_CENTERED = 2,
+	WF_VERTICALLY_CENTERED = 4,
+	WF_SHADOWED = 8,
+	WF_SHAKE = 16
+} WINDOW_FLAGS;
+
 typedef struct UPOINT
 {
 	uint16_t	X;
@@ -134,8 +143,8 @@ typedef struct GAME_INPUT
 #define FONT_SHEET_CHARACTERS_PER_ROW			98
 #define ASSET_FILE								"Assets.dat"
 
-#pragma warning(disable: 4820)	// disable warning about structure padding
-#pragma warning(disable: 5045)	// disable warning about Spectre/Meltdown CPU vulnerability
+#pragma warning(disable: 5045)	// disable warning about structure padding
+#pragma warning(disable: 4820)	// disable warning about Spectre/Meltdown CPU vulnerability
 
 typedef LONG (NTAPI* NtQueryTimerResolution)(OUT PULONG MinimumResolution, OUT PULONG MaximumResolution,
                                               OUT PULONG CurrentResolution);
@@ -172,14 +181,6 @@ typedef union PIXEL32
 	} colors;
 	DWORD bytes;
 } PIXEL32;
-
-//typedef struct PIXEL32
-//{
-//	uint8_t Blue;
-//	uint8_t Green;
-//	uint8_t Red;
-//	uint8_t Alpha;
-//} PIXEL32;
 
 typedef struct GAME_PERF_DATA
 {
@@ -317,4 +318,4 @@ BOOL MusicIsPlaying(void);
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
 void InitializeGlobals(void);
 void RandomMonsterEncounter(void);
-void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ int16_t Width, _In_ int16_t Height, _In_ PIXEL32 BackgroundColor, _In_ BOOL Bordered);
+void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ int16_t Width, _In_ int16_t Height, _In_ PIXEL32 BackgroundColor, _In_ DWORD Flags);

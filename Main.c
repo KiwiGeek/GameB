@@ -333,15 +333,9 @@ DWORD CreateMainGameWindow(void)
 	windowClass.hIcon = LoadIconA(NULL, IDI_APPLICATION);
 	windowClass.hIconSm = LoadIconA(NULL, IDI_APPLICATION);
 	windowClass.hCursor = LoadCursorA(NULL, IDC_ARROW);
-	//#ifdef _DEBUG
-	//	windowClass.hbrBackground = CreateSolidBrush(RGB(255, 0, 255));
-	//#else
 	windowClass.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
-	//#endif
 	windowClass.lpszMenuName = NULL;
 	windowClass.lpszClassName = GAME_NAME "_WINDOWCLASS";
-
-	//SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
 	if (RegisterClassExA(&windowClass) == 0)
 	{
@@ -550,7 +544,7 @@ DWORD InitializeHero(void) {
 	g_player.WorldPos.Y = 64;
 	g_player.CurrentArmor = SUIT_0;
 	g_player.Direction = DOWN;
-	g_player.RandomEncounterPercentage = 90;
+	g_player.RandomEncounterPercentage = 100;
 	return 0;
 }
 
@@ -1144,7 +1138,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 void DrawDebugInfo(void)
 {
 	char debug_text_buffer[64] = { 0 };
-	const PIXEL32 white = {{0xFF,0xFF, 0xFF, 0xFF}};
+	const PIXEL32 white = { {0xFF,0xFF, 0xFF, 0xFF} };
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSRaw:  %.01f", (double)g_performance_data.RawFPSAverage);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 0);
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSCookd:%.01f", (double)g_performance_data.CookedFPSAverage);
@@ -1609,7 +1603,7 @@ void PauseMusic(void)
 	g_music_is_paused = TRUE;
 }
 
-void StopMusic(void) 
+void StopMusic(void)
 {
 	g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
 	g_xaudio_music_source_voice->lpVtbl->FlushSourceBuffers(g_xaudio_music_source_voice);
@@ -1868,15 +1862,15 @@ void InitializeGlobals(void)
 	g_overworld_area = (GAME_AREA)
 	{
 		.Name = "The World",
-		.Area = (RECT) { .left = 0, .top = 0, .right = 3840, .bottom = 2400 },
+		.Area = (RECT) {.left = 0, .top = 0, .right = 3840, .bottom = 2400 },
 		.Music = &g_music_overworld01
 	};
 
 
 	g_dungeon1_area = (GAME_AREA)
 	{
-		.Name =  "Dungeon 01",
-		.Area = (RECT){ .left = 3856, .top = 0, .right = 4240, .bottom = 240 },
+		.Name = "Dungeon 01",
+		.Area = (RECT){.left = 3856, .top = 0, .right = 4240, .bottom = 240 },
 		.Music = &g_music_dungeon01
 	};
 
@@ -1885,12 +1879,12 @@ void InitializeGlobals(void)
 #pragma warning(suppress: 4127)
 	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!")
 
-	g_portal001 = (PORTAL){
-			.DestinationArea = g_dungeon1_area,
-			.CameraPos = (UPOINT) {.X = 3856,.Y = 0},
-			.ScreenDestination = (UPOINT) {.X = 64,	.Y = 32},
-			.WorldDestination = (UPOINT) {.X = 3920,.Y = 32},
-			.WorldPos = (UPOINT) {.X = 272,	.Y = 80}
+		g_portal001 = (PORTAL){
+				.DestinationArea = g_dungeon1_area,
+				.CameraPos = (UPOINT) {.X = 3856,.Y = 0},
+				.ScreenDestination = (UPOINT) {.X = 64,	.Y = 32},
+				.WorldDestination = (UPOINT) {.X = 3920,.Y = 32},
+				.WorldPos = (UPOINT) {.X = 272,	.Y = 80}
 	};
 
 	g_portal002 = (PORTAL){
@@ -1905,16 +1899,45 @@ void InitializeGlobals(void)
 	g_portals[1] = &g_portal002;
 }
 
-void DrawWindow(_In_ const int16_t X, _In_ const int16_t Y, _In_ const int16_t Width, _In_ const int16_t Height, _In_ PIXEL32 BackgroundColor, _In_ const BOOL Bordered)
+void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ const int16_t Height, _In_ const PIXEL32 BackgroundColor, _In_ const DWORD Flags)
 {
+	ASSERT(Width % sizeof(PIXEL32) == 0, "Window width must be a multiple of 4!")			// BUT WHY?
+		ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!")
+
+		if (Flags & WF_HORIZONTALLY_CENTERED)
+		{
+			X = (int16_t)((GAME_RES_WIDTH / 2) - (Width / 2) - 1);
+		}
+
+	if (Flags & WF_VERTICALLY_CENTERED)
+	{
+		Y = (int16_t)((GAME_RES_HEIGHT / 2) - (Height / 2) - 1);
+	}
+
 	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
 	for (int16_t row = 0; row < Height; row++)
 	{
 		const int32_t memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
 		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, BackgroundColor.bytes, Width);
 	}
+
+	if (Flags & WF_BORDERED)
+	{
+		int32_t memory_offset = starting_screen_pixel;
+		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFFFFFF, Width);
+		memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * Height);
+		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFFFFFF, Width);
+		for (int16_t row = 1; row < Height; row++)
+		{
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
+			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFFFFFF, 1);
+			__stosd((PDWORD)g_back_buffer.Memory + memory_offset + Width - 1, 0xFFFFFFFF, 1);
+		}
+	}
 }
 
 // ScreenDestination can be calculated by subtracting CameraPos from WorldDestination, so is unnecessary
 // Can remove check for assets loaded in PPI_OpeningSplashScreen as input is locked until it is.
 // put in a starting call to find gamepads before 2seconds pass.
+// Window Width in DrawWindow doesn't need to be a multiple of 4.
+// horizontally/vertically centered off by one in DrawWindow
