@@ -32,6 +32,9 @@ REM --- MUSIC ---
 ECHO Bundling music into asset archive
 MyMiniz.exe Assets.dat + .\Assets\Overworld01.ogg >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Dungeon01.ogg >> CopyAssets.log
+MyMiniz.exe Assets.dat + .\Assets\Dungeon01.ogg >> CopyAssets.log
+MyMiniz.exe Assets.dat + .\Assets\Battle01.ogg >> CopyAssets.log
+MyMiniz.exe Assets.dat + .\Assets\BattleIntro01.ogg >> CopyAssets.log
 
 REM --- TILEMAPS ---
 ECHO Bundling tilemap into asset archive

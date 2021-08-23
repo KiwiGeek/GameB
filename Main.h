@@ -275,6 +275,8 @@ GAME_SOUND g_sound_menu_choose;
 GAME_SOUND g_sound_splash_screen;
 GAME_SOUND g_music_overworld01;
 GAME_SOUND g_music_dungeon01;
+GAME_SOUND g_music_battle_intro01;
+GAME_SOUND g_music_battle01;
 HERO g_player;
 float g_sfx_volume;
 float g_music_volume;
@@ -311,7 +313,7 @@ DWORD LoadOggFromMemory(_In_ const void* Buffer, _In_ uint64_t BufferSize, _Inou
 DWORD LoadTileMapFromMemory(_In_ void* Buffer, _In_ uint32_t BufferSize, _Inout_ TILEMAP* TileMap);
 DWORD Load32BppBitmapFromMemory(_In_ void* Buffer, _Inout_ GAME_BITMAP* GameBitmap);
 void PlayGameSound(_In_ const GAME_SOUND* GameSound);
-void PlayGameMusic(_In_ GAME_SOUND* GameSound);
+void PlayGameMusic(_In_ GAME_SOUND* GameSound, _In_ BOOL Loop, _In_ BOOL Immediate);
 void PauseMusic(void);
 void StopMusic(void);
 BOOL MusicIsPlaying(void);

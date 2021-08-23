@@ -41,7 +41,7 @@ void DrawOverworldScreen(void)
 	{
 		if (MusicIsPlaying() == FALSE)
 		{
-			PlayGameMusic(g_current_area.Music);
+			PlayGameMusic(g_current_area.Music, TRUE, TRUE);
 		}
 	}
 
@@ -52,7 +52,7 @@ void DrawOverworldScreen(void)
 							(int16_t)g_player.ScreenPos.Y,
 							brightness_adjustment);
 
-	DrawWindow(32, 200, 128, 32, (PIXEL32) { { 0x00, 0x00, 0x00, 0x00 } }, WF_BORDERED | WF_HORIZONTALLY_CENTERED);
+	//DrawWindow(32, 200, 128, 32, (PIXEL32) { { 0x00, 0x00, 0x00, 0x00 } }, WF_BORDERED | WF_HORIZONTALLY_CENTERED | WF_SHADOWED);
 
 	local_frame_counter++;
 	last_frame_seen = g_performance_data.TotalFramesRendered;

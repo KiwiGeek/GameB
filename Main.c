@@ -1,3 +1,4 @@
+// ReSharper disable CppClangTidyClangDiagnosticCoveredSwitchDefault
 #include "Main.h"
 #include "CharacterNamingScreen.h"
 #include "ExitYesNoScreen.h"
@@ -544,7 +545,7 @@ DWORD InitializeHero(void) {
 	g_player.WorldPos.Y = 64;
 	g_player.CurrentArmor = SUIT_0;
 	g_player.Direction = DOWN;
-	g_player.RandomEncounterPercentage = 100;
+	g_player.RandomEncounterPercentage = 90;
 	return 0;
 }
 
@@ -1610,13 +1611,23 @@ void StopMusic(void)
 	g_music_is_paused = FALSE;
 }
 
-void PlayGameMusic(_In_ GAME_SOUND* GameSound)
+void PlayGameMusic(_In_ GAME_SOUND* GameSound, _In_ BOOL Loop, _In_ BOOL Immediate)
 {
 	if (g_music_is_paused == FALSE)
 	{
-		g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
-		g_xaudio_music_source_voice->lpVtbl->FlushSourceBuffers(g_xaudio_music_source_voice);
-		GameSound->Buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+		if (Immediate == TRUE)
+		{
+			g_xaudio_music_source_voice->lpVtbl->Stop(g_xaudio_music_source_voice, 0, 0);
+			g_xaudio_music_source_voice->lpVtbl->FlushSourceBuffers(g_xaudio_music_source_voice);
+		}
+		if (Loop == TRUE)
+		{
+			GameSound->Buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+		}
+		else
+		{
+			GameSound->Buffer.LoopCount = 0;
+		}
 		g_xaudio_music_source_voice->lpVtbl->SubmitSourceBuffer(g_xaudio_music_source_voice, &GameSound->Buffer, NULL);
 	}
 
@@ -1779,6 +1790,18 @@ DWORD AssetLoadingThreadProc(_In_ LPVOID Param)
 		goto Exit;
 	}
 
+	if ((error = LoadAssetFromArchive(ASSET_FILE, "Battle01.ogg", RT_OGG, &g_music_battle01)) != ERROR_SUCCESS)
+	{
+		LogMessageA(LL_ERROR, "[%s] Loading Battle01.ogg failed with 0x%08lx!", __FUNCTION__, error);
+		goto Exit;
+	}
+
+	if ((error = LoadAssetFromArchive(ASSET_FILE, "BattleIntro01.ogg", RT_OGG, &g_music_battle_intro01)) != ERROR_SUCCESS)
+	{
+		LogMessageA(LL_ERROR, "[%s] Loading BattleIntro01.ogg failed with 0x%08lx!", __FUNCTION__, error);
+		goto Exit;
+	}
+
 	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Down_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_0])) != ERROR_SUCCESS)
 	{
 		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Down_Standing.bmpx failed with 0x%08lx!", __FUNCTION__, error);
@@ -1902,36 +1925,50 @@ void InitializeGlobals(void)
 void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ const int16_t Height, _In_ const PIXEL32 BackgroundColor, _In_ const DWORD Flags)
 {
 	ASSERT(Width % sizeof(PIXEL32) == 0, "Window width must be a multiple of 4!")			// BUT WHY?
-		ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!")
+	ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!")
 
-		if (Flags & WF_HORIZONTALLY_CENTERED)
-		{
-			X = (int16_t)((GAME_RES_WIDTH / 2) - (Width / 2) - 1);
-		}
+	if (Flags & WF_HORIZONTALLY_CENTERED)
+	{
+		X = (int16_t)((GAME_RES_WIDTH / 2) - (Width / 2) - 1);
+	}
 
 	if (Flags & WF_VERTICALLY_CENTERED)
 	{
 		Y = (int16_t)((GAME_RES_HEIGHT / 2) - (Height / 2) - 1);
 	}
 
-	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
+	const int32_t starting_screen_pixel = (GAME_RES_WIDTH * GAME_RES_HEIGHT - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
 	for (int16_t row = 0; row < Height; row++)
 	{
 		const int32_t memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
 		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, BackgroundColor.bytes, Width);
 	}
 
+	if (Flags & WF_SHADOWED)
+	{
+		// this is a broken formula for making sure we don't break the shadow. It fails if the window is full screen.
+		//if (X > 0) { X -= 1; }
+		//if (Y > 0) { Y -= 1; }
+		int32_t memory_offset = starting_screen_pixel - GAME_RES_WIDTH * Height + 1;
+		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFF7C7C7C, Width);
+		for (int16_t row = 1; row < Height; row++)
+		{
+			memory_offset = starting_screen_pixel - GAME_RES_WIDTH * row + Width;
+			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFF7C7C7C, 1);
+		}
+	}
+
 	if (Flags & WF_BORDERED)
 	{
 		int32_t memory_offset = starting_screen_pixel;
-		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFFFFFF, Width);
-		memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * Height);
-		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFFFFFF, Width);
+		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, Width);
+		memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * (Height - 1));
+		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, Width);
 		for (int16_t row = 1; row < Height; row++)
 		{
 			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
-			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFFFFFF, 1);
-			__stosd((PDWORD)g_back_buffer.Memory + memory_offset + Width - 1, 0xFFFFFFFF, 1);
+			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, 1);
+			__stosd((PDWORD)g_back_buffer.Memory + memory_offset + Width - 1, 0xFFFCFCFC, 1);
 		}
 	}
 }
@@ -1940,4 +1977,6 @@ void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ c
 // Can remove check for assets loaded in PPI_OpeningSplashScreen as input is locked until it is.
 // put in a starting call to find gamepads before 2seconds pass.
 // Window Width in DrawWindow doesn't need to be a multiple of 4.
-// horizontally/vertically centered off by one in DrawWindow
+// horizontally/vertically centered off by one in DrawWindow (all the text calculations too?)
+// full screen window shadow at (0,0)
+/// DrawWindow if centered should return the positions chosen, so it's actually useful.
