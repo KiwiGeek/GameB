@@ -1,4 +1,3 @@
-// ReSharper disable CppClangTidyClangDiagnosticCoveredSwitchDefault
 #include "Main.h"
 #include "CharacterNamingScreen.h"
 #include "ExitYesNoScreen.h"
@@ -60,6 +59,7 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 
 #pragma warning(suppress: 6031)
 	InitializeCriticalSectionAndSpinCount(&g_log_critical_section, 0x400);
+
 	if ((g_essential_assets_loaded_event = CreateEventA(NULL, TRUE, FALSE, "g_essential_assets_loaded_event")) == NULL)
 	{
 		goto Exit;
@@ -73,6 +73,12 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 	}
 
 	LogMessageA(LL_INFO, "[%s] %s %s is starting.", __FUNCTION__, GAME_NAME, GAME_VER);
+
+	if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
+	{
+		LogMessageA(LL_ERROR, "[%s] Failed to load module %s.", __FUNCTION__, GAME_CODE_MODULE);
+		goto Exit;
+	}
 
 	if (GameIsAlreadyRunning())
 	{
@@ -318,6 +324,26 @@ LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ 
 	return result;
 }
 
+DWORD LoadGameCode(_In_ const char* ModuleFileName)
+{
+	DWORD result = ERROR_SUCCESS;
+	const HMODULE game_code_module = LoadLibraryA(ModuleFileName);
+	if (game_code_module == NULL)
+	{
+		result = GetLastError();
+		goto Exit;
+	}
+
+Exit:
+
+	if (result != ERROR_SUCCESS)
+	{
+		LogMessageA(LL_ERROR, "[%s] Function faiiled with error 0x%08lx!", __FUNCTION__, result);
+	}
+
+	return result;
+}
+
 DWORD CreateMainGameWindow(void)
 {
 
@@ -523,7 +549,7 @@ void ProcessPlayerInput(void)
 
 		default:
 		{
-			ASSERT(FALSE, "Unknown game state!")
+			ASSERT(FALSE, "Unknown game state!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 		}
 	}
 
@@ -662,7 +688,7 @@ void RenderFrameGraphics(void)
 
 		default:
 		{
-			ASSERT(FALSE, "GameState not implemented")
+			ASSERT(FALSE, "GameState not implemented");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 		}
 	}
 
@@ -1072,8 +1098,8 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 
 	if (message_length < 1 || message_length > 4096)
 	{
-		ASSERT(FALSE, "Message was either too short or too long!")
-			return;
+		ASSERT(FALSE, "Message was either too short or too long!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
+		return;
 	}
 
 	switch (LogLevel)
@@ -1104,7 +1130,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 		}
 		default:
 		{
-			ASSERT(FALSE, "LogLevel was unrecognized.")
+			ASSERT(FALSE, "LogLevel was unrecognized.");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 		}
 	}
 
@@ -1120,7 +1146,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 
 	if ((log_file_handle = CreateFileA(LOG_FILE_NAME, FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
 	{
-		ASSERT(FALSE, "Failed to access log file!")
+		ASSERT(FALSE, "Failed to access log file!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 	}
 
 	SetFilePointer(log_file_handle, 0, NULL, FILE_END);
@@ -1722,7 +1748,7 @@ DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In
 		}
 		default:
 		{
-			ASSERT(FALSE, "Unknown resource type!")
+			ASSERT(FALSE, "Unknown resource type!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 		}
 	}
 
@@ -1740,131 +1766,34 @@ DWORD AssetLoadingThreadProc(_In_ LPVOID Param)
 
 	DWORD error;
 
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "6x7Font.bmpx", RT_BMPX, &g_6x7_font)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading 6x7font.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "SplashScreen.wav", RT_WAV, &g_sound_splash_screen)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading SplashScreen.wav failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
+	// ReSharper disable CppClangTidyClangDiagnosticExtraSemiStmt
+	LOAD_ASSET("6x7Font.bmpx", RT_BMPX, &g_6x7_font);
+	LOAD_ASSET("SplashScreen.wav", RT_WAV, &g_sound_splash_screen);
 
 	SetEvent(g_essential_assets_loaded_event);
 
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Overworld01.bmpx", RT_BMPX, &g_overworld01.GameBitmap)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Overworld01.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Overworld01.tmx", RT_TILEMAP, &g_overworld01.TileMap)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Overworld01.tmx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "MenuNavigate.wav", RT_WAV, &g_sound_menu_navigate)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading MenuNavigate.wav failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "MenuChoose.wav", RT_WAV, &g_sound_menu_choose)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading MenuChoose.wav failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Overworld01.ogg", RT_OGG, &g_music_overworld01)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Overworld01.ogg failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Dungeon01.ogg", RT_OGG, &g_music_dungeon01)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Dungeon01.ogg failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Battle01.ogg", RT_OGG, &g_music_battle01)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Battle01.ogg failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "BattleIntro01.ogg", RT_OGG, &g_music_battle_intro01)) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading BattleIntro01.ogg failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Down_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_0])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Down_Standing.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Down_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_1])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Down_Walk1.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Down_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_2])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Down_Walk2.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Left_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_LEFT_0])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Left_Standing.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Left_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_LEFT_1])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Left_Walk1.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Left_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_LEFT_2])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Left_Walk2.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Right_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_RIGHT_0])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Right_Standing.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Right_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_RIGHT_1])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Right_Walk1.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Right_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_RIGHT_2])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Right_Walk2.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Up_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_0])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Up_Standing.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Up_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_1])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Up_Walk1.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
-	if ((error = LoadAssetFromArchive(ASSET_FILE, "Hero_Suit0_Up_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_2])) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Loading Hero_Suit0_Up_Walk2.bmpx failed with 0x%08lx!", __FUNCTION__, error);
-		goto Exit;
-	}
+	LOAD_ASSET("Overworld01.bmpx", RT_BMPX, &g_overworld01.GameBitmap);
+	LOAD_ASSET("Overworld01.tmx", RT_TILEMAP, &g_overworld01.TileMap);
+	LOAD_ASSET("MenuNavigate.wav", RT_WAV, &g_sound_menu_navigate);
+	LOAD_ASSET("MenuChoose.wav", RT_WAV, &g_sound_menu_choose);
+	LOAD_ASSET("Overworld01.ogg", RT_OGG, &g_music_overworld01);
+	LOAD_ASSET("Dungeon01.ogg", RT_OGG, &g_music_dungeon01);
+	LOAD_ASSET("Battle01.ogg", RT_OGG, &g_music_battle01);
+	LOAD_ASSET("BattleIntro01.ogg", RT_OGG, &g_music_battle_intro01);
+	LOAD_ASSET("Hero_Suit0_Down_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_0]);
+	LOAD_ASSET("Hero_Suit0_Down_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_0]);
+	LOAD_ASSET("Hero_Suit0_Down_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_1]);
+	LOAD_ASSET("Hero_Suit0_Down_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_DOWN_2]);
+	LOAD_ASSET("Hero_Suit0_Left_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_LEFT_0]);
+	LOAD_ASSET("Hero_Suit0_Left_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_LEFT_1]);
+	LOAD_ASSET("Hero_Suit0_Left_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_LEFT_2]);
+	LOAD_ASSET("Hero_Suit0_Right_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_RIGHT_0]);
+	LOAD_ASSET("Hero_Suit0_Right_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_RIGHT_1]);
+	LOAD_ASSET("Hero_Suit0_Right_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_RIGHT_2]);
+	LOAD_ASSET("Hero_Suit0_Up_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_0]);
+	LOAD_ASSET("Hero_Suit0_Up_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_1]);
+	LOAD_ASSET("Hero_Suit0_Up_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_2]);
+	// ReSharper enable CppClangTidyClangDiagnosticExtraSemiStmt
 
 Exit:
 	return error;
@@ -1877,8 +1806,8 @@ void InitializeGlobals(void)
 	g_gamepad_id = -1;
 
 #pragma warning(suppress: 4127)
-	ASSERT((_countof(g_passable_tiles) == 3), "Wrong count of passable tiles!")
-		g_passable_tiles[0] = TILE_GRASS_01;
+	ASSERT((_countof(g_passable_tiles) == 3), "Wrong count of passable tiles!");
+	g_passable_tiles[0] = TILE_GRASS_01;
 	g_passable_tiles[1] = TILE_BRICK_01;
 	g_passable_tiles[2] = TILE_PORTAL_01;
 
@@ -1900,7 +1829,7 @@ void InitializeGlobals(void)
 	g_current_area = g_overworld_area;
 
 #pragma warning(suppress: 4127)
-	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!")
+	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!");
 
 		g_portal001 = (PORTAL){
 				.DestinationArea = g_dungeon1_area,
@@ -1924,8 +1853,8 @@ void InitializeGlobals(void)
 
 void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ const int16_t Height, _In_ const PIXEL32 BackgroundColor, _In_ const DWORD Flags)
 {
-	ASSERT(Width % sizeof(PIXEL32) == 0, "Window width must be a multiple of 4!")			// BUT WHY?
-	ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!")
+	ASSERT(Width % sizeof(PIXEL32) == 0, "Window width must be a multiple of 4!");			// BUT WHY?
+	ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!");
 
 	if (Flags & WF_HORIZONTALLY_CENTERED)
 	{

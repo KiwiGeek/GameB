@@ -69,7 +69,7 @@ void PPI_Overworld(void)
 		return;
 	}
 
-	ASSERT((g_camera.X <= g_current_area.Area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.Area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!")
+	ASSERT((g_camera.X <= g_current_area.Area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.Area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!");
 
 		if (!g_player.MovementRemaining)
 		{
@@ -238,10 +238,10 @@ void PPI_Overworld(void)
 				}
 				case 0:
 				{
-					ASSERT(g_player.ScreenPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.")
-					ASSERT(g_player.ScreenPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.")
-					ASSERT(g_player.WorldPos.X  % 16 == 0, "Player did not land on a position that is a multiple of 16.")
-					ASSERT(g_player.WorldPos.Y  % 16 == 0, "Player did not land on a position that is a multiple of 16.")
+					ASSERT(g_player.ScreenPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.");
+					ASSERT(g_player.ScreenPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.");
+					ASSERT(g_player.WorldPos.X  % 16 == 0, "Player did not land on a position that is a multiple of 16.");
+					ASSERT(g_player.WorldPos.Y  % 16 == 0, "Player did not land on a position that is a multiple of 16.");
 
 					g_player.SpriteIndex = 0;
 
@@ -295,7 +295,7 @@ void PortalHandler(void)
 		}
 	}
 
-	ASSERT(FALSE, "Player is standing on a portal, but we do not have a portal handler for it")
+	ASSERT(FALSE, "Player is standing on a portal, but we do not have a portal handler for it");
 }
 
 void RandomMonsterEncounter(void)

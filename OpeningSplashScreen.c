@@ -5,7 +5,7 @@ void DrawOpeningSplashScreen(void)
 {
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
-	static PIXEL32 text_color = { 0xFF, 0xFF, 0xFF, 0xFF };
+	static PIXEL32 text_color = {{0xFF, 0xFF, 0xFF, 0xFF}};
 	static BOOL blink;
 
 	if (WaitForSingleObject(g_essential_assets_loaded_event, 0) != WAIT_OBJECT_0)
@@ -37,11 +37,11 @@ void DrawOpeningSplashScreen(void)
 
 	if (WaitForSingleObject(g_asset_loading_thread_handle, 0) != WAIT_OBJECT_0)
 	{
-		BlitStringToBuffer("Loading...", &g_6x7_font, &(PIXEL32){ 32, 32, 32, 255 }, (GAME_RES_WIDTH - (6 * 11)), (GAME_RES_HEIGHT - 7));
+		BlitStringToBuffer("Loading...", &g_6x7_font, &(PIXEL32){{32, 32, 32, 255}}, (GAME_RES_WIDTH - (6 * 11)), (GAME_RES_HEIGHT - 7));
 
 		if (blink)
 		{
-			BlitStringToBuffer("\xf2", &g_6x7_font, &(PIXEL32) {32, 32, 32, 255 }, GAME_RES_WIDTH - 6, GAME_RES_HEIGHT - 7);
+			BlitStringToBuffer("\xf2", &g_6x7_font, &(PIXEL32) {{32, 32, 32, 255}}, GAME_RES_WIDTH - 6, GAME_RES_HEIGHT - 7);
 		}
 	}
 	else

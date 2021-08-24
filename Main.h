@@ -3,7 +3,7 @@
 #define _CRT_RAND_S  // NOLINT(clang-diagnostic-reserved-id-macro, bugprone-reserved-identifier)
 
 #pragma warning(disable: 28251)
-#pragma warning(disable: 4668 4711)
+#pragma warning(disable: 4668 4711 4710)
 
 #pragma warning(push, 3)
 
@@ -30,35 +30,38 @@
 #include "Tiles.h"
 
 #ifdef _DEBUG
-#define ASSERT(Expression, Message) if (!(Expression)) { *(int*)0 = 0; }
+#define ASSERT(Expression, Message) if (!(Expression)) {*(int*)0 = 0}
 #else
 #define ASSERT(Expression, Message) ((void)0);
 #endif
 
-#define GAME_NAME		"Game_B"
-#define GAME_VER		"0.9a"
-#define GAME_RES_WIDTH  384
-#define GAME_RES_HEIGHT	240
-#define GAME_BPP		32
+#define LOAD_ASSET(Filename, AssetType, Destination) if ((error = LoadAssetFromArchive(ASSET_FILE, Filename, AssetType, Destination)) != ERROR_SUCCESS) { LogMessageA(LL_ERROR, "[%s] Loading %s failed with 0x%08lx!", __FUNCTION__, Filename, error); goto Exit; }
+
+#define GAME_NAME			"Game_B"
+#define GAME_VER			"0.9a"
+#define GAME_CODE_MODULE	"GameCode.dll"
+#define GAME_RES_WIDTH		384
+#define GAME_RES_HEIGHT		240
+#define GAME_BPP			32
 #define GAME_DRAWING_AREA_MEMORY_SIZE			(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
 #define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
 #define TARGET_MICROSECONDS_PER_FRAME			16667ULL
 #define NUMBER_OF_SFX_SOURCE_VOICES				4
-#define SUIT_0			0
-#define SUIT_1			1
-#define SUIT_2			2
-#define FACING_DOWN_0	0
-#define FACING_DOWN_1	1
-#define FACING_DOWN_2	2
-#define FACING_LEFT_0	3
-#define FACING_LEFT_1	4
-#define FACING_LEFT_2	5
-#define FACING_RIGHT_0	6
-#define FACING_RIGHT_1	7
-#define FACING_RIGHT_2	8
-#define FACING_UPWARD_0	9
-#define FACING_UPWARD_1	10
-#define FACING_UPWARD_2	11
+#define SUIT_0				0
+#define SUIT_1				1
+#define SUIT_2				2
+#define FACING_DOWN_0		0
+#define FACING_DOWN_1		1
+#define FACING_DOWN_2		2
+#define FACING_LEFT_0		3
+#define FACING_LEFT_1		4
+#define FACING_LEFT_2		5
+#define FACING_RIGHT_0		6
+#define FACING_RIGHT_1		7
+#define FACING_RIGHT_2		8
+#define FACING_UPWARD_0		9
+#define FACING_UPWARD_1		10
+#define FACING_UPWARD_2		11
 
 #define PRESSED_UP g_game_input.UpKeyIsDown && !g_game_input.UpKeyWasDown
 #define PRESSED_DOWN g_game_input.DownKeyIsDown && !g_game_input.DownKeyWasDown
@@ -293,6 +296,7 @@ BOOL g_input_enabled;
 BOOL g_game_is_running;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
+DWORD LoadGameCode(_In_ const char* ModuleFileName);
 DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
 void ProcessPlayerInput(void);
@@ -319,5 +323,4 @@ void StopMusic(void);
 BOOL MusicIsPlaying(void);
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
 void InitializeGlobals(void);
-void RandomMonsterEncounter(void);
 void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ int16_t Width, _In_ int16_t Height, _In_ PIXEL32 BackgroundColor, _In_ DWORD Flags);

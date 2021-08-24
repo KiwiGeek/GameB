@@ -1,4 +1,4 @@
-#pragma warning(disable: 4668 26451 6386 6297 5045)
+#pragma warning(disable: 4668 26451 6386 6297 5045 4711 4710)
 #pragma warning(push,3)
 #include <Windows.h>
 #include "miniz.h"

@@ -10,10 +10,10 @@ MENU gMenu_OptionsScreen = { "Options", 0, _countof(gMI_OptionsScreenItems), gMI
 
 void DrawOptionsScreen(void)
 {
-	PIXEL32 grey = { 0x6F, 0x6F, 0x6F, 0x6F };
+	const PIXEL32 grey = {{0x6F, 0x6F, 0x6F, 0x6F}};
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
-	static PIXEL32 text_color = { 0x00, 0x00, 0x00, 0x00 };
+	static PIXEL32 text_color = {{0x00, 0x00, 0x00, 0x00}};
 	char screen_size_string[64] = { 0 };
 
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
@@ -74,12 +74,12 @@ void DrawOptionsScreen(void)
 		{
 			if (text_color.colors.Red == 255)
 			{
-				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, 224 + (volume * 6), gMI_OptionsScreen_SFXVolume.Y);
+				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_SFXVolume.Y);
 			}
 		}
 		else
 		{
-			BlitStringToBuffer("\xf2", &g_6x7_font, &text_color, 224 + (volume * 6), gMI_OptionsScreen_SFXVolume.Y);
+			BlitStringToBuffer("\xf2", &g_6x7_font, &text_color, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_SFXVolume.Y);
 		}
 	}
 
@@ -89,12 +89,12 @@ void DrawOptionsScreen(void)
 		{
 			if (text_color.colors.Red == 255)
 			{
-				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, 224 + (volume * 6), gMI_OptionsScreen_MusicVolume.Y);
+				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_MusicVolume.Y);
 			}
 		}
 		else
 		{
-			BlitStringToBuffer("\xf2", &g_6x7_font, &text_color, 224 + (volume * 6), gMI_OptionsScreen_MusicVolume.Y);
+			BlitStringToBuffer("\xf2", &g_6x7_font, &text_color, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_MusicVolume.Y);
 		}
 	}
 
@@ -104,7 +104,7 @@ void DrawOptionsScreen(void)
 	BlitStringToBuffer("\xBB",
 		&g_6x7_font,
 		&text_color,
-		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->X - 6,
+		(int16_t)(gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->X - 6),
 		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Y);
 
 	local_frame_counter++;

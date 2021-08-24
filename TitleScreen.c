@@ -15,7 +15,7 @@ void DrawTitleScreen(void)
 {
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
-	static PIXEL32 text_color = { 0x00, 0x00, 0x00, 0x00 };
+	static PIXEL32 text_color = {{0x00, 0x00, 0x00, 0x00}};
 
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{

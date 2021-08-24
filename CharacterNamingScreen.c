@@ -86,7 +86,7 @@ void DrawCharacterNamingScreen(void)
 {
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
-	static PIXEL32 text_color = { 0x00, 0x00, 0x00, 0x00 };
+	static PIXEL32 text_color = {{0x00, 0x00, 0x00, 0x00}};
 	static int16_t brightness_adjustment = -255;
 
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
@@ -130,18 +130,18 @@ void DrawCharacterNamingScreen(void)
 		g_input_enabled = TRUE;
 	}
 
-	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g_6x7_font, &text_color, (GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2), 16);
+	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g_6x7_font, &text_color, (int16_t)((GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2)), 16);
 	Blit32BppBitmapToBuffer(&g_player.Sprite[SUIT_0][FACING_DOWN_0], 153, 85, brightness_adjustment);
 
 	for (uint8_t letter = 0; letter < 8; letter++)
 	{
 		if (g_player.Name[letter] == '\0')
 		{
-			BlitStringToBuffer("_", &g_6x7_font, &text_color, 173 + (letter * 6), 93);
+			BlitStringToBuffer("_", &g_6x7_font, &text_color, (int16_t)(173 + (letter * 6)), 93);
 		}
 		else
 		{
-			BlitStringToBuffer(&g_player.Name[letter], &g_6x7_font, &text_color, 173 + (letter * 6), 93);
+			BlitStringToBuffer(&g_player.Name[letter], &g_6x7_font, &text_color, (int16_t)(173 + (letter * 6)), 93);
 		}
 
 	}
@@ -158,7 +158,7 @@ void DrawCharacterNamingScreen(void)
 	BlitStringToBuffer("\xBB",
 		&g_6x7_font,
 		&text_color,
-		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->X - 6,
+		(int16_t)(gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->X - 6),
 		gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Y);
 
 	local_frame_counter++;
