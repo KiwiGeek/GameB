@@ -1,5 +1,5 @@
 #include "Main.h"
-#include "GamepadUnplugged.h"
+#include "GamepadUnpluggedScreen.h"
 
 void DrawGamepadUnpluggedScreen(void)
 {

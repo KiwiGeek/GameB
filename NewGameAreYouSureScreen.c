@@ -1,5 +1,5 @@
 #include "Main.h"
-#include "NewGameAreYouSure.h"
+#include "NewGameAreYouSureScreen.h"
 
 #define PROGRESS_WILL_BE_LOAD "All unsaved progress will be lost!"
 

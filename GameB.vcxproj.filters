@@ -33,10 +33,10 @@
     <ClCompile Include="CharacterNamingScreen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GamepadUnplugged.c">
+    <ClCompile Include="GamepadUnpluggedScreen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Overworld.c">
+    <ClCompile Include="OverworldScreen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stb_vorbis.c">
@@ -45,10 +45,10 @@
     <ClCompile Include="miniz.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Battle.c">
+    <ClCompile Include="BattleScreen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NewGameAreYouSure.c">
+    <ClCompile Include="NewGameAreYouSureScreen.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -71,10 +71,10 @@
     <ClInclude Include="TitleScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GamepadUnplugged.h">
+    <ClInclude Include="GamepadUnpluggedScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Overworld.h">
+    <ClInclude Include="OverworldScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Tiles.h">
@@ -86,10 +86,10 @@
     <ClInclude Include="miniz.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Battle.h">
+    <ClInclude Include="BattleScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NewGameAreYouSure.h">
+    <ClInclude Include="NewGameAreYouSureScreen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

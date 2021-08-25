@@ -1,13 +1,13 @@
 #include "Main.h"
 #include "CharacterNamingScreen.h"
 #include "ExitYesNoScreen.h"
-#include "GamepadUnplugged.h"
+#include "GamepadUnpluggedScreen.h"
 #include "OpeningSplashScreen.h"
 #include "OptionsScreen.h"
-#include "Overworld.h"
-#include "Battle.h"
+#include "OverworldScreen.h"
+#include "BattleScreen.h"
 #include "TitleScreen.h"
-#include "NewGameAreYouSure.h"
+#include "NewGameAreYouSureScreen.h"
 #include "stb_vorbis.h"
 #include "miniz.h"
 
@@ -249,9 +249,9 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 
 		if (g_performance_data.TotalFramesRendered % CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES == 0)
 		{
-			GetSystemTimeAsFileTime((LPFILETIME)&g_performance_data.CurrentSystemTime);
 
-			FindFirstConnectedGamepad();
+
+			GetSystemTimeAsFileTime((LPFILETIME)&g_performance_data.CurrentSystemTime);
 
 			GetProcessTimes(GetCurrentProcess(),
 				&process_creation_time,
@@ -270,9 +270,42 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 			g_performance_data.RawFPSAverage = 1.0f / ((float)elapsed_microseconds_accumulator_raw / (float)CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES * 0.000001f);
 			g_performance_data.CookedFPSAverage = 1.0f / ((float)elapsed_microseconds_accumulator_cooked / (float)CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES * 0.000001f);
 
+			FindFirstConnectedGamepad();
+
+#ifdef _DEBUG
+			// ReSharper disable once CppLocalVariableMayBeConst
+			HANDLE game_code_file_handle = CreateFileA(GAME_CODE_MODULE, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, NULL);
+			if (game_code_file_handle == INVALID_HANDLE_VALUE)
+			{
+				LogMessageA(LL_WARNING, "[%s] Failed to load game code module! Error 0x%08lx", __FUNCTION__, GetLastError());
+			}
+			else
+			{
+				FILETIME last_write_time = { 0 };
+				if (GetFileTime(game_code_file_handle, NULL, NULL, &last_write_time) == 0)
+				{
+					LogMessageA(LL_WARNING, "[%s] GetFileTime failed with 0x%08lx", __FUNCTION__, GetLastError());
+				}
+				else
+				{
+					if (last_write_time.dwHighDateTime != g_game_code_last_write_time.dwHighDateTime ||
+						last_write_time.dwLowDateTime  != g_game_code_last_write_time.dwLowDateTime)
+					{
+						if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
+						{
+							LogMessageA(LL_WARNING, "[%s] Failed to reload game code module %s.", __FUNCTION__, GAME_CODE_MODULE);
+							goto Exit;
+						}
+					}
+				}
+
+				CloseHandle(game_code_file_handle);
+
+			}
+#endif
+
 			elapsed_microseconds_accumulator_raw = 0;
 			elapsed_microseconds_accumulator_cooked = 0;
-
 			previous_kernel_cpu_time = current_kernel_cpu_time;
 			previous_user_cpu_time = current_user_cpu_time;
 			g_performance_data.PreviousSystemTime = g_performance_data.CurrentSystemTime;
@@ -327,18 +360,58 @@ LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ 
 DWORD LoadGameCode(_In_ const char* ModuleFileName)
 {
 	DWORD result = ERROR_SUCCESS;
-	const HMODULE game_code_module = LoadLibraryA(ModuleFileName);
-	if (game_code_module == NULL)
+
+	if (g_game_code_module)
+	{
+		FreeLibrary(g_game_code_module);
+	}
+
+	// ReSharper disable once CppLocalVariableMayBeConst
+	HANDLE game_code_file_handle = CreateFileA(GAME_CODE_MODULE, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, NULL);
+	if (game_code_file_handle == INVALID_HANDLE_VALUE)
+	{
+		LogMessageA(LL_WARNING, "[%s] Failed to load game code module! Error 0x%08lx", __FUNCTION__, GetLastError());
+	}
+	else
+	{
+		FILETIME last_write_time = { 0 };
+		if (GetFileTime(game_code_file_handle, NULL, NULL, &last_write_time) == 0)
+		{
+			LogMessageA(LL_WARNING, "[%s] GetFileTime failed with 0x%08lx", __FUNCTION__, GetLastError());
+		}
+		else
+		{
+			g_game_code_last_write_time = last_write_time;
+		}
+
+		CloseHandle(game_code_file_handle);
+
+	}
+
+	g_game_code_module = LoadLibraryA(ModuleFileName);
+	if (g_game_code_module == NULL)
 	{
 		result = GetLastError();
 		goto Exit;
 	}
 
+	if ((TestFunc01 = (_TestFunc01)GetProcAddress(g_game_code_module, "TestFunc01")) == NULL)
+	{
+		result = GetLastError();
+		goto Exit;
+	}
+
+
+
 Exit:
 
-	if (result != ERROR_SUCCESS)
+	if (result == ERROR_SUCCESS)
 	{
-		LogMessageA(LL_ERROR, "[%s] Function faiiled with error 0x%08lx!", __FUNCTION__, result);
+		LogMessageA(LL_INFO, "[%s] Successfully loaded code from module %s!", __FUNCTION__, GAME_CODE_MODULE);
+	}
+	else
+	{
+		LogMessageA(LL_ERROR, "[%s] Function failed with error 0x%08lx!", __FUNCTION__, result);
 	}
 
 	return result;
@@ -464,6 +537,11 @@ void ProcessPlayerInput(void)
 	if (g_window_has_focus == FALSE || g_input_enabled == FALSE)
 	{
 		return;
+	}
+
+	if (GetAsyncKeyState(VK_F2))
+	{
+		TestFunc01();
 	}
 
 	g_game_input.EscapeKeyIsDown = GetAsyncKeyState(VK_ESCAPE);
@@ -853,13 +931,13 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 				bitmap_pixel.Green = (uint8_t)min(255, max(0, bitmap_pixel.Green + BrightnessAdjustment));
 				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 			}
+			}
 		}
-	}
 
 #endif
 
 
-}
+	}
 
 void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t BrightnessAdjustment)
 {
@@ -1831,12 +1909,12 @@ void InitializeGlobals(void)
 #pragma warning(suppress: 4127)
 	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!");
 
-		g_portal001 = (PORTAL){
-				.DestinationArea = g_dungeon1_area,
-				.CameraPos = (UPOINT) {.X = 3856,.Y = 0},
-				.ScreenDestination = (UPOINT) {.X = 64,	.Y = 32},
-				.WorldDestination = (UPOINT) {.X = 3920,.Y = 32},
-				.WorldPos = (UPOINT) {.X = 272,	.Y = 80}
+	g_portal001 = (PORTAL){
+			.DestinationArea = g_dungeon1_area,
+			.CameraPos = (UPOINT) {.X = 3856,.Y = 0},
+			.ScreenDestination = (UPOINT) {.X = 64,	.Y = 32},
+			.WorldDestination = (UPOINT) {.X = 3920,.Y = 32},
+			.WorldPos = (UPOINT) {.X = 272,	.Y = 80}
 	};
 
 	g_portal002 = (PORTAL){

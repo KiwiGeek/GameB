@@ -1,5 +1,5 @@
 #include "Main.h"
-#include "Battle.h"
+#include "BattleScreen.h"
 
 void DrawBattleScreen(void)
 {

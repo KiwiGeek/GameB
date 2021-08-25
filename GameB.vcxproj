@@ -76,29 +76,31 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Platform)\Temp\$(Configuration)\</IntDir>
+    <OutDir>$(GAMEBDIR)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(GAMEBDIR)\$(Platform)\Temp\$(Configuration)\</IntDir>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)$(Platform)\Temp\$(Configuration)\</IntDir>
+    <OutDir>$(GAMEBDIR)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(GAMEBDIR)\$(Platform)\Temp\$(Configuration)\</IntDir>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IntDir>$(SolutionDir)$(Platform)\Temp\$(Configuration)\</IntDir>
+    <IntDir>$(GAMEBDIR)\$(Platform)\Temp\$(Configuration)\</IntDir>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(GAMEBDIR)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(SolutionDir)$(Platform)\Temp\$(Configuration)\</IntDir>
+    <IntDir>$(GAMEBDIR)\$(Platform)\Temp\$(Configuration)\</IntDir>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(GAMEBDIR)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -184,30 +186,30 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Battle.c" />
+    <ClCompile Include="BattleScreen.c" />
     <ClCompile Include="CharacterNamingScreen.c" />
     <ClCompile Include="ExitYesNoScreen.c" />
-    <ClCompile Include="GamepadUnplugged.c" />
+    <ClCompile Include="GamepadUnpluggedScreen.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="miniz.c" />
-    <ClCompile Include="NewGameAreYouSure.c" />
+    <ClCompile Include="NewGameAreYouSureScreen.c" />
     <ClCompile Include="OpeningSplashScreen.c" />
     <ClCompile Include="OptionsScreen.c" />
-    <ClCompile Include="Overworld.c" />
+    <ClCompile Include="OverworldScreen.c" />
     <ClCompile Include="stb_vorbis.c" />
     <ClCompile Include="TitleScreen.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Battle.h" />
+    <ClInclude Include="BattleScreen.h" />
     <ClInclude Include="CharacterNamingScreen.h" />
     <ClInclude Include="ExitYesNoScreen.h" />
-    <ClInclude Include="GamepadUnplugged.h" />
+    <ClInclude Include="GamepadUnpluggedScreen.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="miniz.h" />
-    <ClInclude Include="NewGameAreYouSure.h" />
+    <ClInclude Include="NewGameAreYouSureScreen.h" />
     <ClInclude Include="OpeningSplashScreen.h" />
     <ClInclude Include="OptionsScreen.h" />
-    <ClInclude Include="Overworld.h" />
+    <ClInclude Include="OverworldScreen.h" />
     <ClInclude Include="stb_vorbis.h" />
     <ClInclude Include="Tiles.h" />
     <ClInclude Include="TitleScreen.h" />

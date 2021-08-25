@@ -30,7 +30,7 @@
 #include "Tiles.h"
 
 #ifdef _DEBUG
-#define ASSERT(Expression, Message) if (!(Expression)) {*(int*)0 = 0}
+#define ASSERT(Expression, Message) if (!(Expression)) { *(int*)0 = 0; }
 #else
 #define ASSERT(Expression, Message) ((void)0);
 #endif
@@ -149,9 +149,7 @@ typedef struct GAME_INPUT
 #pragma warning(disable: 5045)	// disable warning about structure padding
 #pragma warning(disable: 4820)	// disable warning about Spectre/Meltdown CPU vulnerability
 
-typedef LONG (NTAPI* NtQueryTimerResolution)(OUT PULONG MinimumResolution, OUT PULONG MaximumResolution,
-                                              OUT PULONG CurrentResolution);
-
+typedef LONG (NTAPI* NtQueryTimerResolution)(OUT PULONG MinimumResolution, OUT PULONG MaximumResolution, OUT PULONG CurrentResolution);
 NtQueryTimerResolution nt_query_timer_resolution;
 
 typedef struct GAME_BITMAP
@@ -294,6 +292,12 @@ HANDLE g_asset_loading_thread_handle;
 HANDLE g_essential_assets_loaded_event;
 BOOL g_input_enabled;
 BOOL g_game_is_running;
+HMODULE g_game_code_module;
+FILETIME g_game_code_last_write_time;
+
+// imports from GAMECODE.DLL
+typedef int(__cdecl* _TestFunc01)(void);
+_TestFunc01 TestFunc01;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD LoadGameCode(_In_ const char* ModuleFileName);
