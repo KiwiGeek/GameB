@@ -20,6 +20,6 @@ BOOL WINAPI DllMain(HINSTANCE Instance, DWORD Reason, LPVOID Reserved)
 
 _declspec(dllexport) int TestFunc01(void)  // NOLINT(clang-diagnostic-language-extension-token)
 {
-	MessageBoxA(NULL, "Hello from TestFunc02", "Test", MB_OK | MB_ICONASTERISK);
+	MessageBoxA(NULL, "Yet2 another different message from TestFunc01", "Test", MB_OK | MB_ICONASTERISK);
 	return 0;
 }

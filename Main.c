@@ -273,8 +273,16 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 			FindFirstConnectedGamepad();
 
 #ifdef _DEBUG
-			// ReSharper disable once CppLocalVariableMayBeConst
-			HANDLE game_code_file_handle = CreateFileA(GAME_CODE_MODULE, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, NULL);
+
+			if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
+			{
+				if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
+				{
+					LogMessageA(LL_WARNING, "[%s] Failed to reload game code module %s.", __FUNCTION__, GAME_CODE_MODULE);
+				}
+			}
+			/*			// ReSharper disable once CppLocalVariableMayBeConst
+			 *HANDLE game_code_file_handle = CreateFileA(GAME_CODE_MODULE, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, NULL);
 			if (game_code_file_handle == INVALID_HANDLE_VALUE)
 			{
 				LogMessageA(LL_WARNING, "[%s] Failed to load game code module! Error 0x%08lx", __FUNCTION__, GetLastError());
@@ -301,7 +309,8 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 
 				CloseHandle(game_code_file_handle);
 
-			}
+			}*/
+
 #endif
 
 			elapsed_microseconds_accumulator_raw = 0;
@@ -364,28 +373,20 @@ DWORD LoadGameCode(_In_ const char* ModuleFileName)
 	if (g_game_code_module)
 	{
 		FreeLibrary(g_game_code_module);
+		g_game_code_module = NULL;
 	}
 
-	// ReSharper disable once CppLocalVariableMayBeConst
-	HANDLE game_code_file_handle = CreateFileA(GAME_CODE_MODULE, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, NULL);
-	if (game_code_file_handle == INVALID_HANDLE_VALUE)
+	if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
 	{
-		LogMessageA(LL_WARNING, "[%s] Failed to load game code module! Error 0x%08lx", __FUNCTION__, GetLastError());
-	}
-	else
-	{
-		FILETIME last_write_time = { 0 };
-		if (GetFileTime(game_code_file_handle, NULL, NULL, &last_write_time) == 0)
+		if (DeleteFileA(GAME_CODE_MODULE) == 0)
 		{
-			LogMessageA(LL_WARNING, "[%s] GetFileTime failed with 0x%08lx", __FUNCTION__, GetLastError());
-		}
-		else
-		{
-			g_game_code_last_write_time = last_write_time;
+			LogMessageA(LL_WARNING, "[%s] Failed to delete file %s.  Error 0x%08lx!", __FUNCTION__, GAME_CODE_MODULE, GetLastError());
 		}
 
-		CloseHandle(game_code_file_handle);
-
+		if (MoveFileA(GAME_CODE_MODULE_TMP, GAME_CODE_MODULE) == 0)
+		{
+			LogMessageA(LL_WARNING, "[%s] Failed to replace file %s with %s.  Error 0x%08lx!", __FUNCTION__, GAME_CODE_MODULE, GAME_CODE_MODULE_TMP, GetLastError());
+		}
 	}
 
 	g_game_code_module = LoadLibraryA(ModuleFileName);
@@ -400,8 +401,6 @@ DWORD LoadGameCode(_In_ const char* ModuleFileName)
 		result = GetLastError();
 		goto Exit;
 	}
-
-
 
 Exit:
 
@@ -625,7 +624,7 @@ void ProcessPlayerInput(void)
 			break;
 		}
 
-		default:
+		default:  // NOLINT(clang-diagnostic-covered-switch-default)
 		{
 			ASSERT(FALSE, "Unknown game state!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 		}
@@ -764,7 +763,7 @@ void RenderFrameGraphics(void)
 			break;
 		}
 
-		default:
+		default:  // NOLINT(clang-diagnostic-covered-switch-default)
 		{
 			ASSERT(FALSE, "GameState not implemented");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 		}
@@ -1206,7 +1205,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 			strcpy_s(severity_string, sizeof(severity_string), "[DEBUG]");
 			break;
 		}
-		default:
+		default:  // NOLINT(clang-diagnostic-covered-switch-default)
 		{
 			ASSERT(FALSE, "LogLevel was unrecognized.");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 		}
@@ -1824,7 +1823,7 @@ DWORD LoadAssetFromArchive(_In_ char* ArchiveName, _In_ char* AssetFileName, _In
 			error = Load32BppBitmapFromMemory(decompressed_buffer, Resource);
 			break;
 		}
-		default:
+		default:  // NOLINT(clang-diagnostic-covered-switch-default)
 		{
 			ASSERT(FALSE, "Unknown resource type!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 		}

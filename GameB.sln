@@ -4,13 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameB", "GameB.vcxproj", "{82FEB0C1-69FB-4FC6-B46D-0633C60ABFAC}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B59CD310-09F8-470C-9E15-86C9CF54690B} = {B59CD310-09F8-470C-9E15-86C9CF54690B}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyMiniz", "MyMiniz\MyMiniz.vcxproj", "{597BA133-E6E2-4B94-833E-FCC39DFD93A8}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameCode", "C:\Users\jpenman\source\repos\GameB\GameCode\GameCode.vcxproj", "{B59CD310-09F8-470C-9E15-86C9CF54690B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,21 +21,6 @@ Global
 		{82FEB0C1-69FB-4FC6-B46D-0633C60ABFAC}.Release|x64.Build.0 = Release|x64
 		{82FEB0C1-69FB-4FC6-B46D-0633C60ABFAC}.Release|x86.ActiveCfg = Release|Win32
 		{82FEB0C1-69FB-4FC6-B46D-0633C60ABFAC}.Release|x86.Build.0 = Release|Win32
-		{597BA133-E6E2-4B94-833E-FCC39DFD93A8}.Debug|x64.ActiveCfg = Debug|x64
-		{597BA133-E6E2-4B94-833E-FCC39DFD93A8}.Debug|x64.Build.0 = Debug|x64
-		{597BA133-E6E2-4B94-833E-FCC39DFD93A8}.Debug|x86.ActiveCfg = Debug|Win32
-		{597BA133-E6E2-4B94-833E-FCC39DFD93A8}.Debug|x86.Build.0 = Debug|Win32
-		{597BA133-E6E2-4B94-833E-FCC39DFD93A8}.Release|x64.ActiveCfg = Release|x64
-		{597BA133-E6E2-4B94-833E-FCC39DFD93A8}.Release|x86.ActiveCfg = Release|Win32
-		{597BA133-E6E2-4B94-833E-FCC39DFD93A8}.Release|x86.Build.0 = Release|Win32
-		{B59CD310-09F8-470C-9E15-86C9CF54690B}.Debug|x64.ActiveCfg = Debug|x64
-		{B59CD310-09F8-470C-9E15-86C9CF54690B}.Debug|x64.Build.0 = Debug|x64
-		{B59CD310-09F8-470C-9E15-86C9CF54690B}.Debug|x86.ActiveCfg = Debug|Win32
-		{B59CD310-09F8-470C-9E15-86C9CF54690B}.Debug|x86.Build.0 = Debug|Win32
-		{B59CD310-09F8-470C-9E15-86C9CF54690B}.Release|x64.ActiveCfg = Release|x64
-		{B59CD310-09F8-470C-9E15-86C9CF54690B}.Release|x64.Build.0 = Release|x64
-		{B59CD310-09F8-470C-9E15-86C9CF54690B}.Release|x86.ActiveCfg = Release|Win32
-		{B59CD310-09F8-470C-9E15-86C9CF54690B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -37,9 +37,14 @@
 
 #define LOAD_ASSET(Filename, AssetType, Destination) if ((error = LoadAssetFromArchive(ASSET_FILE, Filename, AssetType, Destination)) != ERROR_SUCCESS) { LogMessageA(LL_ERROR, "[%s] Loading %s failed with 0x%08lx!", __FUNCTION__, Filename, error); goto Exit; }
 
-#define GAME_NAME			"Game_B"
-#define GAME_VER			"0.9a"
-#define GAME_CODE_MODULE	"GameCode.dll"
+#define GAME_NAME								"Game_B"
+#define GAME_VER								"0.9a"
+#define GAME_CODE_MODULE						"GameCode.dll"
+#define GAME_CODE_MODULE_TMP					"GameCode.tmp"
+#define LOG_FILE_NAME GAME_NAME					".log"
+#define FONT_SHEET_CHARACTERS_PER_ROW			98
+#define ASSET_FILE								"Assets.dat"
+
 #define GAME_RES_WIDTH		384
 #define GAME_RES_HEIGHT		240
 #define GAME_BPP			32
@@ -141,10 +146,6 @@ typedef struct GAME_INPUT
 	int16_t DownKeyWasDown;
 	int16_t ChooseKeyWasDown;
 } GAME_INPUT;
-
-#define LOG_FILE_NAME GAME_NAME					".log"
-#define FONT_SHEET_CHARACTERS_PER_ROW			98
-#define ASSET_FILE								"Assets.dat"
 
 #pragma warning(disable: 5045)	// disable warning about structure padding
 #pragma warning(disable: 4820)	// disable warning about Spectre/Meltdown CPU vulnerability
@@ -296,7 +297,8 @@ HMODULE g_game_code_module;
 FILETIME g_game_code_last_write_time;
 
 // imports from GAMECODE.DLL
-typedef int(__cdecl* _TestFunc01)(void);
+// ReSharper disable once CppInconsistentNaming
+typedef int(__cdecl* _TestFunc01)(void);  // NOLINT(bugprone-reserved-identifier)
 _TestFunc01 TestFunc01;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
