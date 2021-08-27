@@ -10,10 +10,10 @@ MENU gMenu_OptionsScreen = { "Options", 0, _countof(gMI_OptionsScreenItems), gMI
 
 void DrawOptionsScreen(void)
 {
-	const PIXEL32 grey = {{0x6F, 0x6F, 0x6F, 0x6F}};
+	const PIXEL32 grey = { {0x6F, 0x6F, 0x6F, 0x6F} };
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
-	static PIXEL32 text_color = {{0x00, 0x00, 0x00, 0x00}};
+	static PIXEL32 text_color = { {0x00, 0x00, 0x00, 0x00} };
 	char screen_size_string[64] = { 0 };
 
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
@@ -132,7 +132,8 @@ void PPI_OptionsScreen(void)
 		}
 	}
 
-	if (PRESSED_CHOOSE) {
+	if ((PRESSED_CHOOSE) || ((PRESSED_LEFT || PRESSED_RIGHT) && gMenu_OptionsScreen.SelectedItem != gMenu_OptionsScreen.ItemCount - 1))
+	{
 		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Action();
 		PlayGameSound(&g_sound_menu_choose);
 	}
@@ -157,11 +158,12 @@ void MenuItem_OptionsScreen_Back(void)
 
 void MenuItem_OptionsScreen_SFXVolume(void)
 {
-	g_sfx_volume += 0.1f;
-	if ((uint8_t)(g_sfx_volume * 10) > 10)
-	{
-		g_sfx_volume = 0;
-	}
+	int normalized_sfx_volume = (int)(g_sfx_volume * 10.0f);
+	normalized_sfx_volume = normalized_sfx_volume + (PRESSED_LEFT ? -1 : 1);
+	normalized_sfx_volume = max(normalized_sfx_volume, 0);
+	if (normalized_sfx_volume > 10) { normalized_sfx_volume = (PRESSED_RIGHT) ? 10 : 0; }
+	g_sfx_volume = (float)normalized_sfx_volume / 10.0f;
+
 	for (uint8_t Counter = 0; Counter < NUMBER_OF_SFX_SOURCE_VOICES; Counter++)
 	{
 		g_xaudio_sfx_source_voice[Counter]->lpVtbl->SetVolume(g_xaudio_sfx_source_voice[Counter], g_sfx_volume, XAUDIO2_COMMIT_NOW);
@@ -170,21 +172,18 @@ void MenuItem_OptionsScreen_SFXVolume(void)
 
 void MenuItem_OptionsScreen_MusicVolume(void)
 {
-	g_music_volume += 0.1f;
-	if ((uint8_t)(g_music_volume * 10) > 10)
-	{
-		g_music_volume = 0;
-	}
+	int normalized_music_volume = (int)(g_music_volume * 10.0f);
+	normalized_music_volume = normalized_music_volume + (PRESSED_LEFT ? -1 : 1);
+	normalized_music_volume = max(normalized_music_volume, 0);
+	if (normalized_music_volume > 10) { normalized_music_volume = (PRESSED_RIGHT) ? 10 : 0; }
+	g_music_volume = (float)normalized_music_volume / 10.0f;
+
 	g_xaudio_music_source_voice->lpVtbl->SetVolume(g_xaudio_music_source_voice, g_music_volume, XAUDIO2_COMMIT_NOW);
 }
 
 void MenuItem_OptionsScreen_ScreenSize(void)
 {
-	g_performance_data.CurrentScaleFactor++;
-	if (g_performance_data.CurrentScaleFactor > g_performance_data.MaxScaleFactor)
-	{
-		g_performance_data.CurrentScaleFactor = 1;
-	}
-
+	g_performance_data.CurrentScaleFactor = g_performance_data.CurrentScaleFactor + (uint8_t)((PRESSED_LEFT) ? -1 : 1);
+	g_performance_data.CurrentScaleFactor = max(1, min(g_performance_data.CurrentScaleFactor, g_performance_data.MaxScaleFactor));
 	InvalidateRect(g_game_window, NULL, TRUE);
 }

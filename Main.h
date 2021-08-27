@@ -298,8 +298,8 @@ FILETIME g_game_code_last_write_time;
 
 // imports from GAMECODE.DLL
 // ReSharper disable once CppInconsistentNaming
-typedef int(__cdecl* _TestFunc01)(void);  // NOLINT(bugprone-reserved-identifier)
-_TestFunc01 TestFunc01;
+typedef int(__cdecl* _RandomMonsterEncounter)(_In_ GAME_STATE* PreviousGameState, _Inout_ GAME_STATE* CurrentGameState);  // NOLINT(bugprone-reserved-identifier)
+_RandomMonsterEncounter RandomMonsterEncounter;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
 DWORD LoadGameCode(_In_ const char* ModuleFileName);

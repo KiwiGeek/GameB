@@ -174,7 +174,7 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 		goto Exit;
 	}
 
-	if ((g_asset_loading_thread_handle = CreateThread(NULL, 0, AssetLoadingThreadProc, NULL, 0, NULL)) == NULL)
+	if ((g_asset_loading_thread_handle = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)AssetLoadingThreadProc, NULL, 0, NULL)) == NULL)
 	{
 		MessageBox(NULL, "CreateThread failed!", "Error!", MB_ICONERROR | MB_OK);
 		goto Exit;
@@ -281,35 +281,6 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 					LogMessageA(LL_WARNING, "[%s] Failed to reload game code module %s.", __FUNCTION__, GAME_CODE_MODULE);
 				}
 			}
-			/*			// ReSharper disable once CppLocalVariableMayBeConst
-			 *HANDLE game_code_file_handle = CreateFileA(GAME_CODE_MODULE, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, 0, NULL);
-			if (game_code_file_handle == INVALID_HANDLE_VALUE)
-			{
-				LogMessageA(LL_WARNING, "[%s] Failed to load game code module! Error 0x%08lx", __FUNCTION__, GetLastError());
-			}
-			else
-			{
-				FILETIME last_write_time = { 0 };
-				if (GetFileTime(game_code_file_handle, NULL, NULL, &last_write_time) == 0)
-				{
-					LogMessageA(LL_WARNING, "[%s] GetFileTime failed with 0x%08lx", __FUNCTION__, GetLastError());
-				}
-				else
-				{
-					if (last_write_time.dwHighDateTime != g_game_code_last_write_time.dwHighDateTime ||
-						last_write_time.dwLowDateTime  != g_game_code_last_write_time.dwLowDateTime)
-					{
-						if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
-						{
-							LogMessageA(LL_WARNING, "[%s] Failed to reload game code module %s.", __FUNCTION__, GAME_CODE_MODULE);
-							goto Exit;
-						}
-					}
-				}
-
-				CloseHandle(game_code_file_handle);
-
-			}*/
 
 #endif
 
@@ -396,7 +367,7 @@ DWORD LoadGameCode(_In_ const char* ModuleFileName)
 		goto Exit;
 	}
 
-	if ((TestFunc01 = (_TestFunc01)GetProcAddress(g_game_code_module, "TestFunc01")) == NULL)
+	if ((RandomMonsterEncounter = (_RandomMonsterEncounter)GetProcAddress(g_game_code_module, "RandomMonsterEncounter")) == NULL)
 	{
 		result = GetLastError();
 		goto Exit;
@@ -536,11 +507,6 @@ void ProcessPlayerInput(void)
 	if (g_window_has_focus == FALSE || g_input_enabled == FALSE)
 	{
 		return;
-	}
-
-	if (GetAsyncKeyState(VK_F2))
-	{
-		TestFunc01();
 	}
 
 	g_game_input.EscapeKeyIsDown = GetAsyncKeyState(VK_ESCAPE);

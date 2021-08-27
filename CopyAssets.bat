@@ -56,3 +56,4 @@ REM -- Copy asset bundle into debug and release folders --
 ECHO Copying asset bundle to Debug and Release folders
 copy assets.dat %GAMEBDIR%\x64\Debug\assets.dat
 copy assets.dat %GAMEBDIR%\x64\Release\assets.dat
+copy assets.dat %GAMEBDIR%\build\assets.dat

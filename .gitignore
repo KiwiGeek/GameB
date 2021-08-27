@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 CopyAssets.Log
 assets.dat
+/build

@@ -261,7 +261,7 @@ void PPI_Overworld(void)
 					random = random % 100;
 					if (random > g_player.RandomEncounterPercentage)
 					{
-						RandomMonsterEncounter();
+						RandomMonsterEncounter(&g_previous_game_state, &g_current_game_state);
 					}
 				}
 
@@ -298,8 +298,3 @@ void PortalHandler(void)
 	ASSERT(FALSE, "Player is standing on a portal, but we do not have a portal handler for it");
 }
 
-void RandomMonsterEncounter(void)
-{
-	g_previous_game_state = g_current_game_state;
-	g_current_game_state = GS_BATTLE;
-}

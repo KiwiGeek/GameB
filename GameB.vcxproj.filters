@@ -93,4 +93,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include=".vscode\launch.json" />
+    <None Include=".vscode\tasks.json" />
+  </ItemGroup>
 </Project>

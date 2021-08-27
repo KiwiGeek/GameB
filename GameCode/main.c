@@ -1,10 +1,7 @@
 // Platform-independent game code binary
 
+#include "Main.h"
 #ifdef _WIN32
-#pragma warning(disable: 4668)
-#pragma warning(push, 0)
-#include <Windows.h>
-#pragma warning(pop)
 
 BOOL WINAPI DllMain(HINSTANCE Instance, DWORD Reason, LPVOID Reserved)
 {
@@ -17,9 +14,3 @@ BOOL WINAPI DllMain(HINSTANCE Instance, DWORD Reason, LPVOID Reserved)
 }
 
 #endif
-
-_declspec(dllexport) int TestFunc01(void)  // NOLINT(clang-diagnostic-language-extension-token)
-{
-	MessageBoxA(NULL, "Yet2 another different message from TestFunc01", "Test", MB_OK | MB_ICONASTERISK);
-	return 0;
-}
