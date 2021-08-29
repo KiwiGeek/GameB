@@ -16,26 +16,9 @@ void DrawOverworldScreen(void)
 		local_frame_counter = 0;
 		memset(&text_color, 0, sizeof(PIXEL32));
 		brightness_adjustment = -255;
-		g_input_enabled = FALSE;
 	}
 
-	if (local_frame_counter == 10)
-	{
-		brightness_adjustment = -128;
-	}
-	if (local_frame_counter == 20)
-	{
-		brightness_adjustment = -64;
-	}
-	if (local_frame_counter == 30)
-	{
-		brightness_adjustment = -32;
-	}
-	if (local_frame_counter == 40)
-	{
-		brightness_adjustment = 0;
-		g_input_enabled = TRUE;
-	}
+	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, &brightness_adjustment);
 
 	if (local_frame_counter == 60)
 	{
@@ -264,7 +247,7 @@ void PPI_Overworld(void)
 						if (random > g_player.RandomEncounterPercentage)
 						{
 							g_player.StepsSinceLastRandomMonsterEncounter = g_player.StepsTaken;
-							RandomMonsterEncounter(&g_previous_game_state, &g_current_game_state);
+							RandomMonsterEncounter();
 						}
 					}
 				}
@@ -302,3 +285,8 @@ void PortalHandler(void)
 	ASSERT(FALSE, "Player is standing on a portal, but we do not have a portal handler for it");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 }
 
+void RandomMonsterEncounter(void)
+{
+	g_previous_game_state = g_current_game_state;
+	g_current_game_state = GS_BATTLE;
+}

@@ -21,3 +21,4 @@ GAME_AREA g_dungeon1_area;
 void DrawOverworldScreen(void);
 void PPI_Overworld(void);
 void PortalHandler(void);
+void RandomMonsterEncounter(void);

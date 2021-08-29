@@ -1,6 +1,11 @@
 #include "Main.h"
 #include "Battle.h"
 
+void GenerateMonster(void)
+{
+	
+}
+
 void DrawBattle(void)
 {
 	static uint64_t local_frame_counter;
@@ -24,23 +29,7 @@ void DrawBattle(void)
 		PlayGameMusic(&g_music_battle01, TRUE, FALSE);
 	}
 
-	if (local_frame_counter == 10)
-	{
-		brightness_adjustment = -128;
-	}
-	if (local_frame_counter == 20)
-	{
-		brightness_adjustment = -64;
-	}
-	if (local_frame_counter == 30)
-	{
-		brightness_adjustment = -32;
-	}
-	if (local_frame_counter == 40)
-	{
-		brightness_adjustment = 0;
-		g_input_enabled = TRUE;
-	}
+	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, &brightness_adjustment);
 
 	BlitBackgroundToBuffer(&g_overworld01.GameBitmap, brightness_adjustment);
 

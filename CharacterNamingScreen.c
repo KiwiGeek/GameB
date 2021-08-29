@@ -92,7 +92,7 @@ void DrawCharacterNamingScreen(void)
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
 		local_frame_counter = 0;
-		memset(&text_color, 0, sizeof(PIXEL32));
+		memset(&text_color, 0xFF, sizeof(PIXEL32));
 		brightness_adjustment = -255;
 		gMenu_CharacterNaming.SelectedItem = 0;
 		g_input_enabled = FALSE;
@@ -100,35 +100,7 @@ void DrawCharacterNamingScreen(void)
 
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	if (local_frame_counter == 10)
-	{
-		text_color.colors.Red = 64;
-		text_color.colors.Green = 64;
-		text_color.colors.Blue = 64;
-		brightness_adjustment = -128;
-	}
-	if (local_frame_counter == 20)
-	{
-		text_color.colors.Red = 128;
-		text_color.colors.Green = 128;
-		text_color.colors.Blue = 128;
-		brightness_adjustment = -64;
-	}
-	if (local_frame_counter == 30)
-	{
-		text_color.colors.Red = 192;
-		text_color.colors.Green = 192;
-		text_color.colors.Blue = 192;
-		brightness_adjustment = -32;
-	}
-	if (local_frame_counter == 40)
-	{
-		text_color.colors.Red = 255;
-		text_color.colors.Green = 255;
-		text_color.colors.Blue = 255;
-		brightness_adjustment = 0;
-		g_input_enabled = TRUE;
-	}
+	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, &brightness_adjustment);
 
 	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g_6x7_font, &text_color, (int16_t)((GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2)), 16);
 	Blit32BppBitmapToBuffer(&g_player.Sprite[SUIT_0][FACING_DOWN_0], 153, 85, brightness_adjustment);

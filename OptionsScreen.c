@@ -19,41 +19,13 @@ void DrawOptionsScreen(void)
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
 		local_frame_counter = 0;
-		memset(&text_color, 0, sizeof(PIXEL32));
 		gMenu_OptionsScreen.SelectedItem = 0;
 		g_input_enabled = FALSE;
 	}
 
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	if (local_frame_counter == 10)
-	{
-		text_color.colors.Red = 64;
-		text_color.colors.Green = 64;
-		text_color.colors.Blue = 64;
-	}
-
-	if (local_frame_counter == 20)
-	{
-		text_color.colors.Red = 128;
-		text_color.colors.Green = 128;
-		text_color.colors.Blue = 128;
-	}
-
-	if (local_frame_counter == 30)
-	{
-		text_color.colors.Red = 192;
-		text_color.colors.Green = 192;
-		text_color.colors.Blue = 192;
-	}
-
-	if (local_frame_counter == 40)
-	{
-		text_color.colors.Red = 255;
-		text_color.colors.Green = 255;
-		text_color.colors.Blue = 255;
-		g_input_enabled = TRUE;
-	}
+	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, NULL);
 
 	for (uint8_t menu_item = 0; menu_item < gMenu_OptionsScreen.ItemCount; menu_item++)
 	{
@@ -72,10 +44,7 @@ void DrawOptionsScreen(void)
 	{
 		if (volume >= (uint8_t)(g_sfx_volume * 10))
 		{
-			if (text_color.colors.Red == 255)
-			{
-				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_SFXVolume.Y);
-			}
+			BlitStringToBuffer("\xf2", &g_6x7_font, &grey, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_SFXVolume.Y);
 		}
 		else
 		{
@@ -87,10 +56,7 @@ void DrawOptionsScreen(void)
 	{
 		if (volume >= (uint8_t)(g_music_volume * 10))
 		{
-			if (text_color.colors.Red == 255)
-			{
-				BlitStringToBuffer("\xf2", &g_6x7_font, &grey, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_MusicVolume.Y);
-			}
+			BlitStringToBuffer("\xf2", &g_6x7_font, &grey, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_MusicVolume.Y);
 		}
 		else
 		{

@@ -30,6 +30,13 @@ int g_font_character_pixel_offset[] = {
 	/*    */93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,97,93,93,93,93,93,93,93,93,93,93,93,93,93
 };
 
+const int16_t g_fade_brightness_gradient[] = {
+	-255, -255, -255, -255, -255, -255, -255, -255, -255, -255,
+	-128, -128, -128, -128, -128, -128, -128, -128, -128, -128,
+	-64, -64, -64, -64, -64, -64, -64, -64, -64, -64,
+	-32, -32, -32, -32, -32, -32, -32, -32, -32, -32
+};
+
 CRITICAL_SECTION g_log_critical_section;
 BOOL g_window_has_focus;
 REGISTRY_PARAMS g_registry_params;
@@ -74,11 +81,11 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 
 	LogMessageA(LL_INFO, "[%s] %s %s is starting.", __FUNCTION__, GAME_NAME, GAME_VER);
 
-	if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Failed to load module %s.", __FUNCTION__, GAME_CODE_MODULE);
-		goto Exit;
-	}
+	//if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
+	//{
+	//	LogMessageA(LL_ERROR, "[%s] Failed to load module %s.", __FUNCTION__, GAME_CODE_MODULE);
+	//	goto Exit;
+	//}
 
 	if (GameIsAlreadyRunning())
 	{
@@ -249,8 +256,6 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 
 		if (g_performance_data.TotalFramesRendered % CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES == 0)
 		{
-
-
 			GetSystemTimeAsFileTime((LPFILETIME)&g_performance_data.CurrentSystemTime);
 
 			GetProcessTimes(GetCurrentProcess(),
@@ -272,17 +277,15 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 
 			FindFirstConnectedGamepad();
 
-#ifdef _DEBUG
-
-			if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
-			{
-				if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
-				{
-					LogMessageA(LL_WARNING, "[%s] Failed to reload game code module %s.", __FUNCTION__, GAME_CODE_MODULE);
-				}
-			}
-
-#endif
+//#ifdef _DEBUG
+			//if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
+			//{
+			//	if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
+			//	{
+			//		LogMessageA(LL_WARNING, "[%s] Failed to reload game code module %s.", __FUNCTION__, GAME_CODE_MODULE);
+			//	}
+			//}
+//#endif
 
 			elapsed_microseconds_accumulator_raw = 0;
 			elapsed_microseconds_accumulator_cooked = 0;
@@ -337,55 +340,55 @@ LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ 
 	return result;
 }
 
-DWORD LoadGameCode(_In_ const char* ModuleFileName)
-{
-	DWORD result = ERROR_SUCCESS;
-
-	if (g_game_code_module)
-	{
-		FreeLibrary(g_game_code_module);
-		g_game_code_module = NULL;
-	}
-
-	if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
-	{
-		if (DeleteFileA(GAME_CODE_MODULE) == 0)
-		{
-			LogMessageA(LL_WARNING, "[%s] Failed to delete file %s.  Error 0x%08lx!", __FUNCTION__, GAME_CODE_MODULE, GetLastError());
-		}
-
-		if (MoveFileA(GAME_CODE_MODULE_TMP, GAME_CODE_MODULE) == 0)
-		{
-			LogMessageA(LL_WARNING, "[%s] Failed to replace file %s with %s.  Error 0x%08lx!", __FUNCTION__, GAME_CODE_MODULE, GAME_CODE_MODULE_TMP, GetLastError());
-		}
-	}
-
-	g_game_code_module = LoadLibraryA(ModuleFileName);
-	if (g_game_code_module == NULL)
-	{
-		result = GetLastError();
-		goto Exit;
-	}
-
-	if ((RandomMonsterEncounter = (_RandomMonsterEncounter)GetProcAddress(g_game_code_module, "RandomMonsterEncounter")) == NULL)
-	{
-		result = GetLastError();
-		goto Exit;
-	}
-
-Exit:
-
-	if (result == ERROR_SUCCESS)
-	{
-		LogMessageA(LL_INFO, "[%s] Successfully loaded code from module %s!", __FUNCTION__, GAME_CODE_MODULE);
-	}
-	else
-	{
-		LogMessageA(LL_ERROR, "[%s] Function failed with error 0x%08lx!", __FUNCTION__, result);
-	}
-
-	return result;
-}
+//DWORD LoadGameCode(_In_ const char* ModuleFileName)
+//{
+//	DWORD result = ERROR_SUCCESS;
+//
+//	if (g_game_code_module)
+//	{
+//		FreeLibrary(g_game_code_module);
+//		g_game_code_module = NULL;
+//	}
+//
+//	if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
+//	{
+//		if (DeleteFileA(GAME_CODE_MODULE) == 0)
+//		{
+//			LogMessageA(LL_WARNING, "[%s] Failed to delete file %s.  Error 0x%08lx!", __FUNCTION__, GAME_CODE_MODULE, GetLastError());
+//		}
+//
+//		if (MoveFileA(GAME_CODE_MODULE_TMP, GAME_CODE_MODULE) == 0)
+//		{
+//			LogMessageA(LL_WARNING, "[%s] Failed to replace file %s with %s.  Error 0x%08lx!", __FUNCTION__, GAME_CODE_MODULE, GAME_CODE_MODULE_TMP, GetLastError());
+//		}
+//	}
+//
+//	g_game_code_module = LoadLibraryA(ModuleFileName);
+//	if (g_game_code_module == NULL)
+//	{
+//		result = GetLastError();
+//		goto Exit;
+//	}
+//
+//	if ((RandomMonsterEncounter = (_RandomMonsterEncounter)GetProcAddress(g_game_code_module, "RandomMonsterEncounter")) == NULL)
+//	{
+//		result = GetLastError();
+//		goto Exit;
+//	}
+//
+//Exit:
+//
+//	if (result == ERROR_SUCCESS)
+//	{
+//		LogMessageA(LL_INFO, "[%s] Successfully loaded code from module %s!", __FUNCTION__, GAME_CODE_MODULE);
+//	}
+//	else
+//	{
+//		LogMessageA(LL_ERROR, "[%s] Function failed with error 0x%08lx!", __FUNCTION__, result);
+//	}
+//
+//	return result;
+//}
 
 DWORD CreateMainGameWindow(void)
 {
@@ -1915,8 +1918,6 @@ void InitializeGlobals(void)
 	g_game_is_running = TRUE;
 	g_gamepad_id = -1;
 
-#pragma warning(suppress: 4127)
-	ASSERT((_countof(g_passable_tiles) == 3), "Wrong count of passable tiles!");
 	g_passable_tiles[0] = TILE_GRASS_01;
 	g_passable_tiles[1] = TILE_BRICK_01;
 	g_passable_tiles[2] = TILE_PORTAL_01;
@@ -2012,10 +2013,48 @@ void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ c
 	}
 }
 
+void ApplyFadeIn(_In_ uint64_t FrameCounter, _In_ PIXEL32 DefaultTextColor, _Inout_ PIXEL32* TextColor, _Inout_opt_ int16_t* BrightnessAdjustment)
+{
+	#pragma warning(suppress: 4127)
+	ASSERT(_countof(g_fade_brightness_gradient) == FADE_DURATION_FRAMES, "g_fade_brightness_gradient has too few elements!");
+
+	int16_t local_brightness_adjustment;
+
+	if (FrameCounter > FADE_DURATION_FRAMES)
+	{
+		return;
+	}
+
+	if (FrameCounter == FADE_DURATION_FRAMES)
+	{
+		g_input_enabled = TRUE;
+
+		local_brightness_adjustment = 0;
+	}
+	else
+	{
+		g_input_enabled = FALSE;
+
+		local_brightness_adjustment = g_fade_brightness_gradient[FrameCounter];
+	}
+
+	if (BrightnessAdjustment != NULL)
+	{
+		*BrightnessAdjustment = local_brightness_adjustment;
+	}
+
+	TextColor->colors.Red = (uint8_t)(min(255, max(0, DefaultTextColor.colors.Red + local_brightness_adjustment)));
+
+	TextColor->colors.Blue = (uint8_t)(min(255, max(0, DefaultTextColor.colors.Blue + local_brightness_adjustment)));
+
+	TextColor->colors.Green = (uint8_t)(min(255, max(0, DefaultTextColor.colors.Green + local_brightness_adjustment)));
+}
+
 // ScreenDestination can be calculated by subtracting CameraPos from WorldDestination, so is unnecessary
 // Can remove check for assets loaded in PPI_OpeningSplashScreen as input is locked until it is.
 // put in a starting call to find gamepads before 2seconds pass.
 // Window Width in DrawWindow doesn't need to be a multiple of 4.
 // horizontally/vertically centered off by one in DrawWindow (all the text calculations too?)
 // full screen window shadow at (0,0)
-/// DrawWindow if centered should return the positions chosen, so it's actually useful.
+// DrawWindow if centered should return the positions chosen, so it's actually useful.
+// Removed brightness check from grey in options screen

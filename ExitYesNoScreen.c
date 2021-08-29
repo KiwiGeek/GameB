@@ -24,34 +24,7 @@ void DrawExitYesNoScreen(void)
 
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	if (local_frame_counter == 10)
-	{
-		text_color.colors.Red = 64;
-		text_color.colors.Green = 64;
-		text_color.colors.Blue = 64;
-	}
-
-	if (local_frame_counter == 20)
-	{
-		text_color.colors.Red = 128;
-		text_color.colors.Green = 128;
-		text_color.colors.Blue = 128;
-	}
-
-	if (local_frame_counter == 30)
-	{
-		text_color.colors.Red = 192;
-		text_color.colors.Green = 192;
-		text_color.colors.Blue = 192;
-	}
-
-	if (local_frame_counter == 40)
-	{
-		text_color.colors.Red = 255;
-		text_color.colors.Green = 255;
-		text_color.colors.Blue = 255;
-		g_input_enabled = TRUE;
-	}
+	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, NULL);
 
 	BlitStringToBuffer(gMenu_ExitYesNo.Name, &g_6x7_font, &text_color, (int16_t)((GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_ExitYesNo.Name) * 6 / 2)), 60);
 	BlitStringToBuffer(gMenu_ExitYesNo.Items[0]->Name, &g_6x7_font, &text_color, gMenu_ExitYesNo.Items[0]->X, gMenu_ExitYesNo.Items[0]->Y);

@@ -33,6 +33,7 @@ void DrawOpeningSplashScreen(void)
 	{
 		blink = !blink;
 	}
+
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
 	if (WaitForSingleObject(g_asset_loading_thread_handle, 0) != WAIT_OBJECT_0)
@@ -85,8 +86,6 @@ void DrawOpeningSplashScreen(void)
 
 				g_previous_game_state = g_current_game_state;
 				g_current_game_state = GS_TITLE_SCREEN;
-
-				//g_current_game_state = GS_OVERWORLD;
 			}
 		}
 

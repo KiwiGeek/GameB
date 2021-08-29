@@ -39,8 +39,8 @@
 
 #define GAME_NAME								"Game_B"
 #define GAME_VER								"0.9a"
-#define GAME_CODE_MODULE						"GameCode.dll"
-#define GAME_CODE_MODULE_TMP					"GameCode.tmp"
+//#define GAME_CODE_MODULE						"GameCode.dll"
+//#define GAME_CODE_MODULE_TMP					"GameCode.tmp"
 #define LOG_FILE_NAME GAME_NAME					".log"
 #define FONT_SHEET_CHARACTERS_PER_ROW			98
 #define ASSET_FILE								"Assets.dat"
@@ -68,6 +68,8 @@
 #define FACING_UPWARD_1							10
 #define FACING_UPWARD_2							11
 #define RANDOM_MONSTER_GRACE_PERIOD_STEPS		3
+#define FADE_DURATION_FRAMES					40
+#define COLOR_TEXT								(PIXEL32){ .bytes = 0xFCFCFCFF }
 
 #define PRESSED_UP g_game_input.UpKeyIsDown && !g_game_input.UpKeyWasDown
 #define PRESSED_DOWN g_game_input.DownKeyIsDown && !g_game_input.DownKeyWasDown
@@ -297,16 +299,16 @@ HANDLE g_asset_loading_thread_handle;
 HANDLE g_essential_assets_loaded_event;
 BOOL g_input_enabled;
 BOOL g_game_is_running;
-HMODULE g_game_code_module;
-FILETIME g_game_code_last_write_time;
+//HMODULE g_game_code_module;
+//FILETIME g_game_code_last_write_time;
 
 // imports from GAMECODE.DLL
 // ReSharper disable once CppInconsistentNaming
-typedef int(__cdecl* _RandomMonsterEncounter)(_In_ GAME_STATE* PreviousGameState, _Inout_ GAME_STATE* CurrentGameState);  // NOLINT(bugprone-reserved-identifier)
-_RandomMonsterEncounter RandomMonsterEncounter;
+//typedef int(__cdecl* _RandomMonsterEncounter)(_In_ GAME_STATE* PreviousGameState, _Inout_ GAME_STATE* CurrentGameState);  // NOLINT(bugprone-reserved-identifier)
+//_RandomMonsterEncounter RandomMonsterEncounter;
 
 LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ WPARAM WParam, _In_ LPARAM LParam);
-DWORD LoadGameCode(_In_ const char* ModuleFileName);
+//DWORD LoadGameCode(_In_ const char* ModuleFileName);
 DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
 void ProcessPlayerInput(void);
@@ -334,3 +336,4 @@ BOOL MusicIsPlaying(void);
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
 void InitializeGlobals(void);
 void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ int16_t Width, _In_ int16_t Height, _In_ PIXEL32 BackgroundColor, _In_ DWORD Flags);
+void ApplyFadeIn(_In_ uint64_t FrameCounter, _In_ PIXEL32 DefaultTextColor, _Inout_ PIXEL32* TextColor, _Inout_opt_ int16_t* BrightnessAdjustment);
