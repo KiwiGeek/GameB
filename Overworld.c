@@ -1,5 +1,5 @@
 #include "Main.h"
-#include "OverworldScreen.h"
+#include "Overworld.h"
 
 BOOL fade;
 
@@ -69,7 +69,7 @@ void PPI_Overworld(void)
 		return;
 	}
 
-	ASSERT((g_camera.X <= g_current_area.Area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.Area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!");
+	ASSERT((g_camera.X <= g_current_area.Area.right - GAME_RES_WIDTH) && (g_camera.Y <= g_current_area.Area.bottom - GAME_RES_HEIGHT), "Camera is out of bounds!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 
 	if (!g_player.MovementRemaining)
 	{
@@ -238,10 +238,10 @@ void PPI_Overworld(void)
 			}
 			case 0:
 			{
-				ASSERT(g_player.ScreenPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.");
-				ASSERT(g_player.ScreenPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.");
-				ASSERT(g_player.WorldPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.");
-				ASSERT(g_player.WorldPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.");
+				ASSERT(g_player.ScreenPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.");  // NOLINT(clang-diagnostic-extra-semi-stmt)
+				ASSERT(g_player.ScreenPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.");  // NOLINT(clang-diagnostic-extra-semi-stmt)
+				ASSERT(g_player.WorldPos.X % 16 == 0, "Player did not land on a position that is a multiple of 16.");  // NOLINT(clang-diagnostic-extra-semi-stmt)
+				ASSERT(g_player.WorldPos.Y % 16 == 0, "Player did not land on a position that is a multiple of 16.");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 
 				g_player.SpriteIndex = 0;
 
@@ -255,13 +255,17 @@ void PPI_Overworld(void)
 				}
 				else
 				{
-					// Random monster encounter?
-					DWORD random = 0;
-					rand_s((unsigned int*)&random);
-					random = random % 100;
-					if (random > g_player.RandomEncounterPercentage)
+					if (g_player.StepsTaken - g_player.StepsSinceLastRandomMonsterEncounter > RANDOM_MONSTER_GRACE_PERIOD_STEPS)
 					{
-						RandomMonsterEncounter(&g_previous_game_state, &g_current_game_state);
+						// Random monster encounter?
+						DWORD random = 0;
+						rand_s((unsigned int*)&random);
+						random = random % 100;
+						if (random > g_player.RandomEncounterPercentage)
+						{
+							g_player.StepsSinceLastRandomMonsterEncounter = g_player.StepsTaken;
+							RandomMonsterEncounter(&g_previous_game_state, &g_current_game_state);
+						}
 					}
 				}
 
@@ -295,6 +299,6 @@ void PortalHandler(void)
 		}
 	}
 
-	ASSERT(FALSE, "Player is standing on a portal, but we do not have a portal handler for it");
+	ASSERT(FALSE, "Player is standing on a portal, but we do not have a portal handler for it");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 }
 

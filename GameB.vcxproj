@@ -196,37 +196,33 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BattleScreen.c" />
+    <ClCompile Include="Battle.c" />
     <ClCompile Include="CharacterNamingScreen.c" />
     <ClCompile Include="ExitYesNoScreen.c" />
-    <ClCompile Include="GamepadUnpluggedScreen.c" />
+    <ClCompile Include="GamepadUnplugged.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="miniz.c" />
-    <ClCompile Include="NewGameAreYouSureScreen.c" />
+    <ClCompile Include="NewGameAreYouSure.c" />
     <ClCompile Include="OpeningSplashScreen.c" />
     <ClCompile Include="OptionsScreen.c" />
-    <ClCompile Include="OverworldScreen.c" />
+    <ClCompile Include="Overworld.c" />
     <ClCompile Include="stb_vorbis.c" />
     <ClCompile Include="TitleScreen.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BattleScreen.h" />
+    <ClInclude Include="Battle.h" />
     <ClInclude Include="CharacterNamingScreen.h" />
     <ClInclude Include="ExitYesNoScreen.h" />
-    <ClInclude Include="GamepadUnpluggedScreen.h" />
+    <ClInclude Include="GamepadUnplugged.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="miniz.h" />
-    <ClInclude Include="NewGameAreYouSureScreen.h" />
+    <ClInclude Include="NewGameAreYouSure.h" />
     <ClInclude Include="OpeningSplashScreen.h" />
     <ClInclude Include="OptionsScreen.h" />
-    <ClInclude Include="OverworldScreen.h" />
+    <ClInclude Include="Overworld.h" />
     <ClInclude Include="stb_vorbis.h" />
     <ClInclude Include="Tiles.h" />
     <ClInclude Include="TitleScreen.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include=".vscode\launch.json" />
-    <None Include=".vscode\tasks.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

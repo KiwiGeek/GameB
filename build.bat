@@ -8,7 +8,7 @@ set LinkerConsole=/Fe"MyMiniz.exe" -nologo -link -subsystem:console -incremental
 
 pushd build
 cl %CompilerDebug% -LD  ../GameCode/Main.c ../GameCode/Overworld.c %Linker% -EXPORT:RandomMonsterEncounter -OUT:GameCode.tmp
-cl %CompilerDebug% ../Main.c ../BattleScreen.c ../CharacterNamingScreen.c ../ExitYesNoScreen.c  ../GamepadUnpluggedScreen.c ../miniz.c ../NewGameAreYouSureScreen.c ../OpeningSplashScreen.c ../OptionsScreen.c ../OverworldScreen.c ../stb_vorbis.c ../TitleScreen.c %Linker%
+cl %CompilerDebug% ../Main.c ../Battle.c ../CharacterNamingScreen.c ../ExitYesNoScreen.c  ../GamepadUnplugged.c ../miniz.c ../NewGameAreYouSure.c ../OpeningSplashScreen.c ../OptionsScreen.c ../Overworld.c ../stb_vorbis.c ../TitleScreen.c %Linker%
 cl %CompilerDebug% ../MyMiniz/Main.c ../MyMiniz/miniz.c %LinkerConsole%
 del *.obj
 popd

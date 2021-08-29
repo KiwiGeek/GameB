@@ -1,4 +1,4 @@
 #pragma once
 
-void DrawBattleScreen(void);
+void DrawBattle(void);
 void PPI_Battle(void);

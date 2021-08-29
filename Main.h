@@ -45,28 +45,29 @@
 #define FONT_SHEET_CHARACTERS_PER_ROW			98
 #define ASSET_FILE								"Assets.dat"
 
-#define GAME_RES_WIDTH		384
-#define GAME_RES_HEIGHT		240
-#define GAME_BPP			32
+#define GAME_RES_WIDTH							384
+#define GAME_RES_HEIGHT							240
+#define GAME_BPP								32
 #define GAME_DRAWING_AREA_MEMORY_SIZE			(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
 #define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
 #define TARGET_MICROSECONDS_PER_FRAME			16667ULL
 #define NUMBER_OF_SFX_SOURCE_VOICES				4
-#define SUIT_0				0
-#define SUIT_1				1
-#define SUIT_2				2
-#define FACING_DOWN_0		0
-#define FACING_DOWN_1		1
-#define FACING_DOWN_2		2
-#define FACING_LEFT_0		3
-#define FACING_LEFT_1		4
-#define FACING_LEFT_2		5
-#define FACING_RIGHT_0		6
-#define FACING_RIGHT_1		7
-#define FACING_RIGHT_2		8
-#define FACING_UPWARD_0		9
-#define FACING_UPWARD_1		10
-#define FACING_UPWARD_2		11
+#define SUIT_0									0
+#define SUIT_1									1
+#define SUIT_2									2
+#define FACING_DOWN_0							0
+#define FACING_DOWN_1							1
+#define FACING_DOWN_2							2
+#define FACING_LEFT_0							3
+#define FACING_LEFT_1							4
+#define FACING_LEFT_2							5
+#define FACING_RIGHT_0							6
+#define FACING_RIGHT_1							7
+#define FACING_RIGHT_2							8
+#define FACING_UPWARD_0							9
+#define FACING_UPWARD_1							10
+#define FACING_UPWARD_2							11
+#define RANDOM_MONSTER_GRACE_PERIOD_STEPS		3
 
 #define PRESSED_UP g_game_input.UpKeyIsDown && !g_game_input.UpKeyWasDown
 #define PRESSED_DOWN g_game_input.DownKeyIsDown && !g_game_input.DownKeyWasDown
@@ -232,6 +233,7 @@ typedef struct HERO
 	uint8_t SpriteIndex;
 	uint64_t StepsTaken;
 	uint8_t RandomEncounterPercentage;
+	uint64_t StepsSinceLastRandomMonsterEncounter;
 	int16_t HP;
 	int32_t XP;
 	int16_t Money;
@@ -268,6 +270,8 @@ typedef struct MENU
 GAME_PERF_DATA g_performance_data;
 GAME_BITMAP g_back_buffer;
 GAME_BITMAP g_6x7_font;
+GAME_BITMAP g_battle_scene_grasslands01;
+GAME_BITMAP g_battle_scene_dungeon01;
 GAMEMAP g_overworld01;
 GAME_STATE g_current_game_state;
 GAME_STATE g_previous_game_state;

@@ -1,13 +1,13 @@
 #include "Main.h"
 #include "CharacterNamingScreen.h"
 #include "ExitYesNoScreen.h"
-#include "GamepadUnpluggedScreen.h"
+#include "GamepadUnplugged.h"
 #include "OpeningSplashScreen.h"
 #include "OptionsScreen.h"
-#include "OverworldScreen.h"
-#include "BattleScreen.h"
+#include "Overworld.h"
+#include "Battle.h"
 #include "TitleScreen.h"
-#include "NewGameAreYouSureScreen.h"
+#include "NewGameAreYouSure.h"
 #include "stb_vorbis.h"
 #include "miniz.h"
 
@@ -707,7 +707,7 @@ void RenderFrameGraphics(void)
 
 		case GS_BATTLE:
 		{
-			DrawBattleScreen();
+			DrawBattle();
 			break;
 		}
 
@@ -1210,31 +1210,96 @@ void DrawDebugInfo(void)
 	char debug_text_buffer[64] = { 0 };
 	const PIXEL32 white = { {0xFF,0xFF, 0xFF, 0xFF} };
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSRaw:  %.01f", (double)g_performance_data.RawFPSAverage);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 0);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, (8 * 0));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSCookd:%.01f", (double)g_performance_data.CookedFPSAverage);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 8);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, (8 * 1));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "MinTimer:%.02f", (double)g_performance_data.MinimumTimerResolution / 10000.0);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 16);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 2));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "MaxTimer:%.02f", (double)g_performance_data.MaximumTimerResolution / 10000.0);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 24);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 3));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CurTimer:%.02f", (double)g_performance_data.CurrentTimerResolution / 10000.0);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 32);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 4));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Handles: %lu", g_performance_data.HandleCount);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 40);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 5));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Memory:  %i KB", (int)(g_performance_data.MemInfo.PrivateUsage / 1024));
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 48);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 6));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CPU:     %.02f%%", g_performance_data.CPUPercent);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 56);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 7));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FramesT: %llu", g_performance_data.TotalFramesRendered);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 64);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 8));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "ScreenXY:%hu,%hu", g_player.ScreenPos.X, g_player.ScreenPos.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 72);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 9));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "WorldXY: %hu,%hu", g_player.WorldPos.X, g_player.WorldPos.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 80);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 10));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CameraXY:%hu,%hu", g_camera.X, g_camera.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 88);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 11));
 	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Movement:%u", g_player.MovementRemaining);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, 96);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 12));
+	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Steps:   %llu", g_player.StepsTaken);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, (8 * 13));
+
+	if (g_current_game_state == GS_OVERWORLD)
+	{
+		// the tile the player is currently on
+		_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][g_player.WorldPos.X / 16], debug_text_buffer, 4, 10);
+		BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4));
+
+		// the tile above the player
+		if (g_player.ScreenPos.Y >= 16)
+		{
+			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][g_player.WorldPos.X / 16], debug_text_buffer, 4, 10);
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
+		}
+
+		// the tile below the player
+		if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
+		{
+			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][g_player.WorldPos.X / 16], debug_text_buffer, 4, 10);
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
+		}
+
+		// the tile to the right of the player
+		if (g_player.ScreenPos.X < GAME_RES_WIDTH - 16)
+		{
+			_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][(g_player.WorldPos.X / 16) + 1], debug_text_buffer, 4, 10);
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4));
+		}
+
+		// the tile to the left of the player
+		if (g_player.ScreenPos.X >= 16)
+		{
+			_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][(g_player.WorldPos.X / 16) - 1], debug_text_buffer, 4, 10);
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4));
+		}
+
+		// the tile to the upper left of the player
+		if (g_player.ScreenPos.X >= 16 && g_player.ScreenPos.Y >= 16)
+		{
+			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][(g_player.WorldPos.X / 16) - 1], debug_text_buffer, 4, 10);
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
+		}
+
+		// the tile to the upper right of the player
+		if (g_player.ScreenPos.X < GAME_RES_WIDTH - 16 && g_player.ScreenPos.Y >= 16)
+		{
+			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][(g_player.WorldPos.X / 16) + 1], debug_text_buffer, 4, 10);
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
+		}
+
+		// the tile to the bottom left of the player
+		if (g_player.ScreenPos.X >= 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
+		{
+			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16) - 1], debug_text_buffer, 4, 10);
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
+		}
+
+		// the tile to the bottom right of the player
+		if (g_player.ScreenPos.X < GAME_RES_WIDTH - 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
+		{
+			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16) + 1], debug_text_buffer, 4, 10);
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
+		}
+	}
 }
 
 void FindFirstConnectedGamepad(void)
@@ -1836,6 +1901,8 @@ DWORD AssetLoadingThreadProc(_In_ LPVOID Param)
 	LOAD_ASSET("Hero_Suit0_Up_Standing.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_0]);
 	LOAD_ASSET("Hero_Suit0_Up_Walk1.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_1]);
 	LOAD_ASSET("Hero_Suit0_Up_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_2]);
+	LOAD_ASSET("Grasslands01.bmpx", RT_BMPX, &g_battle_scene_grasslands01);
+	LOAD_ASSET("Dungeon01.bmpx", RT_BMPX, &g_battle_scene_dungeon01);
 	// ReSharper enable CppClangTidyClangDiagnosticExtraSemiStmt
 
 Exit:
@@ -1896,8 +1963,8 @@ void InitializeGlobals(void)
 
 void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ const int16_t Height, _In_ const PIXEL32 BackgroundColor, _In_ const DWORD Flags)
 {
-	ASSERT(Width % sizeof(PIXEL32) == 0, "Window width must be a multiple of 4!");			// BUT WHY?
-	ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!");
+	//ASSERT(Width % sizeof(PIXEL32) == 0, "Window width must be a multiple of 4!");			// BUT WHY?
+	//ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!");
 
 	if (Flags & WF_HORIZONTALLY_CENTERED)
 	{

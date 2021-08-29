@@ -22,6 +22,9 @@ MyMiniz.exe Assets.dat + .\Assets\Hero_Suit0_Up_Walk1.bmpx >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Hero_Suit0_Up_Walk2.bmpx >> CopyAssets.log
 MyMiniz.exe Assets.dat + .\Assets\Maps\Overworld01.bmpx >> CopyAssets.log
 
+MyMiniz.exe Assets.dat + .\Assets\BattleScenes\Grasslands01.bmpx >> CopyAssets.log
+MyMiniz.exe Assets.dat + .\Assets\BattleScenes\Dungeon01.bmpx >> CopyAssets.log
+
 REM --- SOUNDS ---
 ECHO Bundling sounds into asset archive
 MyMiniz.exe Assets.dat + .\Assets\MenuChoose.wav >> CopyAssets.log
