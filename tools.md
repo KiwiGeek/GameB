@@ -7,3 +7,6 @@
 |Tiled|[https://www.mapeditor.org/](https://www.mapeditor.org/)|Tile terrain editor|
 |BFXr|[https://www.bfxr.net/](https://www.bfxr.net/)|Sound effect generator|
 |Aseprite|[https://www.aseprite.org/](https://www.aseprite.org/)<br/>[Pre-compiled 1.3](https://drive.google.com/drive/folders/14eTTVRPGi-18h5Oe9-aW53XF2VJCVNCj)<br/>[GitHub Source](https://github.com/aseprite/aseprite)<br/>[Reddit instructions on building](https://old.reddit.com/r/PixelArt/comments/i387m1/guide_how_to_build_aseprite_from_source_aseprite/)|Pixel Art character editor|
+|Clang+LLVM|[https://github.com/llvm/llvm-project/releases/](https://github.com/llvm/llvm-project/releases/)|Compiler and build tools|
+|WinDbxG|[https://www.microsoft.com/en-us/p/windbg-preview/9pgjgd53tn86](https://www.microsoft.com/en-us/p/windbg-preview/9pgjgd53tn86)|Windows Debugger|
+|ProcDump|[https://live.sysinternals.com](https://live.sysinternals.com)|SysInternals tool|

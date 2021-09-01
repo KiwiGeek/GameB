@@ -6,12 +6,12 @@ void DrawGamepadUnpluggedScreen(void)
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 	BlitStringToBuffer("Gamepad Disconnected!",
 		&g_6x7_font,
-		&((PIXEL32) {{0xff, 0xff, 0xff, 0xff}}),
+		&COLOR_NES_WHITE,
 		(GAME_RES_WIDTH / 2) - (int16_t)(21 * 6 / 2),
 		100);
 	BlitStringToBuffer("Reconnect it, or press escape to continue using the keyboard.",
 		&g_6x7_font,
-		&((PIXEL32) {{0xff, 0xff, 0xff, 0xff}}),
+		&COLOR_NES_WHITE,
 		(GAME_RES_WIDTH / 2) - (int16_t)(61 * 6 / 2),
 		115);
 }

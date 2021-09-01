@@ -10,7 +10,7 @@ MENU gMenu_OptionsScreen = { "Options", 0, _countof(gMI_OptionsScreenItems), gMI
 
 void DrawOptionsScreen(void)
 {
-	const PIXEL32 grey = { {0x6F, 0x6F, 0x6F, 0x6F} };
+	const PIXEL32 grey = COLOR_NES_GRAY;
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
 	static PIXEL32 text_color = { {0x00, 0x00, 0x00, 0x00} };
@@ -25,7 +25,7 @@ void DrawOptionsScreen(void)
 
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, NULL);
+	ApplyFadeIn(local_frame_counter, COLOR_NES_WHITE, &text_color, NULL);
 
 	for (uint8_t menu_item = 0; menu_item < gMenu_OptionsScreen.ItemCount; menu_item++)
 	{
@@ -98,7 +98,7 @@ void PPI_OptionsScreen(void)
 		}
 	}
 
-	if ((PRESSED_CHOOSE) || ((PRESSED_LEFT || PRESSED_RIGHT) && gMenu_OptionsScreen.SelectedItem != gMenu_OptionsScreen.ItemCount - 1))
+	if ((PRESSED_CHOOSE) || (((PRESSED_LEFT) || (PRESSED_RIGHT)) && gMenu_OptionsScreen.SelectedItem != gMenu_OptionsScreen.ItemCount - 1))
 	{
 		gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Action();
 		PlayGameSound(&g_sound_menu_choose);

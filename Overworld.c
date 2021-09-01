@@ -2,6 +2,14 @@
 #include "Overworld.h"
 
 BOOL fade;
+PORTAL g_portal001 = { 0 };
+PORTAL g_portal002 = { 0 };
+
+PORTAL* g_portals[2] = { 0 };;
+
+GAME_AREA g_current_area = { 0 };
+GAME_AREA g_overworld_area = { 0 };
+GAME_AREA g_dungeon1_area = { 0 };
 
 void DrawOverworldScreen(void)
 {
@@ -18,7 +26,7 @@ void DrawOverworldScreen(void)
 		brightness_adjustment = -255;
 	}
 
-	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, &brightness_adjustment);
+	ApplyFadeIn(local_frame_counter, COLOR_NES_WHITE, &text_color, &brightness_adjustment);
 
 	if (local_frame_counter == 60)
 	{

@@ -29,11 +29,11 @@ void DrawBattle(void)
 		PlayGameMusic(&g_music_battle01, TRUE, FALSE);
 	}
 
-	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, &brightness_adjustment);
+	ApplyFadeIn(local_frame_counter, COLOR_NES_WHITE, &text_color, &brightness_adjustment);
 
 	BlitBackgroundToBuffer(&g_overworld01.GameBitmap, brightness_adjustment);
 
-	DrawWindow(0, 0, 96, 96, (PIXEL32) { { 0x00, 0x00, 0x00 , 0xFF} }, WF_HORIZONTALLY_CENTERED | WF_VERTICALLY_CENTERED | WF_BORDERED);
+	DrawWindow(0, 0, 96, 96, COLOR_NES_WHITE, WF_HORIZONTALLY_CENTERED | WF_VERTICALLY_CENTERED | WF_BORDERED);
 
 	switch (g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][g_player.WorldPos.X / 16])
 	{

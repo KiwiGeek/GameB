@@ -30,7 +30,11 @@
 #include "Tiles.h"
 
 #ifdef _DEBUG
-#define ASSERT(Expression, Message) if (!(Expression)) { *(int*)0 = 0; }
+	#ifdef CLANG
+	#define ASSERT(Expression, Message) if (!(Expression)) { __builtin_trap(); }
+	#else
+	#define ASSERT(Expression, Message) if (!(Expression)) { __ud2(); }
+	#endif
 #else
 #define ASSERT(Expression, Message) ((void)0);
 #endif
@@ -69,7 +73,8 @@
 #define FACING_UPWARD_2							11
 #define RANDOM_MONSTER_GRACE_PERIOD_STEPS		3
 #define FADE_DURATION_FRAMES					40
-#define COLOR_TEXT								(PIXEL32){ .bytes = 0xFCFCFCFF }
+#define COLOR_NES_WHITE							(PIXEL32){ .bytes = 0xFFFCFCFC }
+#define COLOR_NES_GRAY							(PIXEL32){ .bytes = 0xFF202020 }
 
 #define PRESSED_UP g_game_input.UpKeyIsDown && !g_game_input.UpKeyWasDown
 #define PRESSED_DOWN g_game_input.DownKeyIsDown && !g_game_input.DownKeyWasDown
@@ -153,8 +158,8 @@ typedef struct GAME_INPUT
 #pragma warning(disable: 5045)	// disable warning about structure padding
 #pragma warning(disable: 4820)	// disable warning about Spectre/Meltdown CPU vulnerability
 
-typedef LONG (NTAPI* NtQueryTimerResolution)(OUT PULONG MinimumResolution, OUT PULONG MaximumResolution, OUT PULONG CurrentResolution);
-NtQueryTimerResolution nt_query_timer_resolution;
+typedef LONG (NTAPI* _NtQueryTimerResolution)(OUT PULONG MinimumResolution, OUT PULONG MaximumResolution, OUT PULONG CurrentResolution);
+extern _NtQueryTimerResolution nt_query_timer_resolution;
 
 typedef struct GAME_BITMAP
 {
@@ -269,38 +274,38 @@ typedef struct MENU
 	MENUITEM** Items;
 } MENU;
 
-GAME_PERF_DATA g_performance_data;
-GAME_BITMAP g_back_buffer;
-GAME_BITMAP g_6x7_font;
-GAME_BITMAP g_battle_scene_grasslands01;
-GAME_BITMAP g_battle_scene_dungeon01;
-GAMEMAP g_overworld01;
-GAME_STATE g_current_game_state;
-GAME_STATE g_previous_game_state;
-GAME_INPUT g_game_input;
-GAME_SOUND g_sound_menu_navigate;
-GAME_SOUND g_sound_menu_choose;
-GAME_SOUND g_sound_splash_screen;
-GAME_SOUND g_music_overworld01;
-GAME_SOUND g_music_dungeon01;
-GAME_SOUND g_music_battle_intro01;
-GAME_SOUND g_music_battle01;
-HERO g_player;
-float g_sfx_volume;
-float g_music_volume;
-BOOL g_music_is_paused;
-int8_t g_gamepad_id;
-HWND g_game_window;
-IXAudio2SourceVoice* g_xaudio_sfx_source_voice[NUMBER_OF_SFX_SOURCE_VOICES];
-IXAudio2SourceVoice* g_xaudio_music_source_voice;
-uint8_t g_passable_tiles[3];
-UPOINT g_camera;
-HANDLE g_asset_loading_thread_handle;
-HANDLE g_essential_assets_loaded_event;
-BOOL g_input_enabled;
-BOOL g_game_is_running;
-//HMODULE g_game_code_module;
-//FILETIME g_game_code_last_write_time;
+extern GAME_PERF_DATA g_performance_data;
+extern GAME_BITMAP g_back_buffer;
+extern GAME_BITMAP g_6x7_font;
+extern GAME_BITMAP g_battle_scene_grasslands01;
+extern GAME_BITMAP g_battle_scene_dungeon01;
+extern GAMEMAP g_overworld01;
+extern GAME_STATE g_current_game_state;
+extern GAME_STATE g_previous_game_state;
+extern GAME_INPUT g_game_input;
+extern GAME_SOUND g_sound_menu_navigate;
+extern GAME_SOUND g_sound_menu_choose;
+extern GAME_SOUND g_sound_splash_screen;
+extern GAME_SOUND g_music_overworld01;
+extern GAME_SOUND g_music_dungeon01;
+extern GAME_SOUND g_music_battle_intro01;
+extern GAME_SOUND g_music_battle01;
+extern HERO g_player;
+extern float g_sfx_volume;
+extern float g_music_volume;
+extern BOOL g_music_is_paused;
+extern int8_t g_gamepad_id;
+extern HWND g_game_window;
+extern IXAudio2SourceVoice* g_xaudio_sfx_source_voice[NUMBER_OF_SFX_SOURCE_VOICES];
+extern IXAudio2SourceVoice* g_xaudio_music_source_voice;
+extern uint8_t g_passable_tiles[3];
+extern UPOINT g_camera;
+extern HANDLE g_asset_loading_thread_handle;
+extern HANDLE g_essential_assets_loaded_event;
+extern BOOL g_input_enabled;
+extern BOOL g_game_is_running;
+//extern HMODULE g_game_code_module;
+//extern FILETIME g_game_code_last_write_time;
 
 // imports from GAMECODE.DLL
 // ReSharper disable once CppInconsistentNaming

@@ -9,14 +9,14 @@ typedef struct PORTAL
 	GAME_AREA DestinationArea;	// Which area does the portal take you to
 } PORTAL;
 
-PORTAL g_portal001;
-PORTAL g_portal002;
+extern PORTAL g_portal001;
+extern PORTAL g_portal002;
 
-PORTAL* g_portals[2];
+extern PORTAL* g_portals[2];
 
-GAME_AREA g_current_area;
-GAME_AREA g_overworld_area;
-GAME_AREA g_dungeon1_area;
+extern GAME_AREA g_current_area;
+extern GAME_AREA g_overworld_area;
+extern GAME_AREA g_dungeon1_area;
 
 void DrawOverworldScreen(void);
 void PPI_Overworld(void);

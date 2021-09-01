@@ -9,7 +9,7 @@ typedef struct MONSTER
 	int16_t BaseXP;
 } MONSTER;
 
-MONSTER g_current_monster;
+extern MONSTER g_current_monster;
 
 void DrawBattle(void);
 void PPI_Battle(void);

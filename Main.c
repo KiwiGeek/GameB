@@ -11,6 +11,38 @@
 #include "stb_vorbis.h"
 #include "miniz.h"
 
+GAME_INPUT		g_game_input = { 0 } ;
+GAME_PERF_DATA 	g_performance_data = { 0 };
+GAME_BITMAP		g_back_buffer = { 0 };
+GAME_BITMAP 	g_6x7_font = { 0 };
+GAME_BITMAP 	g_battle_scene_grasslands01 = { 0 };
+GAME_BITMAP 	g_battle_scene_dungeon01 = { 0 };
+GAMEMAP			g_overworld01 = { 0 };
+GAME_STATE		g_current_game_state = GS_OPENING_SPLASH_SCREEN;
+GAME_STATE		g_previous_game_state = GS_OPENING_SPLASH_SCREEN;
+GAME_SOUND		g_sound_menu_navigate = { 0 };
+GAME_SOUND 		g_sound_menu_choose = { 0 };
+GAME_SOUND		g_sound_splash_screen = { 0 };
+GAME_SOUND		g_music_overworld01 = { 0 };
+GAME_SOUND		g_music_dungeon01 = { 0 };
+GAME_SOUND		g_music_battle_intro01 = { 0 };
+GAME_SOUND		g_music_battle01 = { 0 };
+HERO			g_player = { 0 };
+float			g_sfx_volume = 0.0f;
+float			g_music_volume = 0.0f;
+BOOL			g_music_is_paused = FALSE;
+int8_t			g_gamepad_id = -1;
+HWND 			g_game_window = NULL;
+IXAudio2SourceVoice* g_xaudio_sfx_source_voice[NUMBER_OF_SFX_SOURCE_VOICES] = { 0 };
+IXAudio2SourceVoice* g_xaudio_music_source_voice = NULL;
+uint8_t g_passable_tiles[3] = { 0 };
+UPOINT g_camera = { 0 };
+HANDLE g_asset_loading_thread_handle = INVALID_HANDLE_VALUE;
+HANDLE g_essential_assets_loaded_event = INVALID_HANDLE_VALUE;
+BOOL g_input_enabled = TRUE;
+BOOL g_game_is_running = TRUE;
+_NtQueryTimerResolution nt_query_timer_resolution = NULL;
+
 int g_font_character_pixel_offset[] = {
 	/*      .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..*/
 	/*    */93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
@@ -22,7 +54,7 @@ int g_font_character_pixel_offset[] = {
 	/*    */62,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,82,79,83,63,93,
 	/*      .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..*/
 	/*    */93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
-	/*      .. .. .. .. .. .. .. .. .. .. ..  « .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..  » .. .. .. ..*/
+	/*      .. .. .. .. .. .. .. .. .. .. ..  ï¿½ .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..  ï¿½ .. .. .. ..*/
 	/*    */93,93,93,93,93,93,93,93,93,93,93,96,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,95,93,93,93,93,
 	/*      .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. .. ..*/
 	/*    */93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,93,
@@ -94,7 +126,7 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 		goto Exit;
 	}
 
-	if ((nt_query_timer_resolution = (NtQueryTimerResolution)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryTimerResolution")) == NULL)
+	if ((nt_query_timer_resolution = (_NtQueryTimerResolution)GetProcAddress(GetModuleHandleA("ntdll.dll"), "NtQueryTimerResolution")) == NULL)
 	{
 		LogMessageA(LL_ERROR, "[%s] Couldn't find the NtQueryTimerResolution function in ntdll.dll! GetProcAddress failed! Error 0x%081x!", __FUNCTION__, GetLastError());
 		MessageBoxA(NULL, "Couldn't find the NtQueryTimerResolution function in ntdll.dll!", "Error!", MB_ICONEXCLAMATION | MB_OK);
@@ -782,7 +814,7 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
 
-			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
+			__m256i bitmap_octo_pixel = _mm256_load_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
 
 			__m256i half1 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 0));
 			half1 = _mm256_add_epi16(half1, _mm256_set_epi16(
@@ -926,7 +958,7 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
 
-			__m256i bitmap_octo_pixel = _mm256_loadu_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
+			__m256i bitmap_octo_pixel = _mm256_load_si256((const __m256i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));  // NOLINT(clang-diagnostic-cast-align)
 			__m256i half_1 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 0));
 			half_1 = _mm256_add_epi16(half_1, _mm256_set1_epi16(BrightnessAdjustment));
 			__m256i half_2 = _mm256_cvtepu8_epi16(_mm256_extracti128_si256(bitmap_octo_pixel, 1));
@@ -1211,96 +1243,89 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 void DrawDebugInfo(void)
 {
 	char debug_text_buffer[64] = { 0 };
-	const PIXEL32 white = { {0xFF,0xFF, 0xFF, 0xFF} };
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSRaw:  %.01f", (double)g_performance_data.RawFPSAverage);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, (8 * 0));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FPSCookd:%.01f", (double)g_performance_data.CookedFPSAverage);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, (8 * 1));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "MinTimer:%.02f", (double)g_performance_data.MinimumTimerResolution / 10000.0);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 2));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "MaxTimer:%.02f", (double)g_performance_data.MaximumTimerResolution / 10000.0);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 3));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CurTimer:%.02f", (double)g_performance_data.CurrentTimerResolution / 10000.0);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 4));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Handles: %lu", g_performance_data.HandleCount);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 5));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Memory:  %i KB", (int)(g_performance_data.MemInfo.PrivateUsage / 1024));
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 6));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CPU:     %.02f%%", g_performance_data.CPUPercent);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 7));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "FramesT: %llu", g_performance_data.TotalFramesRendered);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 8));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "ScreenXY:%hu,%hu", g_player.ScreenPos.X, g_player.ScreenPos.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 9));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "WorldXY: %hu,%hu", g_player.WorldPos.X, g_player.WorldPos.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 10));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "CameraXY:%hu,%hu", g_camera.X, g_camera.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 11));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Movement:%u", g_player.MovementRemaining);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0,  (8 * 12));
-	sprintf_s(debug_text_buffer, _countof(debug_text_buffer), "Steps:   %llu", g_player.StepsTaken);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &white, 0, (8 * 13));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "FPS:     %.01f (%.01f)", (double)g_performance_data.CookedFPSAverage, (double)g_performance_data.RawFPSAverage);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 0));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Timer:   %.02f/%.02f/%.02f", (double)g_performance_data.MinimumTimerResolution / 10000.0, (double)g_performance_data.MaximumTimerResolution / 10000.0, (double)g_performance_data.CurrentTimerResolution / 10000.0);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 1));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Handles: %lu", g_performance_data.HandleCount);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 2));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Memory:  %i KB", (int)(g_performance_data.MemInfo.PrivateUsage / 1024));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 3));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "CPU:     %.02f%%", g_performance_data.CPUPercent);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 4));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "FramesT: %llu", g_performance_data.TotalFramesRendered);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 5));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "ScreenXY:%hu,%hu", g_player.ScreenPos.X, g_player.ScreenPos.Y);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 6));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "WorldXY: %hu,%hu", g_player.WorldPos.X, g_player.WorldPos.Y);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 7));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "CameraXY:%hu,%hu", g_camera.X, g_camera.Y);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 8));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Movement:%u", g_player.MovementRemaining);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 9));
+	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Steps:   %llu", g_player.StepsTaken);
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 10));
 
 	if (g_current_game_state == GS_OVERWORLD)
 	{
 		// the tile the player is currently on
 		_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][g_player.WorldPos.X / 16], debug_text_buffer, 4, 10);
-		BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4));
+		BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4));
 
 		// the tile above the player
 		if (g_player.ScreenPos.Y >= 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][g_player.WorldPos.X / 16], debug_text_buffer, 4, 10);
-			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
 		}
 
 		// the tile below the player
 		if (g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][g_player.WorldPos.X / 16], debug_text_buffer, 4, 10);
-			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
 		}
 
 		// the tile to the right of the player
 		if (g_player.ScreenPos.X < GAME_RES_WIDTH - 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][(g_player.WorldPos.X / 16) + 1], debug_text_buffer, 4, 10);
-			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4));
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4));
 		}
 
 		// the tile to the left of the player
 		if (g_player.ScreenPos.X >= 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][(g_player.WorldPos.X / 16) - 1], debug_text_buffer, 4, 10);
-			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4));
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4));
 		}
 
 		// the tile to the upper left of the player
 		if (g_player.ScreenPos.X >= 16 && g_player.ScreenPos.Y >= 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][(g_player.WorldPos.X / 16) - 1], debug_text_buffer, 4, 10);
-			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
 		}
 
 		// the tile to the upper right of the player
 		if (g_player.ScreenPos.X < GAME_RES_WIDTH - 16 && g_player.ScreenPos.Y >= 16)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) - 1][(g_player.WorldPos.X / 16) + 1], debug_text_buffer, 4, 10);
-			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4 - 16));
 		}
 
 		// the tile to the bottom left of the player
 		if (g_player.ScreenPos.X >= 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16) - 1], debug_text_buffer, 4, 10);
-			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5 - 16), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
 		}
 
 		// the tile to the bottom right of the player
 		if (g_player.ScreenPos.X < GAME_RES_WIDTH - 16 && g_player.ScreenPos.Y < GAME_RES_HEIGHT - 26)
 		{
 			_itoa_s(g_overworld01.TileMap.Map[(g_player.WorldPos.Y / 16) + 1][(g_player.WorldPos.X / 16) + 1], debug_text_buffer, 4, 10);
-			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(PIXEL32) {{0xFF, 0xFF, 0xFF, 0xFF}}, (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
+			BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), (int16_t)(g_player.ScreenPos.X + 5 + 16), (int16_t)(g_player.ScreenPos.Y + 4 + 16));
 		}
 	}
 }
@@ -1981,7 +2006,19 @@ void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ c
 	for (int16_t row = 0; row < Height; row++)
 	{
 		const int32_t memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
+#ifdef CLANG
+		__asm {
+			mov eax, [memory_offset]
+			mov rdx, qword ptr [g_back_buffer.Memory]
+			lea rdi, [rdx+rax*4]
+			mov eax, [BackgroundColor]
+			mov  cx, [Width]
+			rep stosd
+		}
+#else
 		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, BackgroundColor.bytes, Width);
+#endif
+		
 	}
 
 	if (Flags & WF_SHADOWED)
@@ -1990,25 +2027,92 @@ void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ c
 		//if (X > 0) { X -= 1; }
 		//if (Y > 0) { Y -= 1; }
 		int32_t memory_offset = starting_screen_pixel - GAME_RES_WIDTH * Height + 1;
+#ifdef CLANG
+		__asm {
+			mov eax, [memory_offset]
+			mov rdx, qword ptr [g_back_buffer.Memory]
+			lea rdi, [rdx+rax*4]
+			mov eax, [BackgroundColor]
+			mov  cx, [Width]
+			rep stosd
+		}
+#else
 		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFF7C7C7C, Width);
+#endif
 		for (int16_t row = 1; row < Height; row++)
 		{
 			memory_offset = starting_screen_pixel - GAME_RES_WIDTH * row + Width;
+#ifdef CLANG
+		__asm {
+			mov eax, [memory_offset]
+			mov rdx, qword ptr [g_back_buffer.Memory]
+			lea rdi, [rdx+rax*4]
+			mov eax, [BackgroundColor]
+			mov  cx, [Width]
+			rep stosd
+		}
+#else
 			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFF7C7C7C, 1);
+#endif
 		}
 	}
 
 	if (Flags & WF_BORDERED)
 	{
 		int32_t memory_offset = starting_screen_pixel;
+#ifdef CLANG
+		__asm {
+			mov eax, [memory_offset] 
+			mov rdx, qword ptr [g_back_buffer.Memory]
+			lea rdi, [rdx+rax*4]
+			mov eax, [BackgroundColor]
+			mov  cx, [Width]
+			rep stosd
+		}
+#else
 		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, Width);
+#endif
 		memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * (Height - 1));
+#ifdef CLANG
+		__asm {
+			mov eax, [memory_offset]
+			mov rdx, qword ptr [g_back_buffer.Memory]
+			lea rdi, [rdx+rax*4]
+			mov eax, [BackgroundColor]
+			mov  cx, [Width]
+			rep stosd
+		}
+#else
 		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, Width);
+#endif
 		for (int16_t row = 1; row < Height; row++)
 		{
 			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
+#ifdef CLANG
+		__asm {
+			mov eax, [memory_offset]
+			mov rdx, qword ptr [g_back_buffer.Memory]
+			lea rdi, [rdx+rax*4]
+			mov eax, [BackgroundColor]
+			mov  cx, [Width]
+			rep stosd
+		}
+#else
 			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, 1);
-			__stosd((PDWORD)g_back_buffer.Memory + memory_offset + Width - 1, 0xFFFCFCFC, 1);
+#endif
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row) + (Width - 1);
+#ifdef CLANG
+		__asm {
+			mov eax, [memory_offset]
+			mov rdx, qword ptr [g_back_buffer.Memory]
+			lea rdi, [rdx+rax*4]
+			mov eax, [BackgroundColor] 
+			mov  cx, [Width]
+			rep stosd
+		}
+#else
+			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, 1);
+#endif
 		}
 	}
 }

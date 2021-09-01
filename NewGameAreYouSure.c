@@ -25,7 +25,7 @@ void DrawNewGameAreYouSureScreen(void)
 
 	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
 
-	ApplyFadeIn(local_frame_counter, COLOR_TEXT, &text_color, NULL);
+	ApplyFadeIn(local_frame_counter, COLOR_NES_WHITE, &text_color, NULL);
 
 	BlitStringToBuffer(gMenu_NewGameAreYouSure.Name, &g_6x7_font, &text_color, (int16_t)((GAME_RES_WIDTH / 2) - (strlen(gMenu_NewGameAreYouSure.Name) * 6 / 2)), 60);
 	BlitStringToBuffer(PROGRESS_WILL_BE_LOAD, &g_6x7_font, &text_color, (int16_t)((GAME_RES_WIDTH / 2) - (strlen(PROGRESS_WILL_BE_LOAD) * 6 / 2)), 75);
