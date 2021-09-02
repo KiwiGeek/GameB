@@ -1,9 +1,26 @@
 #include "Main.h"
 #include "Battle.h"
 
+MONSTER* g_current_monster = NULL;
+MONSTER g_slime001 = { "Slime", &g_monster_sprite_slime_001, 5, 0, 10 };
+MONSTER g_rat001 = { "Rat", &g_monster_sprite_rat_001, 10, 0, 15 };
+MONSTER* g_outdoor_monsters[] = { &g_slime001, &g_rat001 };
+
 void GenerateMonster(void)
 {
-	
+	unsigned int random_value = 0;
+	rand_s(&random_value);
+	g_current_monster = g_outdoor_monsters[random_value % _countof(g_outdoor_monsters)];
+}
+
+void PPI_Battle(void)
+{
+	if (PRESSED_ESCAPE)
+	{
+		g_previous_game_state = g_current_game_state;
+		g_current_game_state = GS_OVERWORLD;
+		StopMusic();
+	}
 }
 
 void DrawBattle(void)
@@ -27,6 +44,11 @@ void DrawBattle(void)
 		StopMusic();
 		PlayGameMusic(&g_music_battle_intro01, FALSE, TRUE);
 		PlayGameMusic(&g_music_battle01, TRUE, FALSE);
+		GenerateMonster();
+		if (g_current_monster == NULL)
+		{
+			ASSERT(FALSE, "No monster was generated");
+		}
 	}
 
 	ApplyFadeIn(local_frame_counter, COLOR_NES_WHITE, &text_color, &brightness_adjustment);
@@ -55,24 +77,24 @@ void DrawBattle(void)
 
 	if (battle_scene != 0)
 	{
-		Blit32BppBitmapToBuffer(battle_scene, 144, 72, brightness_adjustment);
+		Blit32BppBitmapToBuffer(battle_scene,
+								GAME_RES_WIDTH / 2 - (int16_t)battle_scene->BitmapInfo.bmiHeader.biWidth / 2,
+								64, 
+								brightness_adjustment);
 	}
 	else
 	{
 		ASSERT(FALSE, "Battle Scene is NULL!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 	}
 
+	if (g_current_monster)
+	{
+		Blit32BppBitmapToBuffer(g_current_monster->Sprite, 
+								GAME_RES_WIDTH / 2 - (int16_t)g_current_monster->Sprite->BitmapInfo.bmiHeader.biWidth / 2,
+								96, 
+								brightness_adjustment);
+	}
 
 	local_frame_counter++;
 	last_frame_seen = g_performance_data.TotalFramesRendered;
-}
-
-void PPI_Battle(void)
-{
-	if (PRESSED_ESCAPE)
-	{
-		g_previous_game_state = g_current_game_state;
-		g_current_game_state = GS_OVERWORLD;
-		StopMusic();
-	}
 }
