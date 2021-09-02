@@ -8,64 +8,63 @@
 // a b c d e f g h i j k l m
 // n o p q r s t u v w x y z
 // Back                   OK
+MENUITEM gMI_CharacterNaming_A = { "A", 118, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_B = { "B", 130, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_C = { "C", 142, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_D = { "D", 154, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_E = { "E", 166, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_F = { "F", 178, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_G = { "G", 190, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_H = { "H", 202, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_I = { "I", 214, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_J = { "J", 226, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_K = { "K", 238, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_L = { "L", 250, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_M = { "M", 262, 110, TRUE, MenuItem_CharacterNaming_Add };
 
-MENUITEM gMI_CharacterNaming_A = { "A", 105, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_B = { "B", 119, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_C = { "C", 133, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_D = { "D", 147, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_E = { "E", 161, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_F = { "F", 175, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_G = { "G", 189, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_H = { "H", 203, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_I = { "I", 217, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_J = { "J", 231, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_K = { "K", 245, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_L = { "L", 259, 110, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_M = { "M", 273, 110, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_N = { "N", 118, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_O = { "O", 130, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_P = { "P", 142, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_Q = { "Q", 154, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_R = { "R", 166, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_S = { "S", 178, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_T = { "T", 190, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_U = { "U", 202, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_V = { "V", 214, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_W = { "W", 226, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_X = { "X", 238, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_Y = { "Y", 250, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_Z = { "Z", 262, 120, TRUE, MenuItem_CharacterNaming_Add };
 
-MENUITEM gMI_CharacterNaming_N = { "N", 105, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_O = { "O", 119, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_P = { "P", 133, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_Q = { "Q", 147, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_R = { "R", 161, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_S = { "S", 175, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_T = { "T", 189, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_U = { "U", 203, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_V = { "V", 217, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_W = { "W", 231, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_X = { "X", 245, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_Y = { "Y", 259, 120, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_Z = { "Z", 273, 120, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_a = { "a", 118, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_b = { "b", 130, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_c = { "c", 142, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_d = { "d", 154, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_e = { "e", 166, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_f = { "f", 178, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_g = { "g", 190, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_h = { "h", 202, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_i = { "i", 214, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_j = { "j", 226, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_k = { "k", 238, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_l = { "l", 250, 130, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_m = { "m", 262, 130, TRUE, MenuItem_CharacterNaming_Add };
 
-MENUITEM gMI_CharacterNaming_a = { "a", 105, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_b = { "b", 119, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_c = { "c", 133, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_d = { "d", 147, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_e = { "e", 161, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_f = { "f", 175, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_g = { "g", 189, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_h = { "h", 203, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_i = { "i", 217, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_j = { "j", 231, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_k = { "k", 245, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_l = { "l", 259, 130, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_m = { "m", 273, 130, TRUE, MenuItem_CharacterNaming_Add };
-
-MENUITEM gMI_CharacterNaming_n = { "n", 105, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_o = { "o", 119, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_p = { "p", 133, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_q = { "q", 147, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_r = { "r", 161, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_s = { "s", 175, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_t = { "t", 189, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_u = { "u", 203, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_v = { "v", 217, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_w = { "w", 231, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_x = { "x", 245, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_y = { "y", 259, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_z = { "z", 273, 140, TRUE, MenuItem_CharacterNaming_Add };
-MENUITEM gMI_CharacterNaming_Back = { "Back", 105, 150, TRUE, MenuItem_CharacterNaming_Back };
-MENUITEM gMI_CharacterNaming_OK = { "OK", 267, 150, TRUE, MenuItem_CharacterNaming_OK };
+MENUITEM gMI_CharacterNaming_n = { "n", 118, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_o = { "o", 130, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_p = { "p", 142, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_q = { "q", 154, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_r = { "r", 166, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_s = { "s", 178, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_t = { "t", 190, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_u = { "u", 202, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_v = { "v", 214, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_w = { "w", 226, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_x = { "x", 238, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_y = { "y", 250, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_z = { "z", 262, 140, TRUE, MenuItem_CharacterNaming_Add };
+MENUITEM gMI_CharacterNaming_Back = { "Back", 118, 150, TRUE, MenuItem_CharacterNaming_Back };
+MENUITEM gMI_CharacterNaming_OK = { "OK", 256, 150, TRUE, MenuItem_CharacterNaming_OK };
 
 MENUITEM* gMI_CharacterNamingItems[] = {
 	&gMI_CharacterNaming_A, &gMI_CharacterNaming_B, &gMI_CharacterNaming_C, &gMI_CharacterNaming_D, &gMI_CharacterNaming_E, &gMI_CharacterNaming_F,
@@ -86,34 +85,37 @@ void DrawCharacterNamingScreen(void)
 {
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
-	static PIXEL32 text_color = {{0x00, 0x00, 0x00, 0x00}};
+	static PIXEL32 text_color;
 	static int16_t brightness_adjustment = -255;
 
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
 		local_frame_counter = 0;
-		memset(&text_color, 0xFF, sizeof(PIXEL32));
+		memset(&text_color, 0, sizeof(PIXEL32));
 		brightness_adjustment = -255;
 		gMenu_CharacterNaming.SelectedItem = 0;
 		g_input_enabled = FALSE;
 	}
 
-	memset(g_back_buffer.Memory, 0, GAME_DRAWING_AREA_MEMORY_SIZE);
+	memset(g_back_buffer.Memory, 0x32, GAME_DRAWING_AREA_MEMORY_SIZE);
 
 	ApplyFadeIn(local_frame_counter, COLOR_NES_WHITE, &text_color, &brightness_adjustment);
 
+	DrawWindow(108, 11, 166, 18, &text_color, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED);
+	DrawWindow(108, 105, 166, 60, &text_color, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED);
+
 	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g_6x7_font, &text_color, (int16_t)((GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2)), 16);
-	Blit32BppBitmapToBuffer(&g_player.Sprite[SUIT_0][FACING_DOWN_0], 153, 85, brightness_adjustment);
+	Blit32BppBitmapToBuffer(&g_player.Sprite[SUIT_0][FACING_DOWN_0], 153, 80, brightness_adjustment);
 
 	for (uint8_t letter = 0; letter < 8; letter++)
 	{
 		if (g_player.Name[letter] == '\0')
 		{
-			BlitStringToBuffer("_", &g_6x7_font, &text_color, (int16_t)(173 + (letter * 6)), 93);
+			BlitStringToBuffer("_", &g_6x7_font, &text_color, (int16_t)(173 + (letter * 6)), 89);
 		}
 		else
 		{
-			BlitStringToBuffer(&g_player.Name[letter], &g_6x7_font, &text_color, (int16_t)(173 + (letter * 6)), 93);
+			BlitStringToBuffer(&g_player.Name[letter], &g_6x7_font, &text_color, (int16_t)(173 + (letter * 6)), 89);
 		}
 
 	}
@@ -148,6 +150,8 @@ void PPI_CharacterNaming(void)
 #define COLUMN_COUNT	13
 
 	static uint8_t cursor_column = 0;
+
+	// TODO: Implement carat wrap-around
 
 	// UP
 	if (PRESSED_UP)

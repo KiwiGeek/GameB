@@ -17,12 +17,10 @@
 #pragma comment(lib, "XInput.lib")
 #include <stdint.h>
 #pragma comment(lib, "Winmm.lib")
-#define AVX					// AVX, SSE2 or nothing
-#ifdef AVX
+
+#ifdef __AVX2__
 // ReSharper disable once CppUnusedIncludeDirective
 #include <immintrin.h>
-#elif defined SSE2
-#include <emmintrin.h>
 #endif
 
 #pragma warning(pop)
@@ -30,11 +28,11 @@
 #include "Tiles.h"
 
 #ifdef _DEBUG
-	#ifdef CLANG
-	#define ASSERT(Expression, Message) if (!(Expression)) { __builtin_trap(); }
-	#else
-	#define ASSERT(Expression, Message) if (!(Expression)) { __ud2(); }
-	#endif
+#ifdef CLANG
+#define ASSERT(Expression, Message) if (!(Expression)) { __builtin_trap(); }
+#else
+#define ASSERT(Expression, Message) if (!(Expression)) { *(int *)0 = 0; /*__ud2();*/ }
+#endif
 #else
 #define ASSERT(Expression, Message) ((void)0);
 #endif
@@ -53,7 +51,7 @@
 #define GAME_RES_HEIGHT							240
 #define GAME_BPP								32
 #define GAME_DRAWING_AREA_MEMORY_SIZE			(GAME_RES_WIDTH * GAME_RES_HEIGHT * (GAME_BPP / 8))
-#define CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES	120
+#define CALCULATE_STATS_EVERY_X_FRAMES			120
 #define TARGET_MICROSECONDS_PER_FRAME			16667ULL
 #define NUMBER_OF_SFX_SOURCE_VOICES				4
 #define SUIT_0									0
@@ -72,9 +70,11 @@
 #define FACING_UPWARD_1							10
 #define FACING_UPWARD_2							11
 #define RANDOM_MONSTER_GRACE_PERIOD_STEPS		3
-#define FADE_DURATION_FRAMES					40
+#define FADE_DURATION_FRAMES					50
 #define COLOR_NES_WHITE							(PIXEL32){ .bytes = 0xFFFCFCFC }
 #define COLOR_NES_GRAY							(PIXEL32){ .bytes = 0xFF202020 }
+#define COLOR_NES_BLACK							(PIXEL32){ .bytes = 0xFF000000 }
+#define COLOR_GRAY_0							(PIXEL32){ .bytes = 0xFF202020 }
 
 #define PRESSED_UP g_game_input.UpKeyIsDown && !g_game_input.UpKeyWasDown
 #define PRESSED_DOWN g_game_input.DownKeyIsDown && !g_game_input.DownKeyWasDown
@@ -125,10 +125,11 @@ typedef enum RESOURCE_TYPE
 typedef enum WINDOW_FLAGS
 {
 	WF_BORDERED = 1,
-	WF_HORIZONTALLY_CENTERED = 2,
-	WF_VERTICALLY_CENTERED = 4,
-	WF_SHADOWED = 8,
-	WF_SHAKE = 16
+	WF_OPAQUE = 2,
+	WF_HORIZONTALLY_CENTERED = 4,
+	WF_VERTICALLY_CENTERED = 8,
+	WF_SHADOWED = 16,
+	WF_SHAKE = 32
 } WINDOW_FLAGS;
 
 typedef struct UPOINT
@@ -317,7 +318,7 @@ LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ 
 DWORD CreateMainGameWindow(void);
 BOOL GameIsAlreadyRunning(void);
 void ProcessPlayerInput(void);
-DWORD InitializeHero(void);
+void ResetEverythingForNewGame(void);
 void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t X, _In_ int16_t Y, _In_ int16_t BrightnessAdjustment);
 void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t BrightnessAdjustment);
 void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontSheet, _In_ const PIXEL32* Color, _In_ int16_t X, _In_ int16_t Y);
@@ -339,6 +340,5 @@ void PauseMusic(void);
 void StopMusic(void);
 BOOL MusicIsPlaying(void);
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
-void InitializeGlobals(void);
-void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ int16_t Width, _In_ int16_t Height, _In_ PIXEL32 BackgroundColor, _In_ DWORD Flags);
+void DrawWindow(_In_opt_ uint16_t X,_In_opt_ uint16_t Y,_In_ int16_t Width,_In_ int16_t Height,_In_opt_ PIXEL32* BorderColor,_In_opt_ PIXEL32* BackgroundColor,_In_opt_ PIXEL32* ShadowColor,_In_ DWORD Flags);
 void ApplyFadeIn(_In_ uint64_t FrameCounter, _In_ PIXEL32 DefaultTextColor, _Inout_ PIXEL32* TextColor, _Inout_opt_ int16_t* BrightnessAdjustment);

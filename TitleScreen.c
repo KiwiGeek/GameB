@@ -74,26 +74,42 @@ void PPI_TitleScreen(void)
 			gMenu_TitleScreen.SelectedItem++;
 			PlayGameSound(&g_sound_menu_navigate);
 		}
+		else
+		{
+			if (g_player.Active == TRUE)
+			{
+				gMenu_TitleScreen.SelectedItem = 0;
+			}
+			else
+			{
+				gMenu_TitleScreen.SelectedItem = 1;
+			}
+		}
 	}
 
 	if (PRESSED_UP)
 	{
-		if (gMenu_TitleScreen.SelectedItem > 0)
+		if (gMenu_TitleScreen.SelectedItem == 0)
 		{
-			if (gMenu_TitleScreen.SelectedItem == 1)	// Don't move to "Resume" if there's no game currently in progress
+			gMenu_TitleScreen.SelectedItem = gMenu_TitleScreen.ItemCount - 1;
+		}
+		else if (gMenu_TitleScreen.SelectedItem == 1)
+		{
+			if (g_player.Active == TRUE)
 			{
-				if (g_player.Active)
-				{
-					gMenu_TitleScreen.SelectedItem--;
-					PlayGameSound(&g_sound_menu_navigate);
-				}
+				gMenu_TitleScreen.SelectedItem--;
 			}
 			else
 			{
-				gMenu_TitleScreen.SelectedItem--;
-				PlayGameSound(&g_sound_menu_navigate);
+				gMenu_TitleScreen.SelectedItem = gMenu_TitleScreen.ItemCount - 1;
 			}
 		}
+		else
+		{
+			gMenu_TitleScreen.SelectedItem--;
+		}
+
+		PlayGameSound(&g_sound_menu_navigate);
 	}
 
 	if (PRESSED_CHOOSE) {

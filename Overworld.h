@@ -12,7 +12,7 @@ typedef struct PORTAL
 extern PORTAL g_portal001;
 extern PORTAL g_portal002;
 
-extern PORTAL* g_portals[2];
+extern PORTAL g_portals[2];
 
 extern GAME_AREA g_current_area;
 extern GAME_AREA g_overworld_area;

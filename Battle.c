@@ -33,7 +33,7 @@ void DrawBattle(void)
 
 	BlitBackgroundToBuffer(&g_overworld01.GameBitmap, brightness_adjustment);
 
-	DrawWindow(0, 0, 96, 96, COLOR_NES_WHITE, WF_HORIZONTALLY_CENTERED | WF_VERTICALLY_CENTERED | WF_BORDERED);
+	//DrawWindow(0, 0, 96, 96, COLOR_NES_WHITE, WF_HORIZONTALLY_CENTERED | WF_VERTICALLY_CENTERED | WF_BORDERED);
 
 	switch (g_overworld01.TileMap.Map[g_player.WorldPos.Y / 16][g_player.WorldPos.X / 16])
 	{
@@ -50,7 +50,6 @@ void DrawBattle(void)
 		default:
 		{
 			ASSERT(FALSE, "Random monster encounter on an unknown tile!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
-			break;
 		}
 	}
 

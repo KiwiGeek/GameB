@@ -10,7 +10,6 @@ MENU gMenu_OptionsScreen = { "Options", 0, _countof(gMI_OptionsScreenItems), gMI
 
 void DrawOptionsScreen(void)
 {
-	const PIXEL32 grey = COLOR_NES_GRAY;
 	static uint64_t local_frame_counter;
 	static uint64_t last_frame_seen;
 	static PIXEL32 text_color = { {0x00, 0x00, 0x00, 0x00} };
@@ -44,7 +43,10 @@ void DrawOptionsScreen(void)
 	{
 		if (volume >= (uint8_t)(g_sfx_volume * 10))
 		{
-			BlitStringToBuffer("\xf2", &g_6x7_font, &grey, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_SFXVolume.Y);
+			if (local_frame_counter > FADE_DURATION_FRAMES)
+			{
+				BlitStringToBuffer("\xf2", &g_6x7_font, &COLOR_GRAY_0, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_SFXVolume.Y);
+			}
 		}
 		else
 		{
@@ -56,7 +58,10 @@ void DrawOptionsScreen(void)
 	{
 		if (volume >= (uint8_t)(g_music_volume * 10))
 		{
-			BlitStringToBuffer("\xf2", &g_6x7_font, &grey, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_MusicVolume.Y);
+			if (local_frame_counter > FADE_DURATION_FRAMES)
+			{
+				BlitStringToBuffer("\xf2", &g_6x7_font, &COLOR_GRAY_0, (int16_t)(224 + (volume * 6)), gMI_OptionsScreen_MusicVolume.Y);
+			}
 		}
 		else
 		{
@@ -85,8 +90,12 @@ void PPI_OptionsScreen(void)
 		if (gMenu_OptionsScreen.SelectedItem < gMenu_OptionsScreen.ItemCount - 1)
 		{
 			gMenu_OptionsScreen.SelectedItem++;
-			PlayGameSound(&g_sound_menu_navigate);
 		}
+		else
+		{
+			gMenu_OptionsScreen.SelectedItem = 0;
+		}
+		PlayGameSound(&g_sound_menu_navigate);
 	}
 
 	if (PRESSED_UP)
@@ -94,8 +103,12 @@ void PPI_OptionsScreen(void)
 		if (gMenu_OptionsScreen.SelectedItem > 0)
 		{
 			gMenu_OptionsScreen.SelectedItem--;
-			PlayGameSound(&g_sound_menu_navigate);
 		}
+		else
+		{
+			gMenu_OptionsScreen.SelectedItem = gMenu_OptionsScreen.ItemCount - 1;
+		}
+		PlayGameSound(&g_sound_menu_navigate);
 	}
 
 	if ((PRESSED_CHOOSE) || (((PRESSED_LEFT) || (PRESSED_RIGHT)) && gMenu_OptionsScreen.SelectedItem != gMenu_OptionsScreen.ItemCount - 1))
@@ -130,9 +143,9 @@ void MenuItem_OptionsScreen_SFXVolume(void)
 	if (normalized_sfx_volume > 10) { normalized_sfx_volume = (PRESSED_RIGHT) ? 10 : 0; }
 	g_sfx_volume = (float)normalized_sfx_volume / 10.0f;
 
-	for (uint8_t Counter = 0; Counter < NUMBER_OF_SFX_SOURCE_VOICES; Counter++)
+	for (uint8_t counter = 0; counter < NUMBER_OF_SFX_SOURCE_VOICES; counter++)
 	{
-		g_xaudio_sfx_source_voice[Counter]->lpVtbl->SetVolume(g_xaudio_sfx_source_voice[Counter], g_sfx_volume, XAUDIO2_COMMIT_NOW);
+		g_xaudio_sfx_source_voice[counter]->lpVtbl->SetVolume(g_xaudio_sfx_source_voice[counter], g_sfx_volume, XAUDIO2_COMMIT_NOW);
 	}
 }
 
@@ -150,6 +163,16 @@ void MenuItem_OptionsScreen_MusicVolume(void)
 void MenuItem_OptionsScreen_ScreenSize(void)
 {
 	g_performance_data.CurrentScaleFactor = g_performance_data.CurrentScaleFactor + (uint8_t)((PRESSED_LEFT) ? -1 : 1);
-	g_performance_data.CurrentScaleFactor = max(1, min(g_performance_data.CurrentScaleFactor, g_performance_data.MaxScaleFactor));
+	if (PRESSED_CHOOSE)
+	{
+		if (g_performance_data.CurrentScaleFactor > g_performance_data.MaxScaleFactor)
+		{
+			g_performance_data.CurrentScaleFactor = 1;
+		}
+	}
+	else
+	{
+		g_performance_data.CurrentScaleFactor = max(1, min(g_performance_data.CurrentScaleFactor, g_performance_data.MaxScaleFactor));
+	}
 	InvalidateRect(g_game_window, NULL, TRUE);
 }

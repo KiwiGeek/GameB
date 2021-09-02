@@ -5,7 +5,7 @@ BOOL fade;
 PORTAL g_portal001 = { 0 };
 PORTAL g_portal002 = { 0 };
 
-PORTAL* g_portals[2] = { 0 };;
+PORTAL g_portals[2] = { 0 };
 
 GAME_AREA g_current_area = { 0 };
 GAME_AREA g_overworld_area = { 0 };
@@ -278,13 +278,13 @@ void PortalHandler(void)
 
 	for (uint32_t counter = 0; counter < _countof(g_portals); counter++)
 	{
-		if (g_player.WorldPos.X == g_portals[counter]->WorldPos.X && g_player.WorldPos.Y == g_portals[counter]->WorldPos.Y)
+		if (g_player.WorldPos.X == g_portals[counter].WorldPos.X && g_player.WorldPos.Y == g_portals[counter].WorldPos.Y)
 		{
 			StopMusic();
-			g_player.WorldPos = g_portals[counter]->WorldDestination;
-			g_player.ScreenPos = g_portals[counter]->ScreenDestination;
-			g_camera = g_portals[counter]->CameraPos;
-			g_current_area = g_portals[counter]->DestinationArea;
+			g_player.WorldPos = g_portals[counter].WorldDestination;
+			g_player.ScreenPos = g_portals[counter].ScreenDestination;
+			g_camera = g_portals[counter].CameraPos;
+			g_current_area = g_portals[counter].DestinationArea;
 			fade = TRUE;
 			return;
 		}

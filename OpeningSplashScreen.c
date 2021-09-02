@@ -10,14 +10,14 @@ void DrawOpeningSplashScreen(void)
 
 	if (WaitForSingleObject(g_essential_assets_loaded_event, 0) != WAIT_OBJECT_0)
 	{
-		// make sure it hasn't been more than 5 seconds since we started loading. Something would be wrong
-		if (g_performance_data.TotalFramesRendered > 300)
+		// make sure it hasn't been more than 10 seconds since we started loading. Something would be wrong
+		if (g_performance_data.TotalFramesRendered > 600)
 		{
-			LogMessageA(LL_ERROR, "[%s] Essential assets not loaded yet after 5 seconds. Unable to continue!", __FUNCTION__);
+			LogMessageA(LL_ERROR, "[%s] Essential assets not loaded yet after 10 seconds. Unable to continue!", __FUNCTION__);
 
 			g_game_is_running = FALSE;
 
-			MessageBoxA(g_game_window, "Essential assets not loaded yet after 5 seconds. Unable to continue!", "Error", MB_OK | MB_ICONERROR);
+			MessageBoxA(g_game_window, "Essential assets not loaded yet after 10 seconds. Unable to continue!", "Error", MB_OK | MB_ICONERROR);
 		}
 		return;
 	}
@@ -25,7 +25,7 @@ void DrawOpeningSplashScreen(void)
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
 	{
 		local_frame_counter = 0;
-		memset(&text_color, 0, sizeof(PIXEL32));
+		memset(&text_color, (void*)&COLOR_NES_WHITE, sizeof(PIXEL32));
 		g_input_enabled = FALSE;
 	}
 
@@ -38,11 +38,11 @@ void DrawOpeningSplashScreen(void)
 
 	if (WaitForSingleObject(g_asset_loading_thread_handle, 0) != WAIT_OBJECT_0)
 	{
-		BlitStringToBuffer("Loading...", &g_6x7_font, &COLOR_NES_GRAY, (GAME_RES_WIDTH - (6 * 11)), (GAME_RES_HEIGHT - 7));
+		BlitStringToBuffer("Loading...", &g_6x7_font, &COLOR_GRAY_0, (GAME_RES_WIDTH - (6 * 11)), (GAME_RES_HEIGHT - 7));
 
 		if (blink)
 		{
-			BlitStringToBuffer("\xf2", &g_6x7_font, &COLOR_NES_GRAY, GAME_RES_WIDTH - 6, GAME_RES_HEIGHT - 7);
+			BlitStringToBuffer("\xf2", &g_6x7_font, &COLOR_GRAY_0, GAME_RES_WIDTH - 6, GAME_RES_HEIGHT - 7);
 		}
 	}
 	else

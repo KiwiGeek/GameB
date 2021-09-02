@@ -11,7 +11,7 @@
 #include "stb_vorbis.h"
 #include "miniz.h"
 
-GAME_INPUT		g_game_input = { 0 } ;
+GAME_INPUT		g_game_input = { 0 };
 GAME_PERF_DATA 	g_performance_data = { 0 };
 GAME_BITMAP		g_back_buffer = { 0 };
 GAME_BITMAP 	g_6x7_font = { 0 };
@@ -64,9 +64,10 @@ int g_font_character_pixel_offset[] = {
 
 const int16_t g_fade_brightness_gradient[] = {
 	-255, -255, -255, -255, -255, -255, -255, -255, -255, -255,
+	-192, -192, -192, -192, -192, -192, -192, -192, -192, -192,
 	-128, -128, -128, -128, -128, -128, -128, -128, -128, -128,
-	-64, -64, -64, -64, -64, -64, -64, -64, -64, -64,
-	-32, -32, -32, -32, -32, -32, -32, -32, -32, -32
+	 -64,  -64,  -64,  -64,  -64,  -64,  -64,  -64,  -64,  -64,
+	 -32,  -32,  -32,  -32,  -32,  -32,  -32,  -32,  -32,  -32
 };
 
 CRITICAL_SECTION g_log_critical_section;
@@ -104,20 +105,12 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 		goto Exit;
 	}
 
-	InitializeGlobals();
-
 	if (LoadRegistryParameters() != ERROR_SUCCESS)
 	{
 		goto Exit;
 	}
 
 	LogMessageA(LL_INFO, "[%s] %s %s is starting.", __FUNCTION__, GAME_NAME, GAME_VER);
-
-	//if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
-	//{
-	//	LogMessageA(LL_ERROR, "[%s] Failed to load module %s.", __FUNCTION__, GAME_CODE_MODULE);
-	//	goto Exit;
-	//}
 
 	if (GameIsAlreadyRunning())
 	{
@@ -169,6 +162,12 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 		}
 	}
 
+#ifdef __AVX2__
+	LogMessageA(LL_INFO, "[%s] SIMD Level: AVX2", __FUNCTION__);
+#else
+	LogMessageA(LL_WARNING, "[%s] SIMD Level: None", __FUNCTION__);
+#endif
+
 	GetSystemTimeAsFileTime((LPFILETIME)&g_performance_data.PreviousSystemTime);
 
 	if (timeBeginPeriod(1) == TIMERR_NOCANDO)
@@ -183,6 +182,12 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 		g_performance_data.MinimumTimerResolution,
 		g_performance_data.MaximumTimerResolution,
 		g_performance_data.CurrentTimerResolution);
+
+	if (g_performance_data.CurrentTimerResolution < 9500 ||
+		g_performance_data.CurrentTimerResolution > 10500)
+	{
+		LogMessageA(LL_WARNING, "[%s] Current timer resolution is sub-optimal! Game performance may be negatively affected!");
+	}
 
 	if (SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS) == 0)
 	{
@@ -242,16 +247,11 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 		goto Exit;
 	}
 
-	memset(g_back_buffer.Memory, 0x7F, GAME_DRAWING_AREA_MEMORY_SIZE);
+#ifdef _DEBUG
+	memset(g_back_buffer.Memory, 0xCC, GAME_DRAWING_AREA_MEMORY_SIZE);
+#endif
 
-	if (InitializeHero() != ERROR_SUCCESS)
-	{
-		LogMessageA(LL_ERROR, "[%s] Failed to initialize hero!", __FUNCTION__);
-		MessageBox(NULL, "Failed to initialize hero!", "Error!", MB_ICONEXCLAMATION | MB_OK);
-		goto Exit;
-	}
-
-	g_game_is_running = TRUE;
+	ResetEverythingForNewGame();
 
 	while (g_game_is_running)
 	{
@@ -286,7 +286,7 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 
 		elapsed_microseconds_accumulator_cooked += elapsed_microseconds;
 
-		if (g_performance_data.TotalFramesRendered % CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES == 0)
+		if (g_performance_data.TotalFramesRendered % CALCULATE_STATS_EVERY_X_FRAMES == 0)
 		{
 			GetSystemTimeAsFileTime((LPFILETIME)&g_performance_data.CurrentSystemTime);
 
@@ -304,20 +304,20 @@ int WinMain(_In_ HINSTANCE Instance, _In_opt_ HINSTANCE PreviousInstance, _In_ P
 			GetProcessHandleCount(GetCurrentProcess(), &g_performance_data.HandleCount);
 			K32GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&g_performance_data.MemInfo, sizeof(g_performance_data.MemInfo));
 
-			g_performance_data.RawFPSAverage = 1.0f / ((float)elapsed_microseconds_accumulator_raw / (float)CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES * 0.000001f);
-			g_performance_data.CookedFPSAverage = 1.0f / ((float)elapsed_microseconds_accumulator_cooked / (float)CALCULATE_AVERAGE_FPS_EVERY_X_FRAMES * 0.000001f);
+			g_performance_data.RawFPSAverage = 1.0f / ((float)elapsed_microseconds_accumulator_raw / (float)CALCULATE_STATS_EVERY_X_FRAMES * 0.000001f);
+			g_performance_data.CookedFPSAverage = 1.0f / ((float)elapsed_microseconds_accumulator_cooked / (float)CALCULATE_STATS_EVERY_X_FRAMES * 0.000001f);
 
 			FindFirstConnectedGamepad();
 
-//#ifdef _DEBUG
-			//if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
-			//{
-			//	if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
-			//	{
-			//		LogMessageA(LL_WARNING, "[%s] Failed to reload game code module %s.", __FUNCTION__, GAME_CODE_MODULE);
-			//	}
-			//}
-//#endif
+			//#ifdef _DEBUG
+						//if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
+						//{
+						//	if (LoadGameCode(GAME_CODE_MODULE) != ERROR_SUCCESS)
+						//	{
+						//		LogMessageA(LL_WARNING, "[%s] Failed to reload game code module %s.", __FUNCTION__, GAME_CODE_MODULE);
+						//	}
+						//}
+			//#endif
 
 			elapsed_microseconds_accumulator_raw = 0;
 			elapsed_microseconds_accumulator_cooked = 0;
@@ -372,56 +372,6 @@ LRESULT CALLBACK MainWindowProc(_In_ HWND WindowHandle, _In_ UINT Message, _In_ 
 	return result;
 }
 
-//DWORD LoadGameCode(_In_ const char* ModuleFileName)
-//{
-//	DWORD result = ERROR_SUCCESS;
-//
-//	if (g_game_code_module)
-//	{
-//		FreeLibrary(g_game_code_module);
-//		g_game_code_module = NULL;
-//	}
-//
-//	if (GetFileAttributesA(GAME_CODE_MODULE_TMP) != INVALID_FILE_ATTRIBUTES)
-//	{
-//		if (DeleteFileA(GAME_CODE_MODULE) == 0)
-//		{
-//			LogMessageA(LL_WARNING, "[%s] Failed to delete file %s.  Error 0x%08lx!", __FUNCTION__, GAME_CODE_MODULE, GetLastError());
-//		}
-//
-//		if (MoveFileA(GAME_CODE_MODULE_TMP, GAME_CODE_MODULE) == 0)
-//		{
-//			LogMessageA(LL_WARNING, "[%s] Failed to replace file %s with %s.  Error 0x%08lx!", __FUNCTION__, GAME_CODE_MODULE, GAME_CODE_MODULE_TMP, GetLastError());
-//		}
-//	}
-//
-//	g_game_code_module = LoadLibraryA(ModuleFileName);
-//	if (g_game_code_module == NULL)
-//	{
-//		result = GetLastError();
-//		goto Exit;
-//	}
-//
-//	if ((RandomMonsterEncounter = (_RandomMonsterEncounter)GetProcAddress(g_game_code_module, "RandomMonsterEncounter")) == NULL)
-//	{
-//		result = GetLastError();
-//		goto Exit;
-//	}
-//
-//Exit:
-//
-//	if (result == ERROR_SUCCESS)
-//	{
-//		LogMessageA(LL_INFO, "[%s] Successfully loaded code from module %s!", __FUNCTION__, GAME_CODE_MODULE);
-//	}
-//	else
-//	{
-//		LogMessageA(LL_ERROR, "[%s] Function failed with error 0x%08lx!", __FUNCTION__, result);
-//	}
-//
-//	return result;
-//}
-
 DWORD CreateMainGameWindow(void)
 {
 
@@ -441,6 +391,15 @@ DWORD CreateMainGameWindow(void)
 	windowClass.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
 	windowClass.lpszMenuName = NULL;
 	windowClass.lpszClassName = GAME_NAME "_WINDOWCLASS";
+
+#ifdef CLANG
+	if (SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2) == FALSE)
+	{
+		result = GetLastError();
+		LogMessageA(LL_ERROR, "[%s] SetProcessDpiAwarenessContext failed! Error 0x%08lx!", __FUNCTION__, result);
+		goto Exit;
+	}
+#endif
 
 	if (RegisterClassExA(&windowClass) == 0)
 	{
@@ -539,11 +498,6 @@ BOOL GameIsAlreadyRunning(void)
 void ProcessPlayerInput(void)
 {
 
-	if (g_window_has_focus == FALSE || g_input_enabled == FALSE)
-	{
-		return;
-	}
-
 	g_game_input.EscapeKeyIsDown = GetAsyncKeyState(VK_ESCAPE);
 	g_game_input.DebugKeyIsDown = GetAsyncKeyState(VK_F1);
 	g_game_input.LeftKeyIsDown = (int16_t)(GetAsyncKeyState(VK_LEFT) | GetAsyncKeyState('A'));
@@ -575,6 +529,11 @@ void ProcessPlayerInput(void)
 	if (PRESSED_DEBUG)
 	{
 		g_performance_data.DisplayDebugInfo = !g_performance_data.DisplayDebugInfo;
+	}
+
+	if (g_window_has_focus == FALSE || g_input_enabled == FALSE)
+	{
+		goto InputDisabled;
 	}
 
 	switch (g_current_game_state)
@@ -631,6 +590,7 @@ void ProcessPlayerInput(void)
 		}
 	}
 
+InputDisabled:
 	g_game_input.DebugKeyWasDown = g_game_input.DebugKeyIsDown;
 	g_game_input.LeftKeyWasDown = g_game_input.LeftKeyIsDown;
 	g_game_input.RightKeyWasDown = g_game_input.RightKeyIsDown;
@@ -640,7 +600,51 @@ void ProcessPlayerInput(void)
 	g_game_input.EscapeKeyWasDown = g_game_input.EscapeKeyIsDown;
 }
 
-DWORD InitializeHero(void) {
+void ResetEverythingForNewGame(void)
+{
+	StopMusic();
+	g_previous_game_state = GS_OPENING_SPLASH_SCREEN;
+	g_current_game_state = GS_OPENING_SPLASH_SCREEN;
+	g_camera.X = 0;
+	g_camera.Y = 0;
+	g_game_is_running = TRUE;
+	g_gamepad_id = -1;
+	g_passable_tiles[0] = TILE_GRASS_01;
+	g_passable_tiles[1] = TILE_PORTAL_01;
+	g_passable_tiles[2] = TILE_BRICK_01;
+	g_overworld_area = (GAME_AREA)
+	{
+		.Name = "The World",
+		.Area = (RECT){.left = 0, .top = 0, .right = 3840, .bottom = 2400 },
+		.Music = &g_music_overworld01
+	};
+	g_dungeon1_area = (GAME_AREA)
+	{
+		.Name = "Dungeon 01",
+		.Area = (RECT){.left = 3856, .top = 0, .right = 4240, .bottom = 240 },
+		.Music = &g_music_dungeon01
+	};
+	g_current_area = g_overworld_area;
+	g_portal001 = (PORTAL){
+		.DestinationArea = g_dungeon1_area,
+		.CameraPos = (UPOINT){.X = 3856, .Y = 0 },
+		.ScreenDestination = (UPOINT){.X = 64, .Y = 32 },
+		.WorldDestination = (UPOINT){.X = 3920, .Y = 32},
+		.WorldPos = (UPOINT){.X = 272, .Y = 80 } };
+	g_portal002 = (PORTAL){
+		.DestinationArea = g_overworld_area,
+		.CameraPos = (UPOINT){.X = 0, .Y = 0 },
+		.ScreenDestination = (UPOINT){.X = 272, .Y = 80 },
+		.WorldDestination = (UPOINT){.X = g_portal001.WorldPos.X, .Y = g_portal001.WorldPos.Y},
+		.WorldPos = (UPOINT){.X = 3920, .Y = 32 } };
+	g_portals[0] = g_portal001;
+	g_portals[1] = g_portal002;
+	g_player.Active = FALSE;
+	memset(g_player.Name, 0, sizeof(g_player.Name));
+	g_player.HasPlayerMovedSincePortal = FALSE;
+	g_player.MovementRemaining = 0;
+	g_player.StepsSinceLastRandomMonsterEncounter = 0;
+	g_player.StepsTaken = 0;
 	g_player.HP = 20;
 	g_player.Money = 0;
 	g_player.ScreenPos.X = 192;
@@ -650,7 +654,6 @@ DWORD InitializeHero(void) {
 	g_player.CurrentArmor = SUIT_0;
 	g_player.Direction = DOWN;
 	g_player.RandomEncounterPercentage = 90;
-	return 0;
 }
 
 void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontSheet, _In_ const PIXEL32* Color, _In_ const int16_t X, _In_ const int16_t Y)
@@ -682,7 +685,8 @@ void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontShe
 					+ (string_bitmap.BitmapInfo.bmiHeader.biWidth * string_bitmap.BitmapInfo.bmiHeader.biHeight - string_bitmap.BitmapInfo.bmiHeader.biWidth)
 					+ x_pixel - string_bitmap.BitmapInfo.bmiHeader.biWidth * y_pixel;
 
-				memcpy_s(&font_sheet_pixel, sizeof(PIXEL32), (PIXEL32*)FontSheet->Memory + font_sheet_offset, sizeof(PIXEL32));
+				//memcpy_s(&font_sheet_pixel, sizeof(PIXEL32), (PIXEL32*)FontSheet->Memory + font_sheet_offset, sizeof(PIXEL32));
+				memcpy(&font_sheet_pixel, (PIXEL32*)FontSheet->Memory + font_sheet_offset, sizeof(PIXEL32));
 
 				if (font_sheet_pixel.colors.Alpha == 255)
 				{
@@ -690,7 +694,8 @@ void BlitStringToBuffer(_In_ const char* String, _In_ const GAME_BITMAP* FontShe
 					font_sheet_pixel.colors.Green = Color->colors.Green;
 					font_sheet_pixel.colors.Blue = Color->colors.Blue;
 
-					memcpy_s((PIXEL32*)string_bitmap.Memory + string_bitmap_offset, sizeof(PIXEL32), &font_sheet_pixel, sizeof(PIXEL32));
+					//memcpy_s((PIXEL32*)string_bitmap.Memory + string_bitmap_offset, sizeof(PIXEL32), &font_sheet_pixel, sizeof(PIXEL32));
+					memcpy((PIXEL32*)string_bitmap.Memory + string_bitmap_offset, &font_sheet_pixel, sizeof(PIXEL32));
 				}
 			}
 		}
@@ -803,7 +808,7 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 	PIXEL32 bitmap_pixel = { 0 };
 	int32_t memory_offset;
 	int32_t bitmap_offset;
-#ifdef AVX
+#ifdef __AVX2__
 
 	for (int16_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
 	{
@@ -861,58 +866,6 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 		}
 	}
 
-#elif defined SSE2
-
-	for (int16_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
-	{
-		int16_t pixels_remaining_on_this_row = (int16_t)GameBitmap->BitmapInfo.bmiHeader.biWidth;
-		int16_t x_pixel = 0;
-
-		while (pixels_remaining_on_this_row >= 4)
-		{
-			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
-			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
-
-			__m128i bitmap_quad_pixel = _mm_load_si128((const __m128i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
-
-			__m128i half1 = _mm_unpacklo_epi8(bitmap_quad_pixel, _mm_setzero_si128());
-			half1 = _mm_add_epi16(half1, _mm_set_epi16(
-				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
-				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment));
-
-			__m128i Half2 = _mm_unpackhi_epi8(bitmap_quad_pixel, _mm_setzero_si128());
-			Half2 = _mm_add_epi16(Half2, _mm_set_epi16(
-				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment,
-				0, BrightnessAdjustment, BrightnessAdjustment, BrightnessAdjustment));
-
-			bitmap_quad_pixel = _mm_packus_epi16(half1, Half2);
-
-			_mm_store_si128((__m128i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_quad_pixel);
-
-			pixels_remaining_on_this_row -= 4;
-			x_pixel += 4;
-		}
-
-		while (pixels_remaining_on_this_row > 0)
-		{
-			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
-			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
-
-			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
-
-			if (bitmap_pixel.Alpha == 255)
-			{
-				bitmap_pixel.Red = (uint8_t)min(255, max((bitmap_pixel.Red + BrightnessAdjustment), 0));
-				bitmap_pixel.Green = (uint8_t)min(255, max((bitmap_pixel.Green + BrightnessAdjustment), 0));
-				bitmap_pixel.Blue = (uint8_t)min(255, max((bitmap_pixel.Blue + BrightnessAdjustment), 0));
-				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
-			}
-
-			pixels_remaining_on_this_row--;
-			x_pixel++;
-		}
-	}
-
 #else
 
 	for (int32_t y_pixel = 0; y_pixel < GameBitmap->BitmapInfo.bmiHeader.biHeight; y_pixel++)
@@ -924,20 +877,20 @@ void Blit32BppBitmapToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ const int1
 
 			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
 
-			if (bitmap_pixel.Alpha == 255)
+			if (bitmap_pixel.colors.Alpha == 255)
 			{
-				bitmap_pixel.Red = (uint8_t)min(255, max(0, bitmap_pixel.Red + BrightnessAdjustment));
-				bitmap_pixel.Blue = (uint8_t)min(255, max(0, bitmap_pixel.Blue + BrightnessAdjustment));
-				bitmap_pixel.Green = (uint8_t)min(255, max(0, bitmap_pixel.Green + BrightnessAdjustment));
+				bitmap_pixel.colors.Red = (uint8_t)min(255, max(0, bitmap_pixel.colors.Red + BrightnessAdjustment));
+				bitmap_pixel.colors.Blue = (uint8_t)min(255, max(0, bitmap_pixel.colors.Blue + BrightnessAdjustment));
+				bitmap_pixel.colors.Green = (uint8_t)min(255, max(0, bitmap_pixel.colors.Green + BrightnessAdjustment));
 				memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 			}
-			}
 		}
+	}
 
 #endif
 
 
-	}
+}
 
 void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t BrightnessAdjustment)
 {
@@ -949,7 +902,7 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 	int32_t memory_offset;
 	int32_t bitmap_offset;
 
-#ifdef AVX
+#ifdef __AVX2__
 
 	for (int16_t y_pixel = 0; y_pixel < GAME_RES_HEIGHT; y_pixel++)
 	{
@@ -969,25 +922,6 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 		}
 	}
 
-#elif defined SSE2
-
-	for (int16_t y_pixel = 0; y_pixel < GAME_RES_HEIGHT; y_pixel++)
-	{
-		for (int16_t x_pixel = 0; x_pixel < GAME_RES_WIDTH; x_pixel += 4)
-		{
-			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
-			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
-
-			__m128i bitmap_quad_pixel = _mm_load_si128((const __m128i*)((PIXEL32*)GameBitmap->Memory + bitmap_offset));
-			__m128i half_1 = _mm_unpacklo_epi8(bitmap_quad_pixel, _mm_setzero_si128());
-			half_1 = _mm_add_epi16(half_1, _mm_set1_epi16(BrightnessAdjustment));
-			__m128i half_2 = _mm_unpackhi_epi8(bitmap_quad_pixel, _mm_setzero_si128());
-			half_2 = _mm_add_epi16(half_2, _mm_set1_epi16(BrightnessAdjustment));
-			bitmap_quad_pixel = _mm_packus_epi16(half_1, half_2);
-			_mm_store_si128((__m128i*)((PIXEL32*)g_back_buffer.Memory + memory_offset), bitmap_quad_pixel);
-		}
-	}
-
 #else
 
 	PIXEL32 bitmap_pixel = { 0 };
@@ -998,10 +932,10 @@ void BlitBackgroundToBuffer(_In_ const GAME_BITMAP* GameBitmap, _In_ int16_t Bri
 			memory_offset = starting_screen_pixel + x_pixel - (GAME_RES_WIDTH * y_pixel);
 			bitmap_offset = starting_bitmap_pixel + x_pixel - (GameBitmap->BitmapInfo.bmiHeader.biWidth * y_pixel);
 			memcpy_s(&bitmap_pixel, sizeof(PIXEL32), (PIXEL32*)GameBitmap->Memory + bitmap_offset, sizeof(PIXEL32));
-			bitmap_pixel.Red = (uint8_t)min(255, max(0, bitmap_pixel.Red + BrightnessAdjustment));
-			bitmap_pixel.Green = (uint8_t)min(255, max(0, bitmap_pixel.Green + BrightnessAdjustment));
-			bitmap_pixel.Blue = (uint8_t)min(255, max(0, bitmap_pixel.Blue + BrightnessAdjustment));
-			bitmap_pixel.Alpha = (uint8_t)min(255, max(0, bitmap_pixel.Alpha + BrightnessAdjustment));
+			bitmap_pixel.colors.Red = (uint8_t)min(255, max(0, bitmap_pixel.colors.Red + BrightnessAdjustment));
+			bitmap_pixel.colors.Green = (uint8_t)min(255, max(0, bitmap_pixel.colors.Green + BrightnessAdjustment));
+			bitmap_pixel.colors.Blue = (uint8_t)min(255, max(0, bitmap_pixel.colors.Blue + BrightnessAdjustment));
+			bitmap_pixel.colors.Alpha = (uint8_t)min(255, max(0, bitmap_pixel.colors.Alpha + BrightnessAdjustment));
 			memcpy_s((PIXEL32*)g_back_buffer.Memory + memory_offset, sizeof(PIXEL32), &bitmap_pixel, sizeof(PIXEL32));
 		}
 	}
@@ -1177,7 +1111,6 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 	if (message_length < 1 || message_length > 4096)
 	{
 		ASSERT(FALSE, "Message was either too short or too long!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
-		return;
 	}
 
 	switch (LogLevel)
@@ -1224,6 +1157,7 @@ void LogMessageA(_In_ LOG_LEVEL LogLevel, _In_ char* Message, _In_ ...)
 
 	if ((log_file_handle = CreateFileA(LOG_FILE_NAME, FILE_APPEND_DATA, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) == INVALID_HANDLE_VALUE)
 	{
+		MessageBoxA(NULL, "Failed to access log file!", "ERROR!", MB_ICONERROR | MB_OK);
 		ASSERT(FALSE, "Failed to access log file!");  // NOLINT(clang-diagnostic-extra-semi-stmt)
 	}
 
@@ -1246,23 +1180,23 @@ void DrawDebugInfo(void)
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "FPS:     %.01f (%.01f)", (double)g_performance_data.CookedFPSAverage, (double)g_performance_data.RawFPSAverage);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 0));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Timer:   %.02f/%.02f/%.02f", (double)g_performance_data.MinimumTimerResolution / 10000.0, (double)g_performance_data.MaximumTimerResolution / 10000.0, (double)g_performance_data.CurrentTimerResolution / 10000.0);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 1));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 1));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Handles: %lu", g_performance_data.HandleCount);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 2));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 2));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Memory:  %i KB", (int)(g_performance_data.MemInfo.PrivateUsage / 1024));
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 3));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 3));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "CPU:     %.02f%%", g_performance_data.CPUPercent);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 4));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 4));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "FramesT: %llu", g_performance_data.TotalFramesRendered);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 5));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 5));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "ScreenXY:%hu,%hu", g_player.ScreenPos.X, g_player.ScreenPos.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 6));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 6));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "WorldXY: %hu,%hu", g_player.WorldPos.X, g_player.WorldPos.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 7));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 7));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "CameraXY:%hu,%hu", g_camera.X, g_camera.Y);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 8));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 8));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Movement:%u", g_player.MovementRemaining);
-	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0,  (8 * 9));
+	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 9));
 	sprintf_s(debug_text_buffer, sizeof(debug_text_buffer), "Steps:   %llu", g_player.StepsTaken);
 	BlitStringToBuffer(debug_text_buffer, &g_6x7_font, &(COLOR_NES_WHITE), 0, (8 * 10));
 
@@ -1937,189 +1871,97 @@ Exit:
 	return error;
 }
 
-void InitializeGlobals(void)
+void DrawWindow(_In_opt_ uint16_t X,
+	_In_opt_ uint16_t Y,
+	_In_ int16_t Width,
+	_In_ int16_t Height,
+	_In_opt_ PIXEL32* BorderColor,
+	_In_opt_ PIXEL32* BackgroundColor,
+	_In_opt_ PIXEL32* ShadowColor,
+	_In_ DWORD Flags)
 {
-	g_current_game_state = GS_OPENING_SPLASH_SCREEN;
-	g_game_is_running = TRUE;
-	g_gamepad_id = -1;
-
-	g_passable_tiles[0] = TILE_GRASS_01;
-	g_passable_tiles[1] = TILE_BRICK_01;
-	g_passable_tiles[2] = TILE_PORTAL_01;
-
-	g_overworld_area = (GAME_AREA)
-	{
-		.Name = "The World",
-		.Area = (RECT) {.left = 0, .top = 0, .right = 3840, .bottom = 2400 },
-		.Music = &g_music_overworld01
-	};
-
-
-	g_dungeon1_area = (GAME_AREA)
-	{
-		.Name = "Dungeon 01",
-		.Area = (RECT){.left = 3856, .top = 0, .right = 4240, .bottom = 240 },
-		.Music = &g_music_dungeon01
-	};
-
-	g_current_area = g_overworld_area;
-
-#pragma warning(suppress: 4127)
-	ASSERT((_countof(g_portals) == 2), "Wrong count of portals!");
-
-	g_portal001 = (PORTAL){
-			.DestinationArea = g_dungeon1_area,
-			.CameraPos = (UPOINT) {.X = 3856,.Y = 0},
-			.ScreenDestination = (UPOINT) {.X = 64,	.Y = 32},
-			.WorldDestination = (UPOINT) {.X = 3920,.Y = 32},
-			.WorldPos = (UPOINT) {.X = 272,	.Y = 80}
-	};
-
-	g_portal002 = (PORTAL){
-		.DestinationArea = g_overworld_area,
-		.CameraPos = (UPOINT) {.X = 0,	.Y = 0},
-		.ScreenDestination = (UPOINT) {.X = 272,	.Y = 80},
-		.WorldDestination = (UPOINT) {.X = 272,	.Y = 80},
-		.WorldPos = (UPOINT) {.X = 3920,.Y = 32}
-	};
-
-	g_portals[0] = &g_portal001;
-	g_portals[1] = &g_portal002;
-}
-
-void DrawWindow(_In_ int16_t X, _In_ int16_t Y, _In_ const int16_t Width, _In_ const int16_t Height, _In_ const PIXEL32 BackgroundColor, _In_ const DWORD Flags)
-{
-	//ASSERT(Width % sizeof(PIXEL32) == 0, "Window width must be a multiple of 4!");			// BUT WHY?
-	//ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!");
-
 	if (Flags & WF_HORIZONTALLY_CENTERED)
 	{
-		X = (int16_t)((GAME_RES_WIDTH / 2) - (Width / 2) - 1);
+		X = (int16_t)((GAME_RES_WIDTH / 2) - (Width / 2));
 	}
 
 	if (Flags & WF_VERTICALLY_CENTERED)
 	{
-		Y = (int16_t)((GAME_RES_HEIGHT / 2) - (Height / 2) - 1);
+		Y = (int16_t)((GAME_RES_HEIGHT / 2) - (Height / 2));
 	}
 
-	const int32_t starting_screen_pixel = (GAME_RES_WIDTH * GAME_RES_HEIGHT - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
-	for (int16_t row = 0; row < Height; row++)
-	{
-		const int32_t memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
-#ifdef CLANG
-		__asm {
-			mov eax, [memory_offset]
-			mov rdx, qword ptr [g_back_buffer.Memory]
-			lea rdi, [rdx+rax*4]
-			mov eax, [BackgroundColor]
-			mov  cx, [Width]
-			rep stosd
-		}
-#else
-		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, BackgroundColor.bytes, Width);
-#endif
-		
-	}
+	ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!");
+	ASSERT((Flags & WF_BORDERED) || (Flags & WF_OPAQUE), "Window must have either the BORDERED or the OPAQUE flags (or both) set!");
 
-	if (Flags & WF_SHADOWED)
+	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
+
+	if (Flags & WF_OPAQUE)
 	{
-		// this is a broken formula for making sure we don't break the shadow. It fails if the window is full screen.
-		//if (X > 0) { X -= 1; }
-		//if (Y > 0) { Y -= 1; }
-		int32_t memory_offset = starting_screen_pixel - GAME_RES_WIDTH * Height + 1;
-#ifdef CLANG
-		__asm {
-			mov eax, [memory_offset]
-			mov rdx, qword ptr [g_back_buffer.Memory]
-			lea rdi, [rdx+rax*4]
-			mov eax, [BackgroundColor]
-			mov  cx, [Width]
-			rep stosd
-		}
-#else
-		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFF7C7C7C, Width);
-#endif
-		for (int16_t row = 1; row < Height; row++)
+		ASSERT(BackgroundColor != NULL, "WINDOW_FLAG_OPAQUE is set but BackgroundColor is NULL!");
+
+		for (int row = 0; row < Height; row++)
 		{
-			memory_offset = starting_screen_pixel - GAME_RES_WIDTH * row + Width;
-#ifdef CLANG
-		__asm {
-			mov eax, [memory_offset]
-			mov rdx, qword ptr [g_back_buffer.Memory]
-			lea rdi, [rdx+rax*4]
-			mov eax, [BackgroundColor]
-			mov  cx, [Width]
-			rep stosd
-		}
-#else
-			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFF7C7C7C, 1);
-#endif
+			const int memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
+			for (int pixel = 0; pixel < Width; pixel++)
+			{
+				memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BackgroundColor, sizeof(PIXEL32));
+			}
 		}
 	}
 
 	if (Flags & WF_BORDERED)
 	{
-		int32_t memory_offset = starting_screen_pixel;
-#ifdef CLANG
-		__asm {
-			mov eax, [memory_offset] 
-			mov rdx, qword ptr [g_back_buffer.Memory]
-			lea rdi, [rdx+rax*4]
-			mov eax, [BackgroundColor]
-			mov  cx, [Width]
-			rep stosd
+		ASSERT(BorderColor != NULL, "WINDOW_FLAG_BORDERED is set but BorderColor is NULL!");
+		// Draw the top of the border.
+		int memory_offset = starting_screen_pixel;
+
+		for (int pixel = 0; pixel < Width; pixel++)
+		{
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BorderColor, sizeof(PIXEL32));
 		}
-#else
-		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, Width);
-#endif
+
+		// Draw the bottom of the border.
 		memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * (Height - 1));
-#ifdef CLANG
-		__asm {
-			mov eax, [memory_offset]
-			mov rdx, qword ptr [g_back_buffer.Memory]
-			lea rdi, [rdx+rax*4]
-			mov eax, [BackgroundColor]
-			mov  cx, [Width]
-			rep stosd
+
+		for (int pixel = 0; pixel < Width; pixel++)
+		{
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BorderColor, sizeof(PIXEL32));
 		}
-#else
-		__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, Width);
-#endif
-		for (int16_t row = 1; row < Height; row++)
+
+		// Draw one pixel on the left side and the right for each row of the border, from the top down.
+		for (int row = 1; row < Height - 1; row++)
 		{
 			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
-#ifdef CLANG
-		__asm {
-			mov eax, [memory_offset]
-			mov rdx, qword ptr [g_back_buffer.Memory]
-			lea rdi, [rdx+rax*4]
-			mov eax, [BackgroundColor]
-			mov  cx, [Width]
-			rep stosd
-		}
-#else
-			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, 1);
-#endif
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, BorderColor, sizeof(PIXEL32));
 			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row) + (Width - 1);
-#ifdef CLANG
-		__asm {
-			mov eax, [memory_offset]
-			mov rdx, qword ptr [g_back_buffer.Memory]
-			lea rdi, [rdx+rax*4]
-			mov eax, [BackgroundColor] 
-			mov  cx, [Width]
-			rep stosd
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, BorderColor, sizeof(PIXEL32));
 		}
-#else
-			__stosd((PDWORD)g_back_buffer.Memory + memory_offset, 0xFFFCFCFC, 1);
-#endif
+	}
+
+	if (Flags & WF_SHADOWED)
+	{
+		ASSERT(ShadowColor != NULL, "WINDOW_FLAG_SHADOW is set but ShadowColor is NULL!");
+
+		// Draw the bottom of the shadow.
+		int memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * Height);
+
+		for (int pixel = 1; pixel < (Width + 1); pixel++)
+		{
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, ShadowColor, sizeof(PIXEL32));
+		}
+
+		// Draw one pixel on the right side for each row of the border, from the top down.
+		for (int row = 1; row < Height; row++)
+		{
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row) + Width;
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, ShadowColor, sizeof(PIXEL32));
 		}
 	}
 }
 
 void ApplyFadeIn(_In_ uint64_t FrameCounter, _In_ PIXEL32 DefaultTextColor, _Inout_ PIXEL32* TextColor, _Inout_opt_ int16_t* BrightnessAdjustment)
 {
-	#pragma warning(suppress: 4127)
+#pragma warning(suppress: 4127)
 	ASSERT(_countof(g_fade_brightness_gradient) == FADE_DURATION_FRAMES, "g_fade_brightness_gradient has too few elements!");
 
 	int16_t local_brightness_adjustment;
@@ -2157,8 +1999,8 @@ void ApplyFadeIn(_In_ uint64_t FrameCounter, _In_ PIXEL32 DefaultTextColor, _Ino
 // ScreenDestination can be calculated by subtracting CameraPos from WorldDestination, so is unnecessary
 // Can remove check for assets loaded in PPI_OpeningSplashScreen as input is locked until it is.
 // put in a starting call to find gamepads before 2seconds pass.
-// Window Width in DrawWindow doesn't need to be a multiple of 4.
 // horizontally/vertically centered off by one in DrawWindow (all the text calculations too?)
 // full screen window shadow at (0,0)
 // DrawWindow if centered should return the positions chosen, so it's actually useful.
 // Removed brightness check from grey in options screen
+// Rounded corners

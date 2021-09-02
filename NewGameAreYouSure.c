@@ -72,7 +72,7 @@ void MenuItem_NewGameAreYouSure_Yes(void)
 {
 	// TODO: RESET EVERYTHING, including reset hero to all defaults
 	// TODO: Flush sound buffers
-	InitializeHero();
+	ResetEverythingForNewGame();
 	g_previous_game_state = g_current_game_state;
 	g_current_game_state = GS_CHARACTER_NAMING;
 }
