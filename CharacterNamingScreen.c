@@ -101,7 +101,7 @@ void DrawCharacterNamingScreen(void)
 
 	ApplyFadeIn(local_frame_counter, COLOR_NES_WHITE, &text_color, &brightness_adjustment);
 
-	DrawWindow(108, 11, 166, 18, &text_color, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED);
+	DrawWindowThick(108, 11, 166, 18, &text_color, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED | WF_ROUNDED_CORNERS);
 	DrawWindow(108, 105, 166, 60, &text_color, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED);
 
 	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g_6x7_font, &text_color, (int16_t)((GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2)), 16);

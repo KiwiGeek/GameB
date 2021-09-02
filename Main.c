@@ -17,6 +17,8 @@ GAME_BITMAP		g_back_buffer = { 0 };
 GAME_BITMAP 	g_6x7_font = { 0 };
 GAME_BITMAP 	g_battle_scene_grasslands01 = { 0 };
 GAME_BITMAP 	g_battle_scene_dungeon01 = { 0 };
+GAME_BITMAP		g_monster_sprite_slime_001 = { 0 };
+GAME_BITMAP		g_monster_sprite_rat_001 = { 0 };
 GAMEMAP			g_overworld01 = { 0 };
 GAME_STATE		g_current_game_state = GS_OPENING_SPLASH_SCREEN;
 GAME_STATE		g_previous_game_state = GS_OPENING_SPLASH_SCREEN;
@@ -1865,6 +1867,8 @@ DWORD AssetLoadingThreadProc(_In_ LPVOID Param)
 	LOAD_ASSET("Hero_Suit0_Up_Walk2.bmpx", RT_BMPX, &g_player.Sprite[SUIT_0][FACING_UPWARD_2]);
 	LOAD_ASSET("Grasslands01.bmpx", RT_BMPX, &g_battle_scene_grasslands01);
 	LOAD_ASSET("Dungeon01.bmpx", RT_BMPX, &g_battle_scene_dungeon01);
+	LOAD_ASSET("Slime001.bmpx", RT_BMPX, &g_monster_sprite_slime_001);
+	LOAD_ASSET("Rat001.bmpx", RT_BMPX, &g_monster_sprite_rat_001);
 	// ReSharper enable CppClangTidyClangDiagnosticExtraSemiStmt
 
 Exit:
@@ -1959,6 +1963,160 @@ void DrawWindow(_In_opt_ uint16_t X,
 	}
 }
 
+void DrawWindowThick( _In_opt_ uint16_t X, _In_opt_ uint16_t Y, _In_ int16_t Width, _In_ int16_t Height, _In_opt_ PIXEL32* BorderColor, _In_opt_ PIXEL32* BackgroundColor, _In_opt_ PIXEL32* ShadowColor, _In_ DWORD Flags)
+{
+	if (Flags & WF_HORIZONTALLY_CENTERED)
+	{
+		X = (GAME_RES_WIDTH / 2) - (Width / 2);
+	}
+
+	if (Flags & WF_VERTICALLY_CENTERED)
+	{
+		Y = (GAME_RES_HEIGHT / 2) - (Height / 2);
+	}
+
+	ASSERT((X + Width <= GAME_RES_WIDTH) && (Y + Height <= GAME_RES_HEIGHT), "Window is off the screen!");
+
+	ASSERT((Flags & WF_BORDERED) || (Flags & WF_OPAQUE), "Window must have either the BORDERED or the OPAQUE flags (or both) set!");
+
+	const int32_t starting_screen_pixel = ((GAME_RES_WIDTH * GAME_RES_HEIGHT) - GAME_RES_WIDTH) - (GAME_RES_WIDTH * Y) + X;
+
+	if (Flags & WF_OPAQUE)
+	{
+		ASSERT(BackgroundColor != NULL, "WINDOW_FLAG_OPAQUE is set but BackgroundColor is NULL!");
+
+		for (int row = 0; row < Height; row++)
+		{
+			const int memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
+
+			for (int pixel = 0; pixel < Width; pixel++)
+			{
+				memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BackgroundColor, sizeof(PIXEL32));
+			}
+		}
+	}
+
+	if (Flags & WF_BORDERED)
+	{
+		ASSERT(BorderColor != NULL, "WINDOW_FLAG_BORDERED is set but BorderColor is NULL!");
+		// Draw the top of the border.
+		int memory_offset = starting_screen_pixel;
+
+		// easy solution, we'll make every window 2 pixels thick
+		if (Flags & WF_ROUNDED_CORNERS)
+		{
+			for (int pixel = 1; pixel < Width - 1; pixel++)
+			{
+				memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BorderColor, sizeof(PIXEL32));
+			}
+		}
+		else
+		{
+			for (int pixel = 0; pixel < Width; pixel++)
+			{
+				memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BorderColor, sizeof(PIXEL32));
+			}
+		}
+
+		// draw 2nd line of top
+		memory_offset = starting_screen_pixel - GAME_RES_WIDTH;
+		for (int pixel = 0; pixel < Width; pixel++)
+		{
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BorderColor, sizeof(PIXEL32));
+		}
+
+		// Draw the bottom of the border.
+		memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * (Height - 2));
+		for (int pixel = 0; pixel < Width; pixel++)
+		{
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BorderColor, sizeof(PIXEL32));
+		}
+
+		// draw 2nd line of bottom border
+		memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * (Height - 1));
+
+		if (Flags & WF_ROUNDED_CORNERS)
+		{
+			for (int pixel = 1; pixel < Width - 1; pixel++)
+			{
+				memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BorderColor, sizeof(PIXEL32));
+			}
+		}
+		else
+		{
+			for (int pixel = 0; pixel < Width; pixel++)
+			{
+				memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + pixel, BorderColor, sizeof(PIXEL32));
+			}
+		}
+
+		// Draw one pixel on the left side and the right for each row of the border, from the top down.
+		for (int row = 1; row < Height - 1; row++)
+		{
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row - 1);
+
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, BorderColor, sizeof(PIXEL32));
+
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row) + (Width - 2);
+
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, BorderColor, sizeof(PIXEL32));
+		}
+
+		for (int row = 1; row < Height - 1; row++)
+		{
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row);
+
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, BorderColor, sizeof(PIXEL32));
+
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * row) + (Width - 1);
+
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, BorderColor, sizeof(PIXEL32));
+		}
+	}
+
+	// TODO: If a window was placed at the edge of the screen, the shadow effect might attempt
+	// to draw off-screen and crash! i.e. make sure there's room to draw the shadow before attempting!
+	if (Flags & WF_SHADOWED)
+	{
+		ASSERT(ShadowColor != NULL, "WINDOW_FLAG_SHADOW is set but ShadowColor is NULL!");
+
+		// Draw the bottom of the shadow.
+		int memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * Height);
+
+		int this_width = Width + 1;
+		int this_start = 1;
+		int this_row = 1;
+		if (Flags & WF_ROUNDED_CORNERS) {
+			this_width--;
+			this_start++;
+			this_row++;
+		}
+
+		for (; this_start < (this_width); this_start++)
+		{
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset + this_start, ShadowColor, sizeof(PIXEL32));
+		}
+
+		// Draw one pixel on the right side for each row of the border, from the top down.
+
+		for (; this_row < Height; this_row++)
+		{
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * this_row) + Width;
+
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, ShadowColor, sizeof(PIXEL32));
+		}
+
+		// if bordered is on, fix one pixel of the drop shadow
+		if (Flags & WF_ROUNDED_CORNERS)
+		{
+			memory_offset = starting_screen_pixel - (GAME_RES_WIDTH * (Height - 1)) + (Width - 1);
+			memcpy((PIXEL32*)g_back_buffer.Memory + memory_offset, ShadowColor, sizeof(PIXEL32));
+		}
+	}
+}
+
+
+
 void ApplyFadeIn(_In_ uint64_t FrameCounter, _In_ PIXEL32 DefaultTextColor, _Inout_ PIXEL32* TextColor, _Inout_opt_ int16_t* BrightnessAdjustment)
 {
 #pragma warning(suppress: 4127)
@@ -2004,3 +2162,5 @@ void ApplyFadeIn(_In_ uint64_t FrameCounter, _In_ PIXEL32 DefaultTextColor, _Ino
 // DrawWindow if centered should return the positions chosen, so it's actually useful.
 // Removed brightness check from grey in options screen
 // Rounded corners
+// LOAD_ASSET function
+// fix for volume left/right in options
