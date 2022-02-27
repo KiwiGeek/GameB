@@ -14,7 +14,7 @@ GAME_AREA g_dungeon1_area = { 0 };
 void DrawOverworldScreen(void)
 {
 	static uint64_t local_frame_counter;
-	static uint64_t last_frame_seen;
+	static uint64_t last_frame_seen = 0;
 	static PIXEL32 text_color;
 	static int16_t brightness_adjustment = -255;
 
@@ -45,6 +45,8 @@ void DrawOverworldScreen(void)
 
 	//DrawWindow(32, 200, 128, 32, (PIXEL32) { { 0x00, 0x00, 0x00, 0x00 } }, WF_BORDERED | WF_HORIZONTALLY_CENTERED | WF_SHADOWED);
 
+	DrawPlayerStatsWindow(&text_color);
+
 	local_frame_counter++;
 	last_frame_seen = g_performance_data.TotalFramesRendered;
 }
@@ -54,8 +56,10 @@ void PPI_Overworld(void)
 
 	if (PRESSED_ESCAPE)
 	{
+		ASSERT(g_current_game_state == GS_OVERWORLD, "Invalid game state!")
 		g_previous_game_state = g_current_game_state;
 		g_current_game_state = GS_TITLE_SCREEN;
+		LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d.", __FUNCTION__, g_previous_game_state, g_current_game_state);
 		PauseMusic();
 		return;
 	}
@@ -295,6 +299,9 @@ void PortalHandler(void)
 
 void RandomMonsterEncounter(void)
 {
+	ASSERT(g_current_game_state == GS_OVERWORLD, "Invalid game state!");
 	g_previous_game_state = g_current_game_state;
 	g_current_game_state = GS_BATTLE;
+	LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d.", __FUNCTION__, g_previous_game_state, g_current_game_state);
 }
+

@@ -12,7 +12,7 @@ void DrawNewGameAreYouSureScreen(void)
 {
 
 	static uint64_t local_frame_counter;
-	static uint64_t last_frame_seen;
+	static uint64_t last_frame_seen = 0;
 	static PIXEL32 text_color;
 
 	if (g_performance_data.TotalFramesRendered > (last_frame_seen + 1))
@@ -72,13 +72,14 @@ void MenuItem_NewGameAreYouSure_Yes(void)
 {
 	// TODO: RESET EVERYTHING, including reset hero to all defaults
 	// TODO: Flush sound buffers
+	ASSERT(g_current_game_state == GS_NEW_GAME_ARE_YOU_SURE, "Invalid game state!");
 	ResetEverythingForNewGame();
-	g_previous_game_state = g_current_game_state;
-	g_current_game_state = GS_CHARACTER_NAMING;
 }
 
 void MenuItem_NewGameAreYouSure_No(void)
 {
+	ASSERT(g_current_game_state == GS_NEW_GAME_ARE_YOU_SURE, "Invalid game state!");
 	g_previous_game_state = g_current_game_state;
 	g_current_game_state = GS_TITLE_SCREEN;
+	LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_previous_game_state, g_current_game_state, gMenu_NewGameAreYouSure.Items[gMenu_NewGameAreYouSure.SelectedItem]->Name, gMenu_NewGameAreYouSure.Name);
 }

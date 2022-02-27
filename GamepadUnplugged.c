@@ -23,5 +23,6 @@ void PPI_GamepadUnplugged(void)
 	{
 		g_current_game_state = g_previous_game_state;
 		g_previous_game_state = GS_GAMEPAD_UNPLUGGED;
+		LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Either a gamepad was reconnected or the player chose to continue without one.", __FUNCTION__, g_previous_game_state, g_current_game_state);
 	}
 }

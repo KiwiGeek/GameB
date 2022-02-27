@@ -4,9 +4,9 @@
 void DrawOpeningSplashScreen(void)
 {
 	static uint64_t local_frame_counter;
-	static uint64_t last_frame_seen;
+	static uint64_t last_frame_seen = 0;
 	static PIXEL32 text_color = {{0xFC, 0xFC, 0xFC, 0xFF}};
-	static BOOL blink;
+	static BOOL blink = FALSE;
 
 	if (WaitForSingleObject(g_essential_assets_loaded_event, 0) != WAIT_OBJECT_0)
 	{
@@ -86,6 +86,7 @@ void DrawOpeningSplashScreen(void)
 
 				g_previous_game_state = g_current_game_state;
 				g_current_game_state = GS_TITLE_SCREEN;
+				LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Asset loading is complete.", __FUNCTION__, g_previous_game_state, g_current_game_state);
 			}
 		}
 
@@ -117,6 +118,7 @@ void PPI_OpeningSplashScreen(void)
 			{
 				g_previous_game_state = g_current_game_state;
 				g_current_game_state = GS_TITLE_SCREEN;
+				LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player pressed Escape to skip splash screen, and asset loading is complete.", __FUNCTION__, g_previous_game_state, g_current_game_state);
 			}
 
 		}

@@ -9,12 +9,12 @@ MENUITEM gMI_LoadSavedGame = { "Load Saved Game", (GAME_RES_WIDTH / 2) - ((15 * 
 MENUITEM gMI_Options = { "Options", (GAME_RES_WIDTH / 2) - ((7 * 6) / 2), 145, TRUE, MenuItem_TitleScreen_Options };
 MENUITEM gMI_Exit = { "Exit", (GAME_RES_WIDTH / 2) - ((4 * 6) / 2), 160, TRUE, MenuItem_TitleScreen_Exit };
 MENUITEM* gMI_TitleScreenItems[] = { &gMI_ResumeGame, &gMI_StartNewGame, &gMI_LoadSavedGame, &gMI_Options, &gMI_Exit };
-MENU gMenu_TitleScreen = { "Title Screen Menu", 1, _countof(gMI_TitleScreenItems), gMI_TitleScreenItems };
+MENU gMenu_TitleScreen = { "Title Screen", 1, _countof(gMI_TitleScreenItems), gMI_TitleScreenItems };
 
 void DrawTitleScreen(void)
 {
 	static uint64_t local_frame_counter;
-	static uint64_t last_frame_seen;
+	static uint64_t last_frame_seen = 0;
 	static PIXEL32 text_color = {{0x00, 0x00, 0x00, 0x00}};
 
 	if (g_performance_data.TotalFramesRendered > last_frame_seen + 1)
@@ -121,13 +121,15 @@ void PPI_TitleScreen(void)
 
 void MenuItem_TitleScreen_Resume(void)
 {
+	ASSERT(g_current_game_state == GS_TITLE_SCREEN, "Invalid game state!");
 	g_previous_game_state = g_current_game_state;
 	g_current_game_state = GS_OVERWORLD;
+	LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_current_game_state, g_previous_game_state, gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Name, gMenu_TitleScreen.Name);
 }
 
 void MenuItem_TitleScreen_StartNew(void)
 {
-
+	ASSERT(g_current_game_state == GS_TITLE_SCREEN, "Invalid game state!");
 	if (g_player.Active == TRUE)
 	{
 		g_previous_game_state = g_current_game_state;
@@ -138,7 +140,7 @@ void MenuItem_TitleScreen_StartNew(void)
 		g_previous_game_state = g_current_game_state;
 		g_current_game_state = GS_CHARACTER_NAMING;
 	}
-
+	LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_previous_game_state, g_current_game_state, gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Name, gMenu_TitleScreen.Name);
 }
 
 void MenuItem_TitleScreen_LoadSaved(void)
@@ -148,13 +150,17 @@ void MenuItem_TitleScreen_LoadSaved(void)
 
 void MenuItem_TitleScreen_Options(void)
 {
+	ASSERT(g_current_game_state == GS_TITLE_SCREEN, "Invalid game state!");
 	g_previous_game_state = g_current_game_state;
 	g_current_game_state = GS_OPTIONS_SCREEN;
+	LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_previous_game_state, g_current_game_state, gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Name, gMenu_TitleScreen.Name);
 }
 
 void MenuItem_TitleScreen_Exit(void)
 {
+	ASSERT(g_current_game_state == GS_TITLE_SCREEN, "Invalid game state!");
 	g_previous_game_state = g_current_game_state;
 	g_current_game_state = GS_EXIT_YES_NO_SCREEN;
+	LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_previous_game_state, g_current_game_state, gMenu_TitleScreen.Items[gMenu_TitleScreen.SelectedItem]->Name, gMenu_TitleScreen.Name);
 }
 

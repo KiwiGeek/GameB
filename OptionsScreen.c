@@ -11,7 +11,7 @@ MENU gMenu_OptionsScreen = { "Options", 0, _countof(gMI_OptionsScreenItems), gMI
 void DrawOptionsScreen(void)
 {
 	static uint64_t local_frame_counter;
-	static uint64_t last_frame_seen;
+	static uint64_t last_frame_seen = 0;
 	static PIXEL32 text_color = { {0x00, 0x00, 0x00, 0x00} };
 	char screen_size_string[64] = { 0 };
 
@@ -127,8 +127,10 @@ void PPI_OptionsScreen(void)
 
 void MenuItem_OptionsScreen_Back(void)
 {
+	ASSERT(g_current_game_state == GS_OPTIONS_SCREEN, "Invalid game state!");
 	g_current_game_state = g_previous_game_state;
 	g_previous_game_state = GS_OPTIONS_SCREEN;
+	LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_previous_game_state, g_current_game_state, gMenu_OptionsScreen.Items[gMenu_OptionsScreen.SelectedItem]->Name, gMenu_OptionsScreen.Name);
 	if (SaveRegistryParameters() != ERROR_SUCCESS)
 	{
 		LogMessageA(LL_ERROR, "[%s] SaveRegistryParameters failed!", __FUNCTION__);

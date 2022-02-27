@@ -12,7 +12,7 @@ void DrawExitYesNoScreen(void)
 {
 
 	static uint64_t local_frame_counter;
-	static uint64_t last_frame_seen;
+	static uint64_t last_frame_seen = 0;
 	static PIXEL32 text_color;
 
 	if (g_performance_data.TotalFramesRendered > (last_frame_seen+ 1))
@@ -71,11 +71,15 @@ void PPI_ExitYesNo(void)
 
 void MenuItem_ExitYesNo_Yes(void)
 {
+	ASSERT(g_current_game_state == GS_EXIT_YES_NO_SCREEN, "Invalid game state!");
+	LogMessageA(LL_INFO, "[%s] Player chose 'Yes' when asked 'Do you really want to exit the game?'", __FUNCTION__);
 	SendMessageA(g_game_window, WM_CLOSE, 0, 0);
 }
 
 void MenuItem_ExitYesNo_No(void)
 {
+	ASSERT(g_current_game_state == GS_EXIT_YES_NO_SCREEN, "Invalid game state!");
 	g_current_game_state = g_previous_game_state;
 	g_previous_game_state = GS_EXIT_YES_NO_SCREEN;
+	LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_previous_game_state, g_current_game_state, gMenu_ExitYesNo.Items[gMenu_ExitYesNo.SelectedItem]->Name, gMenu_ExitYesNo.Name);
 }

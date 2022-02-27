@@ -130,7 +130,8 @@ typedef enum WINDOW_FLAGS
 	WF_VERTICALLY_CENTERED = 8,
 	WF_SHADOWED = 16,
 	WF_SHAKE = 32,
-	WF_ROUNDED_CORNERS = 64
+	WF_ROUNDED_CORNERS = 64,
+	WF_THICK = 128
 } WINDOW_FLAGS;
 
 typedef struct UPOINT
@@ -344,5 +345,6 @@ void StopMusic(void);
 BOOL MusicIsPlaying(void);
 DWORD AssetLoadingThreadProc(_In_ LPVOID Param);
 void DrawWindow(_In_opt_ uint16_t X,_In_opt_ uint16_t Y,_In_ int16_t Width,_In_ int16_t Height,_In_opt_ PIXEL32* BorderColor,_In_opt_ PIXEL32* BackgroundColor,_In_opt_ PIXEL32* ShadowColor,_In_ DWORD Flags);
-void DrawWindowThick(_In_opt_ uint16_t X, _In_opt_ uint16_t y, _In_ int16_t Width, _In_ int16_t Height, _In_opt_ PIXEL32* BorderColor, _In_opt_ PIXEL32* BackgroundColor, _In_opt_ PIXEL32* ShadowColor, _In_ DWORD Flags);
 void ApplyFadeIn(_In_ uint64_t FrameCounter, _In_ PIXEL32 DefaultTextColor, _Inout_ PIXEL32* TextColor, _Inout_opt_ int16_t* BrightnessAdjustment);
+int64_t FileSizeA(_In_ const char* FileName);
+void DrawPlayerStatsWindow(PIXEL32* FadeColor);

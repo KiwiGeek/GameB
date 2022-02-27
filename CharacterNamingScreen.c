@@ -84,7 +84,7 @@ MENU gMenu_CharacterNaming = { "What's your name, hero?", 0, _countof(gMI_Charac
 void DrawCharacterNamingScreen(void)
 {
 	static uint64_t local_frame_counter;
-	static uint64_t last_frame_seen;
+	static uint64_t last_frame_seen = 0;
 	static PIXEL32 text_color;
 	static int16_t brightness_adjustment = -255;
 
@@ -101,8 +101,19 @@ void DrawCharacterNamingScreen(void)
 
 	ApplyFadeIn(local_frame_counter, COLOR_NES_WHITE, &text_color, &brightness_adjustment);
 
-	DrawWindowThick(108, 11, 166, 18, &text_color, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED | WF_ROUNDED_CORNERS);
+	DrawWindow(108, 11, 166, 18, &text_color, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED | WF_ROUNDED_CORNERS | WF_THICK);
 	DrawWindow(108, 105, 166, 60, &text_color, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED);
+	DrawWindow(16, 60, 16, 16, NULL, &COLOR_NES_BLACK, NULL, WF_OPAQUE);
+	DrawWindow(34, 60, 16, 16, NULL, &COLOR_NES_BLACK, NULL, WF_OPAQUE | WF_ROUNDED_CORNERS);
+	DrawWindow(52, 60, 16, 16, &text_color, NULL, NULL, WF_BORDERED);
+	DrawWindow(70, 60, 16, 16, &text_color, &COLOR_NES_BLACK, NULL, WF_BORDERED | WF_OPAQUE);
+	DrawWindow(88, 60, 16, 16, &text_color, &COLOR_NES_BLACK, NULL, WF_BORDERED | WF_OPAQUE | WF_ROUNDED_CORNERS);
+	DrawWindow(106, 60, 16, 16, NULL, &COLOR_NES_WHITE, &COLOR_NES_BLACK, WF_OPAQUE | WF_SHADOWED);
+	DrawWindow(124, 60, 16, 16, &COLOR_NES_WHITE, &COLOR_NES_BLACK, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED);
+	DrawWindow(142, 60, 16, 16, &COLOR_NES_WHITE, &COLOR_NES_BLACK, &COLOR_NES_BLACK, WF_BORDERED | WF_SHADOWED | WF_ROUNDED_CORNERS);
+	DrawWindow(160, 60, 16, 16, &COLOR_NES_WHITE, NULL, NULL, WF_BORDERED | WF_THICK);
+	DrawWindow(178, 60, 16, 16, &COLOR_NES_WHITE, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_THICK | WF_SHADOWED);
+	DrawWindow(196, 60, 16, 16, &COLOR_NES_WHITE, NULL, &COLOR_NES_BLACK, WF_BORDERED | WF_THICK | WF_SHADOWED | WF_ROUNDED_CORNERS);
 
 	BlitStringToBuffer(gMenu_CharacterNaming.Name, &g_6x7_font, &text_color, (int16_t)((GAME_RES_WIDTH / 2) - (uint16_t)(strlen(gMenu_CharacterNaming.Name) * 6 / 2)), 16);
 	Blit32BppBitmapToBuffer(&g_player.Sprite[SUIT_0][FACING_DOWN_0], 153, 80, brightness_adjustment);
@@ -254,8 +265,10 @@ void MenuItem_CharacterNaming_Back(void)
 {
 	if (strlen(g_player.Name) < 1)
 	{
+		ASSERT(g_current_game_state == GS_CHARACTER_NAMING, "Invalid game state!");
 		g_previous_game_state = g_current_game_state;
 		g_current_game_state = GS_TITLE_SCREEN;
+		LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_previous_game_state, g_current_game_state, gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Name, gMenu_CharacterNaming.Name);
 	}
 	else
 	{
@@ -269,8 +282,10 @@ void MenuItem_CharacterNaming_OK(void)
 {
 	if (strlen(g_player.Name) > 0)
 	{
+		ASSERT(g_current_game_state == GS_CHARACTER_NAMING, "Invalid game state!");
 		g_previous_game_state = g_current_game_state;
 		g_current_game_state = GS_OVERWORLD;
+		LogMessageA(LL_INFO, "[%s] Transitioning from game state %d to %d. Player selected '%s' from '%s' menu.", __FUNCTION__, g_previous_game_state, g_current_game_state, gMenu_CharacterNaming.Items[gMenu_CharacterNaming.SelectedItem]->Name, gMenu_CharacterNaming.Name);
 		g_player.Active = TRUE;
 
 		PlayGameSound(&g_sound_menu_choose);
